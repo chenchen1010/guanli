@@ -322,6 +322,380 @@
             color: #1890ff;
             font-weight: 500;
         }
+        
+        /* 商品详情模态框样式 */
+        .product-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .product-modal-content {
+            background-color: #f5f5f5;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 750px;
+            position: relative;
+            animation: modalFadeIn 0.3s;
+        }
+        
+        @keyframes modalFadeIn {
+            from {opacity: 0; transform: translateY(15px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        
+        .modal-header {
+            background-color: #fff;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-back-button {
+            width: 24px;
+            height: 24px;
+            margin-right: 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .modal-header-right {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .modal-close {
+            color: #333;
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 330px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .price-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .current-price {
+            color: #f50;
+            font-size: 28px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .original-price {
+            color: #999;
+            text-decoration: line-through;
+            font-size: 16px;
+        }
+        
+        .stock-info {
+            float: right;
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .product-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 15px 0;
+        }
+        
+        .info-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .info-item {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .info-label {
+            width: 100px;
+            color: #666;
+        }
+        
+        .info-value {
+            flex: 1;
+        }
+        
+        .detail-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .detail-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            border-left: 3px solid #f50;
+            padding-left: 10px;
+        }
+        
+        .detail-content {
+            line-height: 1.6;
+        }
+        
+        .detail-list {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .detail-list li {
+            margin-bottom: 10px;
+        }
+        
+        .detail-image {
+            width: 100%;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .notice-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 80px;
+        }
+        
+        .modal-footer {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            display: flex;
+            height: 60px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .footer-left {
+            display: flex;
+            padding: 0 10px;
+        }
+        
+        .footer-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 15px;
+            color: #666;
+            font-size: 12px;
+            background: none;
+            border: none;
+        }
+        
+        .footer-button i {
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+        
+        .buy-button {
+            flex: 1;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .course-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .course-table th, .course-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .course-table th {
+            background-color: #f2f2f2;
+        }
+        
+        /* 轮播图样式增强 */
+        .slider-container {
+            position: relative;
+        }
+        
+        .slider-image-container {
+            position: relative;
+            overflow: hidden;
+            height: 330px;
+        }
+        
+        .slider-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            object-fit: cover;
+        }
+        
+        .slider-image.active {
+            opacity: 1;
+        }
+        
+        .slider-dots {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 10;
+        }
+        
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .slider-dot.active {
+            background-color: #fff;
+        }
+        
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: rgba(0,0,0,0.3);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease;
+        }
+        
+        .slider-arrow:hover {
+            background-color: rgba(0,0,0,0.6);
+        }
+        
+        .slider-arrow.prev {
+            left: 10px;
+        }
+        
+        .slider-arrow.next {
+            right: 10px;
+        }
+
+        /* 图片放大模态框样式 */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .fullscreen-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .fullscreen-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-prev {
+            left: 20px;
+        }
+
+        .fullscreen-next {
+            right: 20px;
+        }
+
+        .slider-image-container img {
+            cursor: zoom-in;
+        }
+
+        .detail-image {
+            cursor: zoom-in;
+        }
     </style>
 </head>
 <body>
@@ -408,6 +782,44 @@
     <button class="refresh-button" id="refreshButton">
         <span class="icon"></span>更新数据
     </button>
+
+    <!-- 添加商品详情模态框 -->
+    <div id="productDetailModal" class="product-modal">
+        <div class="product-modal-content">
+            <div class="modal-header">
+                <button class="modal-back-button" onclick="closeProductModal()">&lt;</button>
+                <div class="modal-title">商品详情</div>
+                <div class="modal-header-right">
+                    <button class="modal-close" onclick="closeProductModal()">×</button>
+                </div>
+            </div>
+            <div id="productContent">
+                <!-- 这里将通过JavaScript动态填充内容 -->
+                <div class="loading" style="text-align: center; padding: 30px;">加载中...</div>
+            </div>
+            <div class="modal-footer">
+                <div class="footer-left">
+                    <button class="footer-button">
+                        <i>🏠</i>
+                        <span>首页</span>
+                    </button>
+                    <button class="footer-button">
+                        <i>🔄</i>
+                        <span>分享</span>
+                    </button>
+                </div>
+                <button class="buy-button">立即购买</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加全屏图片查看模态框 -->
+    <div id="fullscreenModal" class="fullscreen-modal">
+        <div class="fullscreen-close" onclick="closeFullscreenModal()">×</div>
+        <div class="fullscreen-nav fullscreen-prev" onclick="prevFullscreenImage()">&lt;</div>
+        <img id="fullscreenImage" class="fullscreen-image" src="" alt="全屏图片">
+        <div class="fullscreen-nav fullscreen-next" onclick="nextFullscreenImage()">&gt;</div>
+    </div>
 
     <script>
         // 定义区域顺序
@@ -616,8 +1028,23 @@
                                 td.style.textAlign = 'center';
                             } else {
                                 const value = record.fields[key];
+                                // 处理商品名称点击跳转
+                                if (key === '商品名称' && value) {
+                                    const link = document.createElement('a');
+                                    link.innerHTML = formatValue(value, config);
+                                    link.href = "javascript:void(0)";
+                                    link.style.color = '#1890ff';
+                                    link.style.textDecoration = 'none';
+                                    link.style.cursor = 'pointer';
+                                    link.title = '点击查看详情';
+                                    link.setAttribute('data-record-id', record.record_id);
+                                    link.addEventListener('click', function() {
+                                        showProductDetail(record.record_id);
+                                    });
+                                    td.appendChild(link);
+                                } 
                                 // 处理约课信息的显示
-                                if (key === '上课时间' && value) {
+                                else if (key === '上课时间' && value) {
                                     const bookingInfo = record.fields['约课说明'] || record.fields['约课'] || record.fields['备注'];
                                     let displayValue = formatValue(value, config);
                                     
@@ -841,6 +1268,430 @@
         // 初始加载数据
         window.addEventListener('load', () => {
             fetchTableData(false); // 默认从缓存加载
+        });
+
+        // 商品详情相关函数
+        function showProductDetail(recordId) {
+            const productModal = document.getElementById('productDetailModal');
+            const productContent = document.getElementById('productContent');
+            productContent.innerHTML = '<div class="loading" style="text-align: center; padding: 30px;">加载中...</div>';
+            productModal.style.display = 'block';
+            
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+            
+            // 查找商品数据
+            if (allDataCache) {
+                const product = allDataCache.items.find(item => item.record_id === recordId);
+                if (product) {
+                    renderProductDetail(product);
+                } else {
+                    showProductError('未找到商品信息');
+                }
+            } else {
+                showProductError('数据加载中，请稍后再试');
+            }
+        }
+        
+        function closeProductModal() {
+            const productModal = document.getElementById('productDetailModal');
+            productModal.style.display = 'none';
+            
+            // 恢复背景滚动
+            document.body.style.overflow = 'auto';
+        }
+        
+        function showProductError(message) {
+            document.getElementById('productContent').innerHTML = `
+                <div style="text-align: center; padding: 30px; color: #ff4444;">
+                    <p>${message}</p>
+                    <button onclick="closeProductModal()" style="padding: 8px 16px; margin-top: 20px;">关闭</button>
+                </div>
+            `;
+        }
+        
+        function renderProductDetail(product) {
+            const fields = product.fields;
+            
+            // 调试图片数据
+            console.log('图片数据:', fields['轮播图']);
+            
+            // 获取轮播图链接
+            let imageUrls = [];
+            if (fields['轮播图'] && fields['轮播图'].link && typeof fields['轮播图'].link === 'string') {
+                // 轮播图链接以逗号分隔
+                imageUrls = fields['轮播图'].link.split(',').filter(url => url.trim() !== '');
+            } else if (fields['轮播图'] && typeof fields['轮播图'] === 'string') {
+                // 轮播图直接是字符串的情况
+                imageUrls = fields['轮播图'].split(',').filter(url => url.trim() !== '');
+            }
+            
+            console.log('处理后的图片链接:', imageUrls);
+            
+            // 构建图片HTML
+            let imagesHtml = '';
+            if (imageUrls.length > 0) {
+                // 处理图片链接
+                const processedImages = imageUrls.map(url => {
+                    if (typeof url === 'string' && url.trim() !== '') {
+                        // 如果链接格式不完整，添加前缀
+                        if (!url.startsWith('http') && !url.startsWith('/')) {
+                            return 'https://' + url;
+                        }
+                        return url;
+                    }
+                    return null;
+                }).filter(url => url !== null);
+                
+                if (processedImages.length > 0) {
+                    // 构建轮播图HTML
+                    let sliderImagesHtml = '';
+                    processedImages.forEach((url, index) => {
+                        sliderImagesHtml += `
+                            <img 
+                                src="${url}" 
+                                class="slider-image ${index === 0 ? 'active' : ''}" 
+                                alt="课程图片 ${index + 1}"
+                                data-index="${index}"
+                                data-fullsize="${url}"
+                                onclick="showFullscreenImage(this)"
+                                onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'300\\' height=\\'200\\' viewBox=\\'0 0 300 200\\'%3E%3Crect width=\\'300\\' height=\\'200\\' fill=\\'%23f0f0f0\\' /%3E%3Ctext x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'16\\' fill=\\'%23999\\'%3E图片加载失败%3C/text%3E%3C/svg%3E';"
+                            >
+                        `;
+                    });
+                    
+                    // 构建指示点
+                    let dotsHtml = '';
+                    processedImages.forEach((_, index) => {
+                        dotsHtml += `<div class="slider-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>`;
+                    });
+                    
+                    // 添加箭头按钮（仅当有多张图片时）
+                    const arrowsHtml = processedImages.length > 1 ? `
+                        <div class="slider-arrow prev" onclick="prevSlide()">&lt;</div>
+                        <div class="slider-arrow next" onclick="nextSlide()">&gt;</div>
+                    ` : '';
+                    
+                    imagesHtml = `
+                        <div class="slider-container" id="product-slider" data-current="0" data-total="${processedImages.length}">
+                            <div class="slider-image-container">
+                                ${sliderImagesHtml}
+                            </div>
+                            ${arrowsHtml}
+                            <div class="slider-dots">
+                                ${dotsHtml}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    imagesHtml = `
+                        <div class="slider-container">
+                            <div style="height:330px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;">
+                                <span>暂无图片</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                imagesHtml = `
+                    <div class="slider-container">
+                        <div style="height:330px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;">
+                            <span>暂无图片</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 构建详情图HTML
+            let detailImagesHtml = '';
+            if (imageUrls.length > 1) {
+                // 显示除第一张外的所有图片
+                for (let i = 1; i < imageUrls.length; i++) {
+                    let imgUrl = imageUrls[i];
+                    // 处理图片链接格式
+                    if (typeof imgUrl === 'string' && imgUrl.trim() !== '') {
+                        // 如果链接格式不完整，添加前缀
+                        if (!imgUrl.startsWith('http') && !imgUrl.startsWith('/')) {
+                            imgUrl = 'https://' + imgUrl;
+                        }
+                        
+                        detailImagesHtml += `<img src="${imgUrl}" class="detail-image" alt="课程详情" data-fullsize="${imgUrl}" onclick="showFullscreenImage(this)" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'300\\' height=\\'200\\' viewBox=\\'0 0 300 200\\'%3E%3Crect width=\\'300\\' height=\\'200\\' fill=\\'%23f0f0f0\\' /%3E%3Ctext x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'16\\' fill=\\'%23999\\'%3E图片加载失败%3C/text%3E%3C/svg%3E';">`;
+                    }
+                }
+            }
+            
+            // 处理商品详情字段内容
+            let productDetailContent = '';
+            if (fields['商品详情'] && typeof fields['商品详情'] === 'string') {
+                productDetailContent = fields['商品详情'].replace(/\n/g, '<br>');
+            } else {
+                // 如果没有商品详情字段，则显示默认内容
+                productDetailContent = `
+                    <p>课程地址：${fields['机构地址'] || '待定'}</p>
+                    <p>课程时间：${fields['上课时间'] || '见下图'}</p>
+                    <p>课程安排：共${fields['节数'] || '10'}节课，每节课${fields['课时'] || '45'}分钟；${fields['频率'] || '5次课'}，一周一次，一次学2课时；</p>
+                    <p>开课人数：${fields['最少上课人数'] || '见下图'}</p>
+                    <p>费用：¥${fields['会员价格'] || '见下图'}</p>
+                    <p>其他：${fields['备注'] || '缺课有1次免费补课机会，提前和老师约时间跟后续的班级一起学习。停车5元/小时'}</p>
+                `;
+            }
+            
+            // 构建商品详情HTML
+            let html = `
+                <!-- 商品图片 -->
+                ${imagesHtml}
+                
+                <!-- 价格区域 -->
+                <div class="price-section">
+                    <span class="current-price">¥${fields['会员价格'] || '0'}</span>
+                    <span class="original-price">¥${Math.ceil(parseFloat(fields['会员价格'] || 0) * 1.5)}</span>
+                    <span class="stock-info">库存 ${fields['最大上课人数'] || '0'} 已售${Math.floor(Math.random() * 100)}</span>
+                    <div class="product-title">${fields['商品名称'] || '未命名商品'}</div>
+                </div>
+                
+                <!-- 基本信息 -->
+                <div class="info-section">
+                    <div class="info-item">
+                        <div class="info-label">开课人数</div>
+                        <div class="info-value">${fields['最少上课人数'] || '0'}-${fields['最大上课人数'] || '0'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">上课地点</div>
+                        <div class="info-value">${fields['机构地址'] || '待定'}</div>
+                    </div>
+                </div>
+                
+                <!-- 商品详情 -->
+                <div class="detail-section">
+                    <div class="detail-title">商品详情</div>
+                    <div class="detail-content">
+                        ${productDetailContent}
+                        
+                        ${fields['课表'] ? `
+                        <table class="course-table">
+                            <tr>
+                                <th>课程名称</th>
+                                <th>价格</th>
+                                <th>节数</th>
+                                <th>上课时间</th>
+                                <th>地点</th>
+                                <th>人数</th>
+                            </tr>
+                            <tr>
+                                <td>${fields['商品名称'] || ''}</td>
+                                <td>${fields['会员价格'] || ''}</td>
+                                <td>${fields['节数'] || '10'}</td>
+                                <td>${fields['上课时间'] || ''}</td>
+                                <td>${fields['机构地址'] || ''}</td>
+                                <td>${fields['最少上课人数'] || '0'}-${fields['最大上课人数'] || '0'}</td>
+                            </tr>
+                        </table>
+                        ` : ''}
+                        
+                        ${detailImagesHtml}
+                    </div>
+                </div>
+                
+                <!-- 购买须知 -->
+                <div class="notice-section">
+                    <div class="detail-title">购买须知</div>
+                    <div class="detail-content">
+                        <h4>报名流程：</h4>
+                        <ol class="detail-list">
+                            <li>确认课程内容、上课时间和地址，明确报名意向；</li>
+                            <li>支付课程全款，以此作为报名依据。如未成团随时退全款。</li>
+                            <li>已成团，确认出勤未到的，按平均课时费扣除第一次课费用，不能转下一期；已上课的，第一节课后至次日中午12点前觉得不合适，后续不上课，按平均课时费扣除第一次课费用，差价退款。</li>
+                            <li>加大助理微信：hzyx202401，发核销码拉你进课程预备群，人齐后开课；</li>
+                            <li>愉快完成后续课程，学有所成。第一节课次日中午12点后，不再接受任何形式的退款。</li>
+                        </ol>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('productContent').innerHTML = html;
+            document.querySelector('.modal-title').textContent = fields['商品名称'] || '商品详情';
+            
+            // 添加点击事件
+            setTimeout(function() {
+                // 为轮播点添加点击事件
+                const dots = document.querySelectorAll('.slider-dot');
+                dots.forEach(dot => {
+                    dot.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        showSlide(index);
+                    });
+                });
+            }, 100);
+        }
+        
+        // 轮播图控制函数
+        function showSlide(index) {
+            const slider = document.getElementById('product-slider');
+            if (!slider) return;
+            
+            const total = parseInt(slider.getAttribute('data-total'));
+            const current = parseInt(slider.getAttribute('data-current'));
+            
+            // 隐藏当前幻灯片
+            const currentSlide = slider.querySelector(`.slider-image[data-index="${current}"]`);
+            const currentDot = slider.querySelector(`.slider-dot[data-index="${current}"]`);
+            
+            if (currentSlide) currentSlide.classList.remove('active');
+            if (currentDot) currentDot.classList.remove('active');
+            
+            // 显示新幻灯片
+            const newSlide = slider.querySelector(`.slider-image[data-index="${index}"]`);
+            const newDot = slider.querySelector(`.slider-dot[data-index="${index}"]`);
+            
+            if (newSlide) newSlide.classList.add('active');
+            if (newDot) newDot.classList.add('active');
+            
+            // 更新当前索引
+            slider.setAttribute('data-current', index);
+        }
+        
+        function nextSlide() {
+            const slider = document.getElementById('product-slider');
+            if (!slider) return;
+            
+            const total = parseInt(slider.getAttribute('data-total'));
+            const current = parseInt(slider.getAttribute('data-current'));
+            
+            const nextIndex = (current + 1) % total;
+            showSlide(nextIndex);
+        }
+        
+        function prevSlide() {
+            const slider = document.getElementById('product-slider');
+            if (!slider) return;
+            
+            const total = parseInt(slider.getAttribute('data-total'));
+            const current = parseInt(slider.getAttribute('data-current'));
+            
+            const prevIndex = (current - 1 + total) % total;
+            showSlide(prevIndex);
+        }
+        
+        // 全屏图片查看相关函数
+        let currentFullscreenImages = [];
+        let currentFullscreenIndex = 0;
+
+        function showFullscreenImage(imgElement) {
+            // 阻止事件冒泡，防止触发轮播图切换
+            event.stopPropagation();
+            
+            // 获取当前产品所有图片
+            const slider = document.getElementById('product-slider');
+            const detailImages = document.querySelectorAll('.detail-image');
+            
+            // 收集所有图片URL
+            currentFullscreenImages = [];
+            
+            // 先添加轮播图中的图片
+            if (slider) {
+                const sliderImages = slider.querySelectorAll('.slider-image');
+                sliderImages.forEach(img => {
+                    if (img.getAttribute('data-fullsize')) {
+                        currentFullscreenImages.push(img.getAttribute('data-fullsize'));
+                    }
+                });
+            }
+            
+            // 然后添加详情中的图片（如果不在轮播图中）
+            detailImages.forEach(img => {
+                if (img.getAttribute('data-fullsize')) {
+                    const url = img.getAttribute('data-fullsize');
+                    if (!currentFullscreenImages.includes(url)) {
+                        currentFullscreenImages.push(url);
+                    }
+                }
+            });
+            
+            // 如果没有图片，直接返回
+            if (currentFullscreenImages.length === 0) return;
+            
+            // 找到当前点击的图片的索引
+            const clickedUrl = imgElement.getAttribute('data-fullsize');
+            currentFullscreenIndex = currentFullscreenImages.indexOf(clickedUrl);
+            if (currentFullscreenIndex === -1) currentFullscreenIndex = 0;
+            
+            // 显示全屏模态框
+            const modal = document.getElementById('fullscreenModal');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            
+            fullscreenImage.src = currentFullscreenImages[currentFullscreenIndex];
+            modal.style.display = 'flex';
+            
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+            
+            // 显示/隐藏导航按钮
+            const prevBtn = document.querySelector('.fullscreen-prev');
+            const nextBtn = document.querySelector('.fullscreen-next');
+            
+            if (currentFullscreenImages.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+            }
+        }
+
+        function closeFullscreenModal() {
+            const modal = document.getElementById('fullscreenModal');
+            modal.style.display = 'none';
+            
+            // 恢复背景滚动
+            document.body.style.overflow = 'auto';
+        }
+
+        function nextFullscreenImage() {
+            if (currentFullscreenImages.length <= 1) return;
+            
+            currentFullscreenIndex = (currentFullscreenIndex + 1) % currentFullscreenImages.length;
+            document.getElementById('fullscreenImage').src = currentFullscreenImages[currentFullscreenIndex];
+        }
+
+        function prevFullscreenImage() {
+            if (currentFullscreenImages.length <= 1) return;
+            
+            currentFullscreenIndex = (currentFullscreenIndex - 1 + currentFullscreenImages.length) % currentFullscreenImages.length;
+            document.getElementById('fullscreenImage').src = currentFullscreenImages[currentFullscreenIndex];
+        }
+
+        // 键盘导航支持
+        document.addEventListener('keydown', function(event) {
+            const fullscreenModal = document.getElementById('fullscreenModal');
+            if (fullscreenModal.style.display === 'flex') {
+                // ESC键关闭全屏
+                if (event.key === 'Escape') {
+                    closeFullscreenModal();
+                }
+                // 左右箭头切换图片
+                else if (event.key === 'ArrowLeft') {
+                    prevFullscreenImage();
+                }
+                else if (event.key === 'ArrowRight') {
+                    nextFullscreenImage();
+                }
+            } else if (event.key === 'Escape') {
+                closeProductModal();
+            }
+        });
+
+        // 点击全屏模态框外部区域关闭
+        document.getElementById('fullscreenModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeFullscreenModal();
+            }
+        });
+
+        // 点击商品详情模态框外部关闭
+        document.getElementById('productDetailModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeProductModal();
+            }
         });
     </script>
 </body>

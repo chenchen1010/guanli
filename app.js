@@ -175,11 +175,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 商品详情页路由
-app.get('/product/detail', (req, res) => {
-    res.sendFile(path.join(__dirname, 'product_detail.html'));
-});
-
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
 }); 
