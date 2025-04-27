@@ -343,6 +343,7 @@
             max-width: 750px;
             position: relative;
             animation: modalFadeIn 0.3s;
+            padding-bottom: 30px; /* 添加底部内边距，确保内容完全可见 */
         }
         
         @keyframes modalFadeIn {
@@ -488,51 +489,9 @@
         .notice-section {
             background-color: #fff;
             padding: 20px;
-            margin-bottom: 80px;
+            margin-bottom: 30px; /* 修改底部边距 */
         }
-        
-        .modal-footer {
-            position: sticky;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #fff;
-            display: flex;
-            height: 60px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .footer-left {
-            display: flex;
-            padding: 0 10px;
-        }
-        
-        .footer-button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 5px 15px;
-            color: #666;
-            font-size: 12px;
-            background: none;
-            border: none;
-        }
-        
-        .footer-button i {
-            font-size: 20px;
-            margin-bottom: 3px;
-        }
-        
-        .buy-button {
-            flex: 1;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        
+
         .course-table {
             width: 100%;
             border-collapse: collapse;
@@ -796,19 +755,6 @@
             <div id="productContent">
                 <!-- 这里将通过JavaScript动态填充内容 -->
                 <div class="loading" style="text-align: center; padding: 30px;">加载中...</div>
-            </div>
-            <div class="modal-footer">
-                <div class="footer-left">
-                    <button class="footer-button">
-                        <i>🏠</i>
-                        <span>首页</span>
-                    </button>
-                    <button class="footer-button">
-                        <i>🔄</i>
-                        <span>分享</span>
-                    </button>
-                </div>
-                <button class="buy-button">立即购买</button>
             </div>
         </div>
     </div>
@@ -1436,6 +1382,15 @@
                 `;
             }
             
+            // 处理购买须知字段内容
+            let purchaseNoticeContent = '';
+            if (fields['购买须知'] && typeof fields['购买须知'] === 'string') {
+                purchaseNoticeContent = fields['购买须知'].replace(/\n/g, '<br>');
+            } else {
+                // 如果没有购买须知字段，则显示"无"
+                purchaseNoticeContent = '无';
+            }
+            
             // 构建商品详情HTML
             let html = `
                 <!-- 商品图片 -->
@@ -1496,14 +1451,7 @@
                 <div class="notice-section">
                     <div class="detail-title">购买须知</div>
                     <div class="detail-content">
-                        <h4>报名流程：</h4>
-                        <ol class="detail-list">
-                            <li>确认课程内容、上课时间和地址，明确报名意向；</li>
-                            <li>支付课程全款，以此作为报名依据。如未成团随时退全款。</li>
-                            <li>已成团，确认出勤未到的，按平均课时费扣除第一次课费用，不能转下一期；已上课的，第一节课后至次日中午12点前觉得不合适，后续不上课，按平均课时费扣除第一次课费用，差价退款。</li>
-                            <li>加大助理微信：hzyx202401，发核销码拉你进课程预备群，人齐后开课；</li>
-                            <li>愉快完成后续课程，学有所成。第一节课次日中午12点后，不再接受任何形式的退款。</li>
-                        </ol>
+                        ${purchaseNoticeContent}
                     </div>
                 </div>
             `;
