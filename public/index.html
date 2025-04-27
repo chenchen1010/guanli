@@ -190,11 +190,11 @@
             display: inline-block;
         }
         
-        /* 搜索框样式 */
-        .search-container {
+        /* 搜索和筛选容器样式 */
+        .filter-container {
             margin: 20px 0;
             display: flex;
-            gap: 10px;
+            gap: 20px;
             align-items: center;
         }
         
@@ -204,6 +204,14 @@
             border-radius: 4px;
             width: 300px;
             font-size: 14px;
+        }
+
+        .area-filter {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 120px;
         }
         
         /* 排序图标样式 */
@@ -229,20 +237,164 @@
             content: '↓';
             color: #3370ff;
         }
+
+        /* 多选下拉框样式 */
+        .multiselect-container {
+            position: relative;
+            min-width: 200px;
+        }
+        
+        .multiselect-dropdown {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .multiselect-dropdown::after {
+            content: '▼';
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        .multiselect-dropdown.active::after {
+            content: '▲';
+        }
+        
+        .multiselect-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .multiselect-options.show {
+            display: block;
+        }
+        
+        .multiselect-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .multiselect-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .multiselect-option input[type="checkbox"] {
+            margin: 0;
+        }
+        
+        .selected-count {
+            background-color: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        /* 搜索提示样式 */
+        .search-tips {
+            font-size: 12px;
+            color: #666;
+            margin: 4px 0 0 12px;
+        }
+        
+        /* 约课信息高亮样式 */
+        .booking-info {
+            color: #1890ff;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>杭州新青年夜校课表</h1>
         
-        <!-- 搜索框 -->
-        <div class="search-container">
-            <input 
-                type="text" 
-                id="searchInput" 
-                class="search-input" 
-                placeholder="搜索课程名称、区域、机构名称..."
-            >
+        <!-- 搜索和筛选区域 -->
+        <div class="filter-container">
+            <div style="flex: 1;">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="搜索课程名称、机构名称、上课时间（如：周一、周二）..."
+                >
+                <div class="search-tips">支持搜索：课程名称、机构名称、上课时间（周一~周日）</div>
+            </div>
+            <div class="multiselect-container">
+                <div class="multiselect-dropdown" id="areaDropdown">
+                    选择区域
+                    <span class="selected-count" style="display: none;"></span>
+                </div>
+                <div class="multiselect-options" id="areaOptions">
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="selectAll">
+                        <label for="selectAll">全选/取消全选</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="多区域可选" id="area-多区域可选">
+                        <label for="area-多区域可选">多区域可选</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="上城区" id="area-上城区">
+                        <label for="area-上城区">上城区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="西湖区" id="area-西湖区">
+                        <label for="area-西湖区">西湖区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="拱墅区" id="area-拱墅区">
+                        <label for="area-拱墅区">拱墅区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="滨江区" id="area-滨江区">
+                        <label for="area-滨江区">滨江区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="余杭区" id="area-余杭区">
+                        <label for="area-余杭区">余杭区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="萧山区" id="area-萧山区">
+                        <label for="area-萧山区">萧山区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="钱塘区" id="area-钱塘区">
+                        <label for="area-钱塘区">钱塘区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="富阳区" id="area-富阳区">
+                        <label for="area-富阳区">富阳区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="临平区" id="area-临平区">
+                        <label for="area-临平区">临平区</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" value="临安区" id="area-临安区">
+                        <label for="area-临安区">临安区</label>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div id="loading" class="loading">正在加载数据...</div>
@@ -255,28 +407,40 @@
     </div>
 
     <script>
-        // 定义列的默认配置和显示顺序
+        // 定义区域顺序
+        const areaOrder = [
+            '多区域可选',
+            '上城区',
+            '西湖区',
+            '拱墅区',
+            '滨江区',
+            '余杭区',
+            '萧山区',
+            '钱塘区',
+            '富阳区',
+            '临平区',
+            '临安区'
+        ];
+
+        // 列配置
         const defaultColumnConfig = {
             '序号': {
                 width: '5%',
                 order: 0,
-                isIndex: true // 标记这是序号列
+                isIndex: true
             },
             '杭州分区': { 
                 width: '10%',
-                order: 1,
-                sortable: true
+                order: 1
             },
             '商品名称': { 
                 width: '15%',
                 order: 2,
-                format: (value) => value.replace(/【|】/g, ''),
-                sortable: true
+                format: (value) => value.replace(/【|】/g, '')
             },
             '上课时间': { 
                 width: '12%',
-                order: 3,
-                sortable: true
+                order: 3
             },
             '机构地址': { 
                 width: '20%',
@@ -284,30 +448,191 @@
             },
             '最少上课人数': { 
                 width: '8%',
-                order: 5,
-                sortable: true
+                order: 5
             },
             '最大上课人数': { 
                 width: '8%',
-                order: 6,
-                sortable: true
+                order: 6
             },
             '会员价格': { 
                 width: '8%',
                 order: 7,
-                format: (value) => `<span class="price">¥${value}</span>`,
-                sortable: true
+                format: (value) => `<span class="price">¥${value}</span>`
             }
         };
 
+        // 获取区域的排序权重
+        function getAreaWeight(area) {
+            const index = areaOrder.indexOf(area);
+            return index === -1 ? areaOrder.length : index;
+        }
+
+        // 搜索和筛选功能
+        let searchTimeout;
+        const searchInput = document.getElementById('searchInput');
+        const areaDropdown = document.getElementById('areaDropdown');
+        const areaOptions = document.getElementById('areaOptions');
+        const selectAll = document.getElementById('selectAll');
+        const selectedCountSpan = document.querySelector('.selected-count');
+        let selectedAreas = new Set();
+
+        // 用于存储所有数据的缓存
+        let allDataCache = null;
+        
+        async function fetchTableData(forceRefresh = false) {
+            const loadingElement = document.getElementById('loading');
+            const refreshButton = document.querySelector('.refresh-button');
+            const searchQuery = searchInput.value.toLowerCase();
+            
+            try {
+                loadingElement.style.display = 'block';
+                if (refreshButton) {
+                    refreshButton.disabled = true;
+                }
+                
+                // 只在初始加载或强制刷新时获取数据
+                if (!allDataCache || forceRefresh) {
+                    const response = await fetch(`/api/table-data?page=1&pageSize=1000`);
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || '获取数据失败');
+                    }
+                    
+                    // 缓存数据
+                    allDataCache = {
+                        items: data.records.data.items,
+                        fields: data.tableMetaData.data.items,
+                        total: data.records.data.total
+                    };
+                }
+                
+                const container = document.getElementById('tableContainer');
+                let items = [...allDataCache.items]; // 复制数组以避免修改缓存
+                const fields = allDataCache.fields;
+                const totalItems = allDataCache.total;
+                
+                // 按区域顺序排序
+                items.sort((a, b) => {
+                    const areaA = a.fields['杭州分区'] || '';
+                    const areaB = b.fields['杭州分区'] || '';
+                    return getAreaWeight(areaA) - getAreaWeight(areaB);
+                });
+
+                // 筛选
+                if (searchQuery || selectedAreas.size > 0) {
+                    items = items.filter(item => {
+                        const fields = item.fields;
+                        
+                        // 检查是否是可约课程
+                        const isBookable = 
+                            (fields['约课说明'] && fields['约课说明'].includes('约课')) ||
+                            (fields['约课'] && fields['约课'].includes('约课')) ||
+                            (fields['备注'] && fields['备注'].includes('约课'));
+                        
+                        // 处理搜索关键词
+                        let matchesSearch = true;
+                        if (searchQuery) {
+                            const weekdayMatch = /周[一二三四五六日]/g.test(searchQuery);
+                            if (weekdayMatch) {
+                                // 如果搜索词包含"周X"，匹配上课时间或是可约课程
+                                matchesSearch = 
+                                    fields['上课时间']?.toLowerCase().includes(searchQuery) ||
+                                    (isBookable && (
+                                        !fields['上课时间'] || // 没有固定上课时间的可约课程
+                                        fields['上课时间'].includes('可约') || // 上课时间标注可约的课程
+                                        fields['上课时间'].includes('待定') // 上课时间待定的课程
+                                    ));
+                            } else {
+                                // 否则匹配课程名称、机构名称和上课时间
+                                matchesSearch = 
+                                    fields['商品名称']?.toLowerCase().includes(searchQuery) ||
+                                    fields['机构']?.toLowerCase().includes(searchQuery) ||
+                                    fields['上课时间']?.toLowerCase().includes(searchQuery);
+                            }
+                        }
+                        
+                        const matchesArea = selectedAreas.size === 0 || selectedAreas.has(fields['杭州分区']);
+                        return matchesSearch && matchesArea;
+                    });
+                }
+
+                if (items && items.length > 0 && fields && fields.length > 0) {
+                    const statsElement = document.getElementById('stats');
+                    statsElement.style.display = 'block';
+                    statsElement.textContent = `总课程数: ${totalItems} | 当前显示: ${items.length}`;
+
+                    const table = document.createElement('table');
+                    const thead = document.createElement('thead');
+                    const tbody = document.createElement('tbody');
+                    
+                    // 创建表头
+                    const headerRow = document.createElement('tr');
+                    Object.entries(defaultColumnConfig).forEach(([key, config]) => {
+                        const th = document.createElement('th');
+                        th.textContent = key;
+                        th.style.width = config.width;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+                    
+                    // 创建表格内容
+                    items.forEach((record, index) => {
+                        const row = document.createElement('tr');
+                        Object.entries(defaultColumnConfig).forEach(([key, config]) => {
+                            const td = document.createElement('td');
+                            if (config.isIndex) {
+                                td.textContent = index + 1;
+                                td.style.textAlign = 'center';
+                            } else {
+                                const value = record.fields[key];
+                                // 处理约课信息的显示
+                                if (key === '上课时间' && value) {
+                                    const bookingInfo = record.fields['约课说明'] || record.fields['约课'] || record.fields['备注'];
+                                    let displayValue = formatValue(value, config);
+                                    
+                                    // 如果是约课信息，添加标记
+                                    if (bookingInfo && bookingInfo.includes('约课')) {
+                                        displayValue = `<span style="color: #1890ff; font-weight: bold;">【可约课】</span> ${displayValue}`;
+                                    }
+                                    
+                                    td.innerHTML = `${displayValue}${
+                                        bookingInfo ? `<br><span class="booking-info">${bookingInfo}</span>` : ''
+                                    }`;
+                                } else {
+                                    td.innerHTML = formatValue(value, config);
+                                }
+                            }
+                            row.appendChild(td);
+                        });
+                        tbody.appendChild(row);
+                    });
+                    
+                    table.appendChild(tbody);
+                    container.innerHTML = '';
+                    container.appendChild(table);
+                } else {
+                    container.innerHTML = '<p>暂无课程数据</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const errorElement = document.getElementById('error');
+                errorElement.style.display = 'block';
+                errorElement.textContent = `错误: ${error.message}`;
+            } finally {
+                loadingElement.style.display = 'none';
+                if (refreshButton) {
+                    refreshButton.disabled = false;
+                }
+            }
+        }
+
+        // 格式化单元格值
         function formatValue(value, config) {
             if (value === null || value === undefined) return '-';
             
-            if (config.formatter) {
-                return config.formatter(value);
-            }
-            
-            if (typeof config.format === 'function') {
+            if (config.format) {
                 return config.format(value);
             }
             
@@ -337,17 +662,6 @@
             direction: 'asc'
         };
         
-        // 搜索和排序功能
-        let searchTimeout;
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                currentPage = 1;
-                fetchTableData();
-            }, 300);
-        });
-
         // 排序函数
         function sortData(items, column, direction) {
             return [...items].sort((a, b) => {
@@ -383,113 +697,6 @@
                 currentSort.direction = 'asc';
             }
             fetchTableData();
-        }
-
-        async function fetchTableData() {
-            const loadingElement = document.getElementById('loading');
-            const refreshButton = document.querySelector('.refresh-button');
-            const searchQuery = searchInput.value.toLowerCase();
-            
-            try {
-                loadingElement.style.display = 'block';
-                if (refreshButton) {
-                    refreshButton.disabled = true;
-                }
-                
-                // 获取所有数据
-                const response = await fetch(`/api/table-data?page=1&pageSize=1000`);
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || '获取数据失败');
-                }
-                
-                const container = document.getElementById('tableContainer');
-                let items = data.records.data.items;
-                const fields = data.tableMetaData.data.items;
-                totalItems = data.records.data.total;
-                
-                // 搜索过滤
-                if (searchQuery) {
-                    items = items.filter(item => {
-                        const fields = item.fields;
-                        return (
-                            fields['商品名称']?.toLowerCase().includes(searchQuery) ||
-                            fields['杭州分区']?.toLowerCase().includes(searchQuery) ||
-                            fields['机构']?.toLowerCase().includes(searchQuery) ||
-                            fields['上课时间']?.toLowerCase().includes(searchQuery)
-                        );
-                    });
-                }
-                
-                // 排序
-                if (currentSort.column && currentSort.direction) {
-                    items = sortData(items, currentSort.column, currentSort.direction);
-                }
-
-                if (items && items.length > 0 && fields && fields.length > 0) {
-                    const statsElement = document.getElementById('stats');
-                    statsElement.style.display = 'block';
-                    statsElement.textContent = `总课程数: ${totalItems} | 当前显示: ${items.length}`;
-
-                    const table = document.createElement('table');
-                    const thead = document.createElement('thead');
-                    const tbody = document.createElement('tbody');
-                    
-                    // 创建表头
-                    const headerRow = document.createElement('tr');
-                    Object.entries(defaultColumnConfig).forEach(([key, config]) => {
-                        const th = document.createElement('th');
-                        th.textContent = key;
-                        th.style.width = config.width;
-                        
-                        if (config.sortable) {
-                            th.classList.add('sortable');
-                            if (currentSort.column === key) {
-                                th.classList.add(currentSort.direction);
-                            }
-                            th.onclick = () => handleSort(key);
-                        }
-                        
-                        headerRow.appendChild(th);
-                    });
-                    thead.appendChild(headerRow);
-                    table.appendChild(thead);
-                    
-                    // 创建表格内容
-                    items.forEach((record, index) => {
-                        const row = document.createElement('tr');
-                        Object.entries(defaultColumnConfig).forEach(([key, config]) => {
-                            const td = document.createElement('td');
-                            if (config.isIndex) {
-                                td.textContent = index + 1;
-                                td.style.textAlign = 'center';
-                            } else {
-                                const value = record.fields[key];
-                                td.innerHTML = formatValue(value, config);
-                            }
-                            row.appendChild(td);
-                        });
-                        tbody.appendChild(row);
-                    });
-                    
-                    table.appendChild(tbody);
-                    container.innerHTML = '';
-                    container.appendChild(table);
-                } else {
-                    container.innerHTML = '<p>暂无课程数据</p>';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                const errorElement = document.getElementById('error');
-                errorElement.style.display = 'block';
-                errorElement.textContent = `错误: ${error.message}`;
-            } finally {
-                loadingElement.style.display = 'none';
-                if (refreshButton) {
-                    refreshButton.disabled = false;
-                }
-            }
         }
 
         function createPagination(total) {
@@ -533,20 +740,80 @@
             return paginationContainer;
         }
 
-        // 页面加载完成后获取数据
+        // 修改搜索事件处理
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => fetchTableData(false), 300);
+        });
+
+        // 修改区域选择事件处理
+        areaOptions.querySelectorAll('input[type="checkbox"]:not(#selectAll)').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    selectedAreas.add(e.target.value);
+                } else {
+                    selectedAreas.delete(e.target.value);
+                    selectAll.checked = false;
+                }
+                updateSelectedCount();
+                fetchTableData(false);
+            });
+        });
+
+        // 修改刷新按钮事件处理
         window.addEventListener('load', () => {
-            // 创建刷新按钮
             const refreshButton = document.createElement('button');
             refreshButton.className = 'refresh-button';
             refreshButton.innerHTML = '<span class="icon"></span>更新数据';
-            refreshButton.onclick = () => {
-                currentPage = 1;
-                fetchTableData();
-            };
+            refreshButton.onclick = () => fetchTableData(true); // 强制刷新
             document.body.appendChild(refreshButton);
             
             // 初始加载数据
+            fetchTableData(true);
+        });
+
+        // 全选/取消全选
+        selectAll.addEventListener('change', (e) => {
+            const checkboxes = areaOptions.querySelectorAll('input[type="checkbox"]:not(#selectAll)');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+                if (e.target.checked) {
+                    selectedAreas.add(checkbox.value);
+                } else {
+                    selectedAreas.delete(checkbox.value);
+                }
+            });
+            updateSelectedCount();
             fetchTableData();
+        });
+
+        // 更新选中数量显示
+        function updateSelectedCount() {
+            const count = selectedAreas.size;
+            if (count > 0) {
+                selectedCountSpan.textContent = `已选${count}个`;
+                selectedCountSpan.style.display = 'inline';
+            } else {
+                selectedCountSpan.style.display = 'none';
+            }
+        }
+
+        // 点击下拉框显示/隐藏选项
+        areaDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            areaDropdown.classList.toggle('active');
+            areaOptions.classList.toggle('show');
+        });
+
+        // 点击其他地方关闭下拉框
+        document.addEventListener('click', () => {
+            areaDropdown.classList.remove('active');
+            areaOptions.classList.remove('show');
+        });
+
+        // 阻止选项点击事件冒泡
+        areaOptions.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
     </script>
 </body>
