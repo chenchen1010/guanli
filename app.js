@@ -8,6 +8,9 @@ const port = 4000;
 // 配置静态文件目录
 app.use(express.static('public'));
 
+// 设置视图引擎
+app.set('view engine', 'ejs');
+
 // 创建飞书客户端
 const client = new lark.Client({
     appId: 'cli_a71dc5597639d00e',
@@ -104,8 +107,20 @@ app.get('/api/table-data', async (req, res) => {
 });
 
 // 主页路由
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get('/', async (req, res) => {
+    try {
+        // 这里是您的获取数据的逻辑
+        const data = await getTableData(); // 假设这是获取数据的函数
+        res.render('index', { data: data });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send('服务器错误');
+    }
+});
+
+// 商品详情页路由
+app.get('/product/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'product_detail.html'));
 });
 
 app.listen(port, () => {

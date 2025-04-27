@@ -540,7 +540,7 @@
                                     fields['上课时间']?.toLowerCase().includes(searchQuery) ||
                                     (isBookable && (
                                         !fields['上课时间'] || // 没有固定上课时间的可约课程
-                                        fields['上课时间'].includes('可约') || // 上课时间标注可约的课程
+                                        fields['上课时间'].includes('约课') || // 上课时间标注可约的课程
                                         fields['上课时间'].includes('待定') // 上课时间待定的课程
                                     ));
                             } else {
