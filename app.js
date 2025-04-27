@@ -22,6 +22,15 @@ app.get('/api/table-data', async (req, res) => {
         const tokenRes = await client.auth.tenantAccessToken.internal({});
         const tenantToken = tokenRes.tenant_access_token;
 
+        console.log('开始获取表格元数据...');
+        // 获取表格元数据
+        const tableMetaData = await client.bitable.v1.appTableField.list({
+            path: {
+                app_token: 'UMj1b3qYga81q3syxEccximEn5c',
+                table_id: 'tblLdNNmy3IjI1DI'
+            }
+        }, lark.withTenantToken(tenantToken));
+
         console.log('开始获取表格记录...');
         // 获取具体表格的记录
         const records = await client.bitable.v1.appTableRecord.list({
@@ -35,6 +44,7 @@ app.get('/api/table-data', async (req, res) => {
         }, lark.withTenantToken(tenantToken));
 
         console.log('获取到的记录数据:', JSON.stringify(records, null, 2));
+        console.log('获取到的表格元数据:', JSON.stringify(tableMetaData, null, 2));
 
         // 检查数据结构
         if (!records || !records.data || !records.data.items || records.data.items.length === 0) {
@@ -47,7 +57,8 @@ app.get('/api/table-data', async (req, res) => {
 
         // 返回成功的数据
         res.json({
-            records: records
+            records: records,
+            tableMetaData: tableMetaData
         });
     } catch (error) {
         console.error('错误详情:', error);
