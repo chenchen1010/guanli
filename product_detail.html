@@ -180,33 +180,37 @@
         const productData = JSON.parse(decodeURIComponent(urlParams.get('data')));
         
         // 填充商品信息
-        document.getElementById('price').textContent = productData.会员价格;
-        document.getElementById('originalPrice').textContent = productData.门市价;
-        document.getElementById('title').textContent = productData.商品名称;
-        document.getElementById('address').textContent = productData.商品详情.split('\n').find(line => line.includes('课程地点：'))?.split('：')[1] || '';
-        document.getElementById('time').textContent = productData.上课时间;
-        document.getElementById('schedule').textContent = productData.商品详情.split('\n').find(line => line.includes('课程安排：'))?.split('：')[1] || '';
-        document.getElementById('students').textContent = `${productData.最少上课人数}-${productData.最大上课人数}人`;
-        document.getElementById('notice').textContent = productData.购买须知;
+        document.getElementById('price').textContent = productData.会员价格 || '0';
+        document.getElementById('originalPrice').textContent = productData.门市价 || '0';
+        document.getElementById('title').textContent = productData.商品名称 || '';
+        document.getElementById('address').textContent = productData.课程地址 || '';
+        document.getElementById('time').textContent = productData.上课时间 || '';
+        document.getElementById('schedule').textContent = productData.课程安排 || '';
+        document.getElementById('students').textContent = `${productData.最少上课人数 || '0'}-${productData.最大上课人数 || '0'}人`;
+        document.getElementById('other').textContent = productData.其他说明 || '';
+        document.getElementById('notice').textContent = productData.购买须知 || '';
         
         // 处理轮播图
         const swiperWrapper = document.getElementById('swiperWrapper');
-        const carouselImages = productData.轮播图.link.split(',');
-        carouselImages.forEach(imgUrl => {
-            const slide = document.createElement('div');
-            slide.className = 'swiper-slide';
-            const img = document.createElement('img');
-            img.src = imgUrl;
-            slide.appendChild(img);
-            swiperWrapper.appendChild(slide);
-        });
+        if (productData.轮播图?.link) {
+            const carouselImages = productData.轮播图.link.split(',');
+            carouselImages.forEach(imgUrl => {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                slide.appendChild(img);
+                swiperWrapper.appendChild(slide);
+            });
+        }
         
         // 处理详情图片
         const detailImages = document.getElementById('detailImages');
         if (productData.图片介绍) {
-            productData.图片介绍.forEach(img => {
+            const images = Array.isArray(productData.图片介绍) ? productData.图片介绍 : [productData.图片介绍];
+            images.forEach(img => {
                 const imgElement = document.createElement('img');
-                imgElement.src = img.url;
+                imgElement.src = typeof img === 'string' ? img : (img.url || img.link || '');
                 detailImages.appendChild(imgElement);
             });
         }

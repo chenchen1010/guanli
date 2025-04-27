@@ -4,8 +4,9 @@
   "description": "飞书多维表格数据读取网站",
   "main": "app.js",
   "dependencies": {
-    "@larksuiteoapi/node-sdk": "^1.16.0",
-    "express": "^4.18.2",
-    "dotenv": "^16.0.3"
+    "@larksuiteoapi/node-sdk": "^1.46.0",
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2"
   }
-} 
+}

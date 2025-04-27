@@ -337,7 +337,7 @@
                     class="search-input" 
                     placeholder="搜索课程名称、机构名称、上课时间（如：周一、周二）..."
                 >
-                <div class="search-tips">支持搜索：课程名称、机构名称、上课时间（周一~周日）</div>
+                <!-- <div class="search-tips">支持搜索：课程名称、机构名称、上课时间（周一~周日）</div> -->
             </div>
             <div class="multiselect-container">
                 <div class="multiselect-dropdown" id="areaDropdown">
@@ -490,22 +490,20 @@
                     refreshButton.disabled = true;
                 }
                 
-                // 只在初始加载或强制刷新时获取数据
-                if (!allDataCache || forceRefresh) {
-                    const response = await fetch(`/api/table-data?page=1&pageSize=1000`);
-                    const data = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(data.error || '获取数据失败');
-                    }
-                    
-                    // 缓存数据
-                    allDataCache = {
-                        items: data.records.data.items,
-                        fields: data.tableMetaData.data.items,
-                        total: data.records.data.total
-                    };
+                // 添加 refresh 参数
+                const response = await fetch(`/api/table-data${forceRefresh ? '?refresh=true' : ''}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || '获取数据失败');
                 }
+                
+                // 缓存数据
+                allDataCache = {
+                    items: data.records.data.items,
+                    fields: data.tableMetaData.data.items,
+                    total: data.records.data.total
+                };
                 
                 const container = document.getElementById('tableContainer');
                 let items = [...allDataCache.items]; // 复制数组以避免修改缓存
@@ -765,11 +763,15 @@
             const refreshButton = document.createElement('button');
             refreshButton.className = 'refresh-button';
             refreshButton.innerHTML = '<span class="icon"></span>更新数据';
-            refreshButton.onclick = () => fetchTableData(true); // 强制刷新
+            refreshButton.onclick = () => {
+                if (confirm('确定要从飞书更新数据吗？这可能需要一点时间。')) {
+                    fetchTableData(true); // 强制刷新
+                }
+            };
             document.body.appendChild(refreshButton);
             
             // 初始加载数据
-            fetchTableData(true);
+            fetchTableData(false); // 从缓存加载
         });
 
         // 全选/取消全选
