@@ -537,7 +537,7 @@
                             if (weekdayMatch) {
                                 // 如果搜索词包含"周X"，匹配上课时间或是可约课程
                                 matchesSearch = 
-                                    fields['上课时间']?.toLowerCase().includes(searchQuery) ||
+                                    fields['上课时间']?.toLowerCase().includes(searchQuery) || fields['上课时间']?.toLowerCase().includes("约课")||
                                     (isBookable && (
                                         !fields['上课时间'] || // 没有固定上课时间的可约课程
                                         fields['上课时间'].includes('约课') || // 上课时间标注可约的课程
