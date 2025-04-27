@@ -405,6 +405,9 @@
     <div id="imageModal" class="modal" onclick="this.style.display='none'">
         <img id="modalImage" src="" alt="预览图片">
     </div>
+    <button class="refresh-button" id="refreshButton">
+        <span class="icon"></span>更新数据
+    </button>
 
     <script>
         // 定义区域顺序
@@ -481,17 +484,32 @@
         
         async function fetchTableData(forceRefresh = false) {
             const loadingElement = document.getElementById('loading');
-            const refreshButton = document.querySelector('.refresh-button');
+            const refreshButton = document.getElementById('refreshButton');
             const searchQuery = searchInput.value.toLowerCase();
             
             try {
                 loadingElement.style.display = 'block';
                 if (refreshButton) {
                     refreshButton.disabled = true;
+                    refreshButton.innerHTML = '<span class="icon"></span>正在更新...';
                 }
                 
-                // 添加 refresh 参数
-                const response = await fetch(`/api/table-data${forceRefresh ? '?refresh=true' : ''}`);
+                // 根据是否强制刷新选择不同的API
+                let apiUrl = '/api/table-data';
+                if (forceRefresh) {
+                    apiUrl = '/api/update-data';
+                    const updateResponse = await fetch(apiUrl);
+                    const updateResult = await updateResponse.json();
+                    
+                    if (!updateResponse.ok) {
+                        throw new Error(updateResult.error || '更新数据失败');
+                    }
+                    
+                    // 更新成功后重新获取数据
+                    apiUrl = '/api/table-data';
+                }
+                
+                const response = await fetch(apiUrl);
                 const data = await response.json();
                 
                 if (!response.ok) {
@@ -502,13 +520,15 @@
                 allDataCache = {
                     items: data.records.data.items,
                     fields: data.tableMetaData.data.items,
-                    total: data.records.data.total
+                    total: data.records.data.total,
+                    lastUpdated: data.lastUpdated
                 };
                 
                 const container = document.getElementById('tableContainer');
                 let items = [...allDataCache.items]; // 复制数组以避免修改缓存
                 const fields = allDataCache.fields;
                 const totalItems = allDataCache.total;
+                const lastUpdated = new Date(allDataCache.lastUpdated);
                 
                 // 按区域顺序排序
                 items.sort((a, b) => {
@@ -535,11 +555,12 @@
                             if (weekdayMatch) {
                                 // 如果搜索词包含"周X"，匹配上课时间或是可约课程
                                 matchesSearch = 
-                                    fields['上课时间']?.toLowerCase().includes(searchQuery) || fields['上课时间']?.toLowerCase().includes("约课")||
+                                    fields['上课时间']?.toLowerCase().includes("约课") ||
+                                    fields['上课时间']?.toLowerCase().includes(searchQuery) ||
                                     (isBookable && (
                                         !fields['上课时间'] || // 没有固定上课时间的可约课程
-                                        fields['上课时间'].includes('约课') || // 上课时间标注可约的课程
-                                        fields['上课时间'].includes('待定') // 上课时间待定的课程
+                                        fields['上课时间']?.includes('可约') || // 上课时间标注可约的课程
+                                        fields['上课时间']?.includes('待定') // 上课时间待定的课程
                                     ));
                             } else {
                                 // 否则匹配课程名称、机构名称和上课时间
@@ -558,7 +579,17 @@
                 if (items && items.length > 0 && fields && fields.length > 0) {
                     const statsElement = document.getElementById('stats');
                     statsElement.style.display = 'block';
-                    statsElement.textContent = `总课程数: ${totalItems} | 当前显示: ${items.length}`;
+                    statsElement.innerHTML = `
+                        总课程数: ${totalItems} | 当前显示: ${items.length} | 
+                        最后更新: ${lastUpdated.toLocaleString('zh-CN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        })}
+                    `;
 
                     const table = document.createElement('table');
                     const thead = document.createElement('thead');
@@ -622,6 +653,7 @@
                 loadingElement.style.display = 'none';
                 if (refreshButton) {
                     refreshButton.disabled = false;
+                    refreshButton.innerHTML = '<span class="icon"></span>更新数据';
                 }
             }
         }
@@ -758,22 +790,6 @@
             });
         });
 
-        // 修改刷新按钮事件处理
-        window.addEventListener('load', () => {
-            const refreshButton = document.createElement('button');
-            refreshButton.className = 'refresh-button';
-            refreshButton.innerHTML = '<span class="icon"></span>更新数据';
-            refreshButton.onclick = () => {
-                if (confirm('确定要从飞书更新数据吗？这可能需要一点时间。')) {
-                    fetchTableData(true); // 强制刷新
-                }
-            };
-            document.body.appendChild(refreshButton);
-            
-            // 初始加载数据
-            fetchTableData(false); // 从缓存加载
-        });
-
         // 全选/取消全选
         selectAll.addEventListener('change', (e) => {
             const checkboxes = areaOptions.querySelectorAll('input[type="checkbox"]:not(#selectAll)');
@@ -816,6 +832,15 @@
         // 阻止选项点击事件冒泡
         areaOptions.addEventListener('click', (e) => {
             e.stopPropagation();
+        });
+
+        // 获取刷新按钮并注册事件
+        const refreshButton = document.getElementById('refreshButton');
+        refreshButton.onclick = () => fetchTableData(true); // 强制刷新
+        
+        // 初始加载数据
+        window.addEventListener('load', () => {
+            fetchTableData(false); // 默认从缓存加载
         });
     </script>
 </body>

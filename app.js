@@ -19,47 +19,12 @@ const client = new lark.Client({
     disableTokenCache: false
 });
 
-// 使用JSON文件作为简单的数据存储
-const DB_FILE = 'db.json';
+// 数据文件路径
+const dataFilePath = path.join(__dirname, 'bd.json');
 
-// 读取数据库文件
-function readDatabase() {
+// 从飞书获取数据并保存到本地文件
+async function fetchDataFromFeishu() {
     try {
-        if (fs.existsSync(DB_FILE)) {
-            const data = fs.readFileSync(DB_FILE, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (error) {
-        console.error('读取数据库文件失败:', error);
-    }
-    return null;
-}
-
-// 写入数据库文件
-function writeDatabase(data) {
-    try {
-        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-        return true;
-    } catch (error) {
-        console.error('写入数据库文件失败:', error);
-        return false;
-    }
-}
-
-// 获取多维表格数据的API端点
-app.get('/api/table-data', async (req, res) => {
-    try {
-        const forceRefresh = req.query.refresh === 'true';
-        
-        // 如果不是强制刷新，尝试从数据库读取
-        if (!forceRefresh) {
-            const cachedData = readDatabase();
-            if (cachedData) {
-                console.log('从数据库读取数据');
-                return res.json(cachedData);
-            }
-        }
-
         console.log('开始获取tenant_access_token...');
         const tokenRes = await client.auth.tenantAccessToken.internal({});
         const tenantToken = tokenRes.tenant_access_token;
@@ -111,13 +76,11 @@ app.get('/api/table-data', async (req, res) => {
         // 检查数据结构
         if (!allRecords || allRecords.length === 0) {
             console.log('未找到任何记录');
-            return res.status(404).json({ 
-                error: '未找到任何记录'
-            });
+            throw new Error('未找到任何记录');
         }
 
-        // 准备返回的数据
-        const responseData = {
+        // 构建数据对象
+        const data = {
             records: {
                 code: 0,
                 data: {
@@ -126,17 +89,50 @@ app.get('/api/table-data', async (req, res) => {
                 },
                 msg: "success"
             },
-            tableMetaData: tableMetaData
+            tableMetaData: tableMetaData,
+            lastUpdated: new Date().toISOString()
         };
+        
+        // 将数据保存到文件
+        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
+        console.log('数据已保存到文件:', dataFilePath);
+        
+        return data;
+    } catch (error) {
+        console.error('获取飞书数据错误:', error);
+        throw error;
+    }
+}
 
-        // 将数据保存到数据库
-        if (forceRefresh) {
-            console.log('更新数据库...');
-            writeDatabase(responseData);
+// 从本地文件读取数据
+function readDataFromFile() {
+    try {
+        if (fs.existsSync(dataFilePath)) {
+            const data = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+            console.log(`从文件读取的数据记录数: ${data.records.data.items.length}`);
+            return data;
+        } else {
+            console.log('数据文件不存在，将从飞书获取数据');
+            return null;
         }
+    } catch (error) {
+        console.error('读取数据文件错误:', error);
+        return null;
+    }
+}
 
-        // 返回成功的数据
-        res.json(responseData);
+// 获取表格数据的API端点 - 优先从文件读取
+app.get('/api/table-data', async (req, res) => {
+    try {
+        // 从文件读取数据
+        let data = readDataFromFile();
+        
+        // 如果文件不存在或数据无效，则从飞书获取
+        if (!data) {
+            data = await fetchDataFromFeishu();
+        }
+        
+        res.json(data);
     } catch (error) {
         console.error('错误详情:', error);
         if (error.response) {
@@ -154,9 +150,29 @@ app.get('/api/table-data', async (req, res) => {
     }
 });
 
+// 更新数据的API端点 - 强制从飞书获取
+app.get('/api/update-data', async (req, res) => {
+    try {
+        console.log('接收到更新数据请求');
+        const data = await fetchDataFromFeishu();
+        res.json({
+            success: true,
+            message: '数据已成功更新',
+            lastUpdated: data.lastUpdated,
+            totalRecords: data.records.data.total
+        });
+    } catch (error) {
+        console.error('更新数据错误:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // 主页路由
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // 商品详情页路由
