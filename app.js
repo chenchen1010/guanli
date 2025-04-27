@@ -32,32 +32,58 @@ app.get('/api/table-data', async (req, res) => {
         }, lark.withTenantToken(tenantToken));
 
         console.log('开始获取表格记录...');
-        // 获取具体表格的记录
-        const records = await client.bitable.v1.appTableRecord.list({
-            path: {
-                app_token: 'UMj1b3qYga81q3syxEccximEn5c',
-                table_id: 'tblLdNNmy3IjI1DI'
-            },
-            params: {
-                page_size: 100  // 设置每页返回的记录数
+        
+        // 获取所有记录
+        let allRecords = [];
+        let pageToken = '';
+        let total = 0;
+        
+        do {
+            // 获取当前页的记录
+            const records = await client.bitable.v1.appTableRecord.list({
+                path: {
+                    app_token: 'UMj1b3qYga81q3syxEccximEn5c',
+                    table_id: 'tblLdNNmy3IjI1DI'
+                },
+                params: {
+                    page_size: 500,
+                    page_token: pageToken
+                }
+            }, lark.withTenantToken(tenantToken));
+            
+            // 将当前页的记录添加到总记录中
+            if (records.data && records.data.items) {
+                allRecords = allRecords.concat(records.data.items);
+                total = records.data.total || allRecords.length;
+                pageToken = records.data.page_token;
             }
-        }, lark.withTenantToken(tenantToken));
+            
+            // 如果没有下一页，退出循环
+            if (!pageToken) {
+                break;
+            }
+        } while (allRecords.length < total);
 
-        console.log('获取到的记录数据:', JSON.stringify(records, null, 2));
-        console.log('获取到的表格元数据:', JSON.stringify(tableMetaData, null, 2));
+        console.log(`获取到的总记录数: ${allRecords.length}`);
 
         // 检查数据结构
-        if (!records || !records.data || !records.data.items || records.data.items.length === 0) {
+        if (!allRecords || allRecords.length === 0) {
             console.log('未找到任何记录');
             return res.status(404).json({ 
-                error: '未找到任何记录',
-                details: records
+                error: '未找到任何记录'
             });
         }
 
         // 返回成功的数据
         res.json({
-            records: records,
+            records: {
+                code: 0,
+                data: {
+                    items: allRecords,
+                    total: total
+                },
+                msg: "success"
+            },
             tableMetaData: tableMetaData
         });
     } catch (error) {

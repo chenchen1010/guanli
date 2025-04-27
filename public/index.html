@@ -189,11 +189,62 @@
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>');
             display: inline-block;
         }
+        
+        /* 搜索框样式 */
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 14px;
+        }
+        
+        /* 排序图标样式 */
+        th.sortable {
+            cursor: pointer;
+            position: relative;
+            padding-right: 20px;
+        }
+        
+        th.sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 5px;
+            color: #999;
+        }
+        
+        th.sortable.asc::after {
+            content: '↑';
+            color: #3370ff;
+        }
+        
+        th.sortable.desc::after {
+            content: '↓';
+            color: #3370ff;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>杭州新青年夜校课表</h1>
+        
+        <!-- 搜索框 -->
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="search-input" 
+                placeholder="搜索课程名称、区域、机构名称..."
+            >
+        </div>
+        
         <div id="loading" class="loading">正在加载数据...</div>
         <div id="error" class="error" style="display: none;"></div>
         <div id="stats" class="stats" style="display: none;"></div>
@@ -213,16 +264,19 @@
             },
             '杭州分区': { 
                 width: '10%',
-                order: 1
+                order: 1,
+                sortable: true
             },
             '商品名称': { 
                 width: '15%',
                 order: 2,
-                format: (value) => value.replace(/【|】/g, '') // 移除【】符号
+                format: (value) => value.replace(/【|】/g, ''),
+                sortable: true
             },
             '上课时间': { 
                 width: '12%',
-                order: 3
+                order: 3,
+                sortable: true
             },
             '机构地址': { 
                 width: '20%',
@@ -230,16 +284,19 @@
             },
             '最少上课人数': { 
                 width: '8%',
-                order: 5
+                order: 5,
+                sortable: true
             },
             '最大上课人数': { 
                 width: '8%',
-                order: 6
+                order: 6,
+                sortable: true
             },
             '会员价格': { 
                 width: '8%',
                 order: 7,
-                format: (value) => `<span class="price">¥${value}</span>`
+                format: (value) => `<span class="price">¥${value}</span>`,
+                sortable: true
             }
         };
 
@@ -270,12 +327,68 @@
         }
 
         let currentPage = 1;
-        const pageSize = 100;
+        const pageSize = 1000; // 设置一个足够大的数字以显示所有数据
         let totalItems = 0;
+        let allData = []; // 用于存储所有数据
         
+        // 添加排序状态
+        let currentSort = {
+            column: '杭州分区',
+            direction: 'asc'
+        };
+        
+        // 搜索和排序功能
+        let searchTimeout;
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                fetchTableData();
+            }, 300);
+        });
+
+        // 排序函数
+        function sortData(items, column, direction) {
+            return [...items].sort((a, b) => {
+                let valueA = a.fields[column];
+                let valueB = b.fields[column];
+                
+                // 处理空值
+                if (!valueA) return direction === 'asc' ? -1 : 1;
+                if (!valueB) return direction === 'asc' ? 1 : -1;
+                
+                // 数字类型排序
+                if (['会员价格', '最少上课人数', '最大上课人数'].includes(column)) {
+                    valueA = parseFloat(valueA) || 0;
+                    valueB = parseFloat(valueB) || 0;
+                    return direction === 'asc' ? valueA - valueB : valueB - valueA;
+                }
+                
+                // 字符串排序
+                valueA = valueA.toString().trim();
+                valueB = valueB.toString().trim();
+                return direction === 'asc' 
+                    ? valueA.localeCompare(valueB, 'zh-CN') 
+                    : valueB.localeCompare(valueA, 'zh-CN');
+            });
+        }
+
+        // 处理表头点击排序
+        function handleSort(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+            fetchTableData();
+        }
+
         async function fetchTableData() {
             const loadingElement = document.getElementById('loading');
             const refreshButton = document.querySelector('.refresh-button');
+            const searchQuery = searchInput.value.toLowerCase();
             
             try {
                 loadingElement.style.display = 'block';
@@ -283,7 +396,8 @@
                     refreshButton.disabled = true;
                 }
                 
-                const response = await fetch(`/api/table-data?page=${currentPage}&pageSize=${pageSize}`);
+                // 获取所有数据
+                const response = await fetch(`/api/table-data?page=1&pageSize=1000`);
                 const data = await response.json();
                 
                 if (!response.ok) {
@@ -291,64 +405,64 @@
                 }
                 
                 const container = document.getElementById('tableContainer');
-                const items = data.records.data.items;
+                let items = data.records.data.items;
                 const fields = data.tableMetaData.data.items;
-                totalItems = data.records.data.total || items.length; // 确保使用正确的总数
+                totalItems = data.records.data.total;
+                
+                // 搜索过滤
+                if (searchQuery) {
+                    items = items.filter(item => {
+                        const fields = item.fields;
+                        return (
+                            fields['商品名称']?.toLowerCase().includes(searchQuery) ||
+                            fields['杭州分区']?.toLowerCase().includes(searchQuery) ||
+                            fields['机构']?.toLowerCase().includes(searchQuery) ||
+                            fields['上课时间']?.toLowerCase().includes(searchQuery)
+                        );
+                    });
+                }
+                
+                // 排序
+                if (currentSort.column && currentSort.direction) {
+                    items = sortData(items, currentSort.column, currentSort.direction);
+                }
 
                 if (items && items.length > 0 && fields && fields.length > 0) {
                     const statsElement = document.getElementById('stats');
                     statsElement.style.display = 'block';
-                    statsElement.textContent = `总课程数: ${totalItems}`;
-
-                    // 检查当前页是否超出总页数
-                    const totalPages = Math.ceil(totalItems / pageSize);
-                    if (currentPage > totalPages) {
-                        currentPage = totalPages;
-                        fetchTableData();
-                        return;
-                    }
+                    statsElement.textContent = `总课程数: ${totalItems} | 当前显示: ${items.length}`;
 
                     const table = document.createElement('table');
                     const thead = document.createElement('thead');
                     const tbody = document.createElement('tbody');
                     
-                    // 根据表格元数据过滤和排序列
-                    const visibleColumns = {
-                        '序号': defaultColumnConfig['序号'] // 添加序号列
-                    };
-                    fields.forEach(field => {
-                        if (field && field.field_name && defaultColumnConfig[field.field_name]) {
-                            visibleColumns[field.field_name] = {
-                                ...defaultColumnConfig[field.field_name],
-                                field_id: field.field_id
-                            };
-                        }
-                    });
-
-                    // 按预定义顺序排序列
-                    const sortedColumns = Object.entries(visibleColumns)
-                        .sort(([, a], [, b]) => a.order - b.order);
-
-                    // 添加表头
+                    // 创建表头
                     const headerRow = document.createElement('tr');
-                    sortedColumns.forEach(([key, config]) => {
+                    Object.entries(defaultColumnConfig).forEach(([key, config]) => {
                         const th = document.createElement('th');
                         th.textContent = key;
                         th.style.width = config.width;
+                        
+                        if (config.sortable) {
+                            th.classList.add('sortable');
+                            if (currentSort.column === key) {
+                                th.classList.add(currentSort.direction);
+                            }
+                            th.onclick = () => handleSort(key);
+                        }
+                        
                         headerRow.appendChild(th);
                     });
                     thead.appendChild(headerRow);
                     table.appendChild(thead);
                     
-                    // 修改序号计算逻辑
+                    // 创建表格内容
                     items.forEach((record, index) => {
                         const row = document.createElement('tr');
-                        sortedColumns.forEach(([key, config]) => {
+                        Object.entries(defaultColumnConfig).forEach(([key, config]) => {
                             const td = document.createElement('td');
                             if (config.isIndex) {
-                                // 确保序号不超过总数
-                                const itemNumber = Math.min((currentPage - 1) * pageSize + index + 1, totalItems);
-                                td.textContent = itemNumber.toString();
+                                td.textContent = index + 1;
                                 td.style.textAlign = 'center';
                             } else {
                                 const value = record.fields[key];
@@ -359,15 +473,9 @@
                         tbody.appendChild(row);
                     });
                     
-                    table.appendChild(thead);
                     table.appendChild(tbody);
-                    
                     container.innerHTML = '';
                     container.appendChild(table);
-                    
-                    // 添加分页控件
-                    const pagination = createPagination(totalItems);
-                    container.appendChild(pagination);
                 } else {
                     container.innerHTML = '<p>暂无课程数据</p>';
                 }
