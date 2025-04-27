@@ -1,0 +1,21 @@
+// node-sdk使用说明：https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/server-side-sdk/nodejs-sdk/preparation-before-development
+// 以下示例代码默认根据文档示例值填充，如果存在代码问题，请在 API 调试台填上相关必要参数后再复制代码使用
+const lark = require('@larksuiteoapi/node-sdk');
+
+// 开发者复制该Demo后，需要修改Demo里面的"app id", "app secret"为自己应用的appId, appSecret
+const client = new lark.Client({
+	appId: 'app id',
+	appSecret: 'app secret',
+});
+
+client.bitable.v1.app.get({
+		path: {
+			app_token: 'UMj1b3qYga81q3syxEccximEn5c',
+		},
+	},
+	lark.withUserAccessToken("u-d.tkjXPPVe4r3VDgIR14X.hlnhqkk0ahrG200kCa0G4Q")
+).then(res => {
+	console.log(res);
+}).catch(e => {
+	console.error(JSON.stringify(e.response.data, null, 4));
+});

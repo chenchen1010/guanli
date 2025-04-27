@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞书多维表格数据查看器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+        }
+        .error {
+            color: #ff4444;
+            padding: 15px;
+            background-color: #ffebee;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #ffcdd2;
+        }
+        .stats {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>飞书多维表格数据</h1>
+        <div id="loading" class="loading">正在加载数据...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="stats" class="stats" style="display: none;"></div>
+        <div id="tableContainer"></div>
+    </div>
+
+    <script>
+        async function fetchTableData() {
+            try {
+                const response = await fetch('/api/table-data');
+                const data = await response.json();
+                
+                // 隐藏加载提示
+                document.getElementById('loading').style.display = 'none';
+                
+                if (!response.ok) {
+                    throw new Error(data.error || '获取数据失败');
+                }
+                
+                // 显示数据
+                const container = document.getElementById('tableContainer');
+                
+                // 检查数据结构
+                if (data.records && data.records.data && data.records.data.items) {
+                    // 显示统计信息
+                    const statsElement = document.getElementById('stats');
+                    statsElement.style.display = 'block';
+                    statsElement.textContent = `总记录数: ${data.records.data.total || '未知'}`;
+
+                    const items = data.records.data.items;
+                    if (items.length > 0) {
+                        const table = document.createElement('table');
+                        const thead = document.createElement('thead');
+                        const tbody = document.createElement('tbody');
+                        
+                        // 添加表头
+                        const headerRow = document.createElement('tr');
+                        Object.keys(items[0].fields || {}).forEach(key => {
+                            const th = document.createElement('th');
+                            th.textContent = key;
+                            headerRow.appendChild(th);
+                        });
+                        thead.appendChild(headerRow);
+                        table.appendChild(thead);
+                        
+                        // 添加数据行
+                        items.forEach(record => {
+                            const row = document.createElement('tr');
+                            Object.entries(record.fields || {}).forEach(([key, value]) => {
+                                const td = document.createElement('td');
+                                if (value === null) {
+                                    td.textContent = '-';
+                                } else if (Array.isArray(value)) {
+                                    td.textContent = value.join(', ');
+                                } else if (typeof value === 'object') {
+                                    td.textContent = JSON.stringify(value);
+                                } else {
+                                    td.textContent = value;
+                                }
+                                row.appendChild(td);
+                            });
+                            tbody.appendChild(row);
+                        });
+                        table.appendChild(tbody);
+                        
+                        container.appendChild(table);
+                    } else {
+                        container.innerHTML = '<p>表格中没有数据记录</p>';
+                    }
+                } else {
+                    throw new Error('返回的数据格式不正确');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const errorElement = document.getElementById('error');
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = `
+                    <div>错误: ${error.message}</div>
+                    ${error.details ? `
+                        <div class="error-details">
+                            <strong>详细信息:</strong><br>
+                            ${JSON.stringify(error.details, null, 2)}
+                        </div>
+                    ` : ''}
+                `;
+            }
+        }
+
+        // 页面加载完成后获取数据
+        window.addEventListener('load', fetchTableData);
+    </script>
+</body>
+</html> 
