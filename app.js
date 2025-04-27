@@ -20,28 +20,7 @@ app.get('/api/table-data', async (req, res) => {
     try {
         console.log('开始获取tenant_access_token...');
         const tokenRes = await client.auth.tenantAccessToken.internal({});
-        console.log('获取到的token:', tokenRes);
-        
         const tenantToken = tokenRes.tenant_access_token;
-        console.log('tenant_access_token:', tenantToken);
-
-        console.log('开始获取表格基本信息...');
-        // 获取表格基本信息
-        const appInfo = await client.bitable.v1.app.get({
-            path: {
-                app_token: 'UMj1b3qYga81q3syxEccximEn5c',
-            }
-        }, lark.withTenantToken(tenantToken));
-        console.log('表格基本信息:', JSON.stringify(appInfo, null, 2));
-
-        console.log('开始获取表格列表...');
-        // 获取表格数据
-        const tableData = await client.bitable.v1.appTable.list({
-            path: {
-                app_token: 'UMj1b3qYga81q3syxEccximEn5c',
-            }
-        }, lark.withTenantToken(tenantToken));
-        console.log('表格列表:', JSON.stringify(tableData, null, 2));
 
         console.log('开始获取表格记录...');
         // 获取具体表格的记录
@@ -54,23 +33,20 @@ app.get('/api/table-data', async (req, res) => {
                 page_size: 100  // 设置每页返回的记录数
             }
         }, lark.withTenantToken(tenantToken));
-        console.log('表格记录:', JSON.stringify(records, null, 2));
 
-        if (!records || !records.items || records.items.length === 0) {
+        console.log('获取到的记录数据:', JSON.stringify(records, null, 2));
+
+        // 检查数据结构
+        if (!records || !records.data || !records.data.items || records.data.items.length === 0) {
             console.log('未找到任何记录');
             return res.status(404).json({ 
                 error: '未找到任何记录',
-                details: {
-                    appInfo: appInfo,
-                    tableData: tableData,
-                    records: records
-                }
+                details: records
             });
         }
 
+        // 返回成功的数据
         res.json({
-            appInfo: appInfo,
-            tableData: tableData,
             records: records
         });
     } catch (error) {

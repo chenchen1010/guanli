@@ -52,6 +52,14 @@
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        td:hover {
+            white-space: normal;
+            overflow: visible;
         }
         th {
             background-color: #f8f9fa;
@@ -64,7 +72,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>飞书多维表格数据</h1>
+        <h1>杭州新青年夜校课表</h1>
         <div id="loading" class="loading">正在加载数据...</div>
         <div id="error" class="error" style="display: none;"></div>
         <div id="stats" class="stats" style="display: none;"></div>
@@ -88,54 +96,55 @@
                 const container = document.getElementById('tableContainer');
                 
                 // 检查数据结构
-                if (data.records && data.records.data && data.records.data.items) {
+                const items = data.records.data.items;
+                if (items && items.length > 0) {
                     // 显示统计信息
                     const statsElement = document.getElementById('stats');
                     statsElement.style.display = 'block';
-                    statsElement.textContent = `总记录数: ${data.records.data.total || '未知'}`;
+                    statsElement.textContent = `总记录数: ${data.records.data.total || items.length}`;
 
-                    const items = data.records.data.items;
-                    if (items.length > 0) {
-                        const table = document.createElement('table');
-                        const thead = document.createElement('thead');
-                        const tbody = document.createElement('tbody');
-                        
-                        // 添加表头
-                        const headerRow = document.createElement('tr');
-                        Object.keys(items[0].fields || {}).forEach(key => {
-                            const th = document.createElement('th');
-                            th.textContent = key;
-                            headerRow.appendChild(th);
-                        });
-                        thead.appendChild(headerRow);
-                        table.appendChild(thead);
-                        
-                        // 添加数据行
-                        items.forEach(record => {
-                            const row = document.createElement('tr');
-                            Object.entries(record.fields || {}).forEach(([key, value]) => {
-                                const td = document.createElement('td');
-                                if (value === null) {
-                                    td.textContent = '-';
-                                } else if (Array.isArray(value)) {
-                                    td.textContent = value.join(', ');
-                                } else if (typeof value === 'object') {
+                    const table = document.createElement('table');
+                    const thead = document.createElement('thead');
+                    const tbody = document.createElement('tbody');
+                    
+                    // 添加表头
+                    const headerRow = document.createElement('tr');
+                    Object.keys(items[0].fields || {}).forEach(key => {
+                        const th = document.createElement('th');
+                        th.textContent = key;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+                    
+                    // 添加数据行
+                    items.forEach(record => {
+                        const row = document.createElement('tr');
+                        Object.entries(record.fields || {}).forEach(([key, value]) => {
+                            const td = document.createElement('td');
+                            if (value === null) {
+                                td.textContent = '-';
+                            } else if (Array.isArray(value)) {
+                                if (value.length > 0 && typeof value[0] === 'object') {
+                                    // 处理复杂数组（如图片数组）
                                     td.textContent = JSON.stringify(value);
                                 } else {
-                                    td.textContent = value;
+                                    td.textContent = value.join(', ');
                                 }
-                                row.appendChild(td);
-                            });
-                            tbody.appendChild(row);
+                            } else if (typeof value === 'object') {
+                                td.textContent = JSON.stringify(value);
+                            } else {
+                                td.textContent = value.toString();
+                            }
+                            row.appendChild(td);
                         });
-                        table.appendChild(tbody);
-                        
-                        container.appendChild(table);
-                    } else {
-                        container.innerHTML = '<p>表格中没有数据记录</p>';
-                    }
+                        tbody.appendChild(row);
+                    });
+                    table.appendChild(tbody);
+                    
+                    container.appendChild(table);
                 } else {
-                    throw new Error('返回的数据格式不正确');
+                    container.innerHTML = '<p>表格中没有数据记录</p>';
                 }
             } catch (error) {
                 console.error('Error:', error);
