@@ -1074,9 +1074,9 @@
             </div>
             <div class="modal-body">
                 <div style="margin-bottom: 20px;">
-                    <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态</p>
+                    <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
                     <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
-                    <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付</p>
+                    <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
                 </div>
                 <textarea id="studentsInput" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="请输入学员信息，每行一个"></textarea>
                 <div id="errorMessage" style="color: red; margin-top: 10px; display: none;"></div>
@@ -1111,8 +1111,7 @@
                             <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">实付金额</th>
                             <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">招生渠道</th>
                             <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">订单状态</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">添加人</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">添加时间</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">意向上课时间</th>
                         </tr>
                     </thead>
                     <tbody id="studentListTableBody"></tbody>
@@ -1148,6 +1147,15 @@
                         <option value="意向中">意向中</option>
                         <option value="已退款">已退款</option>
                     </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">意向上课时间</label>
+                    <div style="position: relative;">
+                        <input type="text" id="editPreferredTime" list="preferredTimeList" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="选择或输入新的时间">
+                        <datalist id="preferredTimeList">
+                            <!-- 选项将通过JavaScript动态添加 -->
+                        </datalist>
+                    </div>
                 </div>
                 <div id="editErrorMessage" style="color: red; margin-top: 10px; display: none;"></div>
             </div>
@@ -1298,8 +1306,7 @@
                                                         <th style="padding: 6px; text-align: right; font-weight: 500;">金额</th>
                                                         <th style="padding: 6px; text-align: left; font-weight: 500;">渠道</th>
                                                         <th style="padding: 6px; text-align: center; font-weight: 500;">状态</th>
-                                                        <th style="padding: 6px; text-align: left; font-weight: 500;">添加人</th>
-                                                        <th style="padding: 6px; text-align: left; font-weight: 500;">添加时间</th>
+                                                        <th style="padding: 6px; text-align: left; font-weight: 500;">意向上课时间</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -1311,8 +1318,7 @@
                                                             <td style="padding: 6px; text-align: center;">
                                                                 ${getStatusBadge(student.status)}
                                                             </td>
-                                                            <td style="padding: 6px;">${student.addedBy || ''}</td>
-                                                            <td style="padding: 6px;">${student.addedAt ? new Date(student.addedAt).toLocaleString('zh-CN') : ''}</td>
+                                                            <td style="padding: 6px;">${student.preferredTime || '-'}</td>
                                                         </tr>
                                                     `).join('')}
                                                 </tbody>
@@ -2099,6 +2105,13 @@
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('addStudentModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            
+            // 更新学员输入提示说明
+            document.querySelector('#addStudentModal .modal-body div:first-child').innerHTML = `
+                <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
+                <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
+                <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
+            `;
         }
 
         function closeAddStudentModal() {
@@ -2106,7 +2119,7 @@
             document.body.style.overflow = 'auto';
         }
 
-        // 修改parseStudentInput，增加详细调试信息
+        // 修改parseStudentInput，支持意向上课时间
         function parseStudentInput(input, coursePrice = 0) {
             const lines = input.trim().split('\n');
             const students = [];
@@ -2124,8 +2137,9 @@
                     const amount = coursePrice;
                     const channel = '';
                     const status = '已支付';
-                    students.push({wechatName, amount, channel, status});
-                    console.log(`【调试】第${index+1}行只填微信名，补全默认值:`, {wechatName, amount, channel, status});
+                    const preferredTime = '';
+                    students.push({wechatName, amount, channel, status, preferredTime});
+                    console.log(`【调试】第${index+1}行只填微信名，补全默认值:`, {wechatName, amount, channel, status, preferredTime});
                     return;
                 }
 
@@ -2134,12 +2148,13 @@
                     const [wechatName, amount] = parts;
                     const channel = '';
                     const status = '已支付';
+                    const preferredTime = '';
                     if (isNaN(amount)) {
                         errors.push(`第 ${index + 1} 行金额格式错误`);
                         return;
                     }
-                    students.push({wechatName, amount: parseFloat(amount), channel, status});
-                    console.log(`【调试】第${index+1}行微信名+金额，补全默认值:`, {wechatName, amount: parseFloat(amount), channel, status});
+                    students.push({wechatName, amount: parseFloat(amount), channel, status, preferredTime});
+                    console.log(`【调试】第${index+1}行微信名+金额，补全默认值:`, {wechatName, amount: parseFloat(amount), channel, status, preferredTime});
                     return;
                 }
 
@@ -2147,18 +2162,20 @@
                 if (parts.length === 3) {
                     const [wechatName, amount, channel] = parts;
                     const status = '已支付';
+                    const preferredTime = '';
                     if (isNaN(amount)) {
                         errors.push(`第 ${index + 1} 行金额格式错误`);
                         return;
                     }
-                    students.push({wechatName, amount: parseFloat(amount), channel, status});
-                    console.log(`【调试】第${index+1}行微信名+金额+渠道，补全默认值:`, {wechatName, amount: parseFloat(amount), channel, status});
+                    students.push({wechatName, amount: parseFloat(amount), channel, status, preferredTime});
+                    console.log(`【调试】第${index+1}行微信名+金额+渠道，补全默认值:`, {wechatName, amount: parseFloat(amount), channel, status, preferredTime});
                     return;
                 }
 
                 // 微信名+金额+渠道+状态
                 if (parts.length === 4) {
                     const [wechatName, amount, channel, status] = parts;
+                    const preferredTime = '';
                     if (isNaN(amount)) {
                         errors.push(`第 ${index + 1} 行金额格式错误`);
                         return;
@@ -2167,8 +2184,25 @@
                         errors.push(`第 ${index + 1} 行状态错误，只能是：已支付、意向中、已退款`);
                         return;
                     }
-                    students.push({wechatName, amount: parseFloat(amount), channel, status});
-                    console.log(`【调试】第${index+1}行全部字段:`, {wechatName, amount: parseFloat(amount), channel, status});
+                    students.push({wechatName, amount: parseFloat(amount), channel, status, preferredTime});
+                    console.log(`【调试】第${index+1}行微信名+金额+渠道+状态，补全默认值:`, {wechatName, amount: parseFloat(amount), channel, status, preferredTime});
+                    return;
+                }
+
+                // 微信名+金额+渠道+状态+意向上课时间
+                if (parts.length >= 5) {
+                    const [wechatName, amount, channel, status, ...timeParts] = parts;
+                    const preferredTime = timeParts.join(' '); // 合并剩余部分作为上课时间
+                    if (isNaN(amount)) {
+                        errors.push(`第 ${index + 1} 行金额格式错误`);
+                        return;
+                    }
+                    if (!['已支付', '意向中', '已退款'].includes(status)) {
+                        errors.push(`第 ${index + 1} 行状态错误，只能是：已支付、意向中、已退款`);
+                        return;
+                    }
+                    students.push({wechatName, amount: parseFloat(amount), channel, status, preferredTime});
+                    console.log(`【调试】第${index+1}行全部字段:`, {wechatName, amount: parseFloat(amount), channel, status, preferredTime});
                     return;
                 }
 
@@ -2322,8 +2356,7 @@
                     <td onclick="makeEditable(this, 'amount')" style="text-align: right;">¥${student.amount}</td>
                     <td onclick="makeEditable(this, 'channel')">${student.channel}</td>
                     <td onclick="makeEditable(this, 'status')" style="text-align: center;">${getStatusBadge(student.status)}</td>
-                    <td>${student.addedBy || ''}</td>
-                    <td>${student.addedAt ? new Date(student.addedAt).toLocaleString('zh-CN') : ''}</td>
+                    <td onclick="makeEditable(this, 'preferredTime')">${student.preferredTime || '-'}</td>
                 </tr>
             `).join('');
 
@@ -2342,7 +2375,7 @@
                 ? cell.textContent.replace('¥', '')
                 : field === 'status' 
                     ? cell.querySelector('span').textContent
-                    : cell.textContent;
+                    : cell.textContent === '-' ? '' : cell.textContent;
             
             // 状态字段使用下拉框
             if (field === 'status') {
@@ -2366,6 +2399,47 @@
                 cell.innerHTML = '';
                 cell.appendChild(select);
                 select.focus();
+                return;
+            }
+            
+            // 意向上课时间字段使用带有datalist的输入框
+            if (field === 'preferredTime') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentValue;
+                input.style.width = '100%';
+                input.style.padding = '4px';
+                input.style.border = '1px solid #ddd';
+                input.style.borderRadius = '4px';
+                input.style.boxSizing = 'border-box';
+                
+                // 创建一个临时datalist
+                const datalistId = 'temp-datalist-' + Date.now();
+                const datalist = document.createElement('datalist');
+                datalist.id = datalistId;
+                input.setAttribute('list', datalistId);
+                
+                // 加载时间选项
+                loadPreferredTimes().then(times => {
+                    datalist.innerHTML = times.map(time => `<option value="${time}">`).join('');
+                });
+                
+                document.body.appendChild(datalist);
+                
+                input.onblur = () => {
+                    saveEdit(cell, field, input.value);
+                    document.body.removeChild(datalist);
+                };
+                
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        input.blur();
+                    }
+                };
+                
+                cell.innerHTML = '';
+                cell.appendChild(input);
+                input.focus();
                 return;
             }
             
@@ -2564,8 +2638,12 @@
             // 填充表单
             document.getElementById('editWechatName').value = currentEditingStudent.wechatName;
             document.getElementById('editAmount').value = currentEditingStudent.amount;
-            document.getElementById('editChannel').value = currentEditingStudent.channel;
+            document.getElementById('editChannel').value = currentEditingStudent.channel || '';
             document.getElementById('editStatus').value = currentEditingStudent.status;
+            document.getElementById('editPreferredTime').value = currentEditingStudent.preferredTime || '';
+            
+            // 加载上课时间选项
+            loadPreferredTimes();
             
             // 显示模态框
             document.getElementById('editStudentModal').style.display = 'flex';
@@ -2590,7 +2668,8 @@
                     wechatName: document.getElementById('editWechatName').value.trim(),
                     amount: parseFloat(document.getElementById('editAmount').value),
                     channel: document.getElementById('editChannel').value.trim(),
-                    status: document.getElementById('editStatus').value
+                    status: document.getElementById('editStatus').value,
+                    preferredTime: document.getElementById('editPreferredTime').value.trim()
                 };
                 
                 // 验证
@@ -2755,6 +2834,42 @@
               closeLogModal();
             }
           });
+        });
+
+        // 添加获取上课时间选项列表功能
+        async function loadPreferredTimes() {
+            try {
+                const response = await fetch('/api/preferred-times', {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('获取意向上课时间列表失败');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.times) {
+                    const datalist = document.getElementById('preferredTimeList');
+                    datalist.innerHTML = data.times.map(time => `<option value="${time}">`).join('');
+                    return data.times;
+                }
+                
+                return [];
+            } catch (error) {
+                console.error('获取意向上课时间列表失败:', error);
+                return [];
+            }
+        }
+
+        // 初始化上课时间选项
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载上课时间选项
+            loadPreferredTimes();
         });
     </script>
 </body>

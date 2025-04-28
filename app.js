@@ -428,7 +428,7 @@ app.post('/api/students/add', requireAuth, async (req, res) => {
         
         // 构建详细的日志记录
         const studentsInfo = newStudents.map(student => 
-            `${student.wechatName}(¥${student.amount}/${student.status})`
+            `${student.wechatName}(¥${student.amount}/${student.status}${student.preferredTime ? '/'+student.preferredTime : ''})`
         ).join('、');
         
         await logOperation(
@@ -523,6 +523,10 @@ app.post('/api/students/update', requireAuth, async (req, res) => {
             changes.push(`状态: ${oldStudent.status} → ${student.status}`);
         }
         
+        if (oldStudent.preferredTime !== student.preferredTime) {
+            changes.push(`意向上课时间: ${oldStudent.preferredTime || '无'} → ${student.preferredTime || '无'}`);
+        }
+        
         // 保留原有的添加人和添加时间
         const updatedStudent = {
             ...student,
@@ -548,6 +552,31 @@ app.post('/api/students/update', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('更新学员信息失败:', error);
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 获取意向上课时间列表
+app.get('/api/preferred-times', requireAuth, async (req, res) => {
+    try {
+        // 读取学员数据
+        let allTimes = new Set(['周一晚上', '周二晚上', '周三晚上', '周四晚上', '周五晚上', '周六上午', '周六下午', '周日上午', '周日下午']);
+        
+        if (fs.existsSync('students.json')) {
+            const students = JSON.parse(fs.readFileSync('students.json', 'utf8'));
+            // 从现有学员中获取所有不同的意向上课时间
+            students.forEach(student => {
+                if (student.preferredTime && student.preferredTime.trim()) {
+                    allTimes.add(student.preferredTime.trim());
+                }
+            });
+        }
+        
+        // 转换为数组并按字母顺序排序
+        const timesList = Array.from(allTimes).sort();
+        res.json({ success: true, times: timesList });
+    } catch (error) {
+        console.error('获取意向上课时间列表失败:', error);
+        res.status(500).json({ success: false, message: '获取意向上课时间列表失败' });
     }
 });
 
