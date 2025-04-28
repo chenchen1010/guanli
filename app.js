@@ -2,15 +2,35 @@ const express = require('express');
 const path = require('path');
 const lark = require('@larksuiteoapi/node-sdk');
 const fs = require('fs');
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const port = 4000;
 
 // 配置静态文件目录
 app.use(express.static('public'));
+app.use(express.json());
+
+// 配置会话中间件
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // 在生产环境中应设置为 true
+}));
 
 // 设置视图引擎
 app.set('view engine', 'ejs');
+
+// 用户认证中间件
+const requireAuth = (req, res, next) => {
+    if (req.session.user) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+};
 
 // 创建飞书客户端
 const client = new lark.Client({
@@ -121,8 +141,110 @@ function readDataFromFile() {
     }
 }
 
+// 用户相关路由
+app.get('/login', (req, res) => {
+    if (req.session.user) {
+        res.redirect('/');
+        return;
+    }
+    res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+
+app.get('/register', (req, res) => {
+    if (req.session.user) {
+        res.redirect('/');
+        return;
+    }
+    res.sendFile(path.join(__dirname, 'views', 'register.html'));
+});
+
+app.post('/api/register', async (req, res) => {
+    try {
+        const { username, phone, password } = req.body;
+        
+        // 读取现有用户数据
+        let users = [];
+        if (fs.existsSync('users.json')) {
+            users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        }
+        
+        // 检查用户名是否已存在
+        if (users.some(user => user.username === username)) {
+            res.status(400).json({ message: '用户名已存在' });
+            return;
+        }
+        
+        // 检查手机号是否已存在
+        if (users.some(user => user.phone === phone)) {
+            res.status(400).json({ message: '手机号已被注册' });
+            return;
+        }
+        
+        // 加密密码
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // 添加新用户
+        users.push({
+            username,
+            phone,
+            password: hashedPassword
+        });
+        
+        // 保存用户数据
+        fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+        
+        res.json({ message: '注册成功' });
+    } catch (error) {
+        console.error('注册错误:', error);
+        res.status(500).json({ message: '注册失败，请稍后重试' });
+    }
+});
+
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        // 读取用户数据
+        if (!fs.existsSync('users.json')) {
+            res.status(401).json({ message: '用户名或密码错误' });
+            return;
+        }
+        
+        const users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        const user = users.find(u => u.username === username);
+        
+        if (!user) {
+            res.status(401).json({ message: '用户名或密码错误' });
+            return;
+        }
+        
+        // 验证密码
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+            res.status(401).json({ message: '用户名或密码错误' });
+            return;
+        }
+        
+        // 设置会话
+        req.session.user = {
+            username: user.username,
+            phone: user.phone
+        };
+        
+        res.json({ message: '登录成功' });
+    } catch (error) {
+        console.error('登录错误:', error);
+        res.status(500).json({ message: '登录失败，请稍后重试' });
+    }
+});
+
+app.get('/api/logout', (req, res) => {
+    req.session.destroy();
+    res.json({ message: '已退出登录' });
+});
+
 // 获取表格数据的API端点 - 优先从文件读取
-app.get('/api/table-data', async (req, res) => {
+app.get('/api/table-data', requireAuth, async (req, res) => {
     try {
         // 从文件读取数据
         let data = readDataFromFile();
@@ -131,6 +253,12 @@ app.get('/api/table-data', async (req, res) => {
         if (!data) {
             data = await fetchDataFromFeishu();
         }
+        
+        // 添加用户信息到返回数据中
+        data.user = {
+            username: req.session.user.username,
+            phone: req.session.user.phone
+        };
         
         res.json(data);
     } catch (error) {
@@ -151,7 +279,7 @@ app.get('/api/table-data', async (req, res) => {
 });
 
 // 更新数据的API端点 - 强制从飞书获取
-app.get('/api/update-data', async (req, res) => {
+app.get('/api/update-data', requireAuth, async (req, res) => {
     try {
         console.log('接收到更新数据请求');
         const data = await fetchDataFromFeishu();
@@ -171,7 +299,7 @@ app.get('/api/update-data', async (req, res) => {
 });
 
 // 主页路由
-app.get('/', (req, res) => {
+app.get('/', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

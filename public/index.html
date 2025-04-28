@@ -655,9 +655,45 @@
         .detail-image {
             cursor: zoom-in;
         }
+
+        .user-info {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .user-info span {
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .logout-button {
+            padding: 6px 12px;
+            background-color: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .logout-button:hover {
+            background-color: #ff453a;
+        }
     </style>
 </head>
 <body>
+    <div class="user-info">
+        <span>欢迎，<span id="username"></span></span>
+        <button class="logout-button" onclick="handleLogout()">退出登录</button>
+    </div>
     <div class="container">
         <h1>杭州新青年夜校课表</h1>
         
@@ -768,6 +804,37 @@
     </div>
 
     <script>
+        // 获取用户名并显示
+        const username = document.getElementById('username');
+        fetch('/api/table-data')
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.user) {
+                    username.textContent = data.user.username;
+                }
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+            });
+            
+        // 处理登出
+        async function handleLogout() {
+            try {
+                const response = await fetch('/api/logout');
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('登出失败:', error);
+            }
+        }
+
         // 定义区域顺序
         const areaOrder = [
             '多区域可选',
