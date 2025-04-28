@@ -928,6 +928,43 @@
         </div>
     </div>
 
+    <!-- 添加编辑学员模态框 -->
+    <div id="editStudentModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; position: relative;">
+            <div class="modal-header" style="margin-bottom: 20px;">
+                <h2 style="margin: 0;">编辑学员信息</h2>
+                <button onclick="closeEditStudentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">微信名</label>
+                    <input type="text" id="editWechatName" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">实付金额</label>
+                    <input type="number" id="editAmount" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">招生渠道</label>
+                    <input type="text" id="editChannel" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">订单状态</label>
+                    <select id="editStatus" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="已支付">已支付</option>
+                        <option value="意向中">意向中</option>
+                        <option value="已退款">已退款</option>
+                    </select>
+                </div>
+                <div id="editErrorMessage" style="color: red; margin-top: 10px; display: none;"></div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button onclick="closeEditStudentModal()" style="margin-right: 10px; padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
+                <button onclick="saveStudentEdit()" style="padding: 8px 16px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 获取用户名并显示
         const username = document.getElementById('username');
@@ -993,7 +1030,7 @@
                 format: (value) => `<span style="font-size: 12px;">${value || '-'}</span>`
             },
             '商品名称': { 
-                width: '15%',
+                width: '8%',
                 order: 3,
                 format: (value, record) => {
                     const name = value.replace(/【|】/g, '');
@@ -1011,12 +1048,12 @@
                 format: (value) => `<div style="font-size: 13px; line-height: 1.3;">${value || '-'}</div>`
             },
             '最少上课人数': { 
-                width: '2%',  // 减小人数列宽度
+                width: '1%',  // 减小人数列宽度
                 order: 6,
                 format: (value) => `<span style="font-size: 13px;">${value || '-'}</span>`
             },
             '最大上课人数': { 
-                width: '2%',  // 减小人数列宽度
+                width: '1%',  // 减小人数列宽度
                 order: 7,
                 format: (value) => `<span style="font-size: 13px;">${value || '-'}</span>`
             },
@@ -1026,7 +1063,7 @@
                 format: (value) => `<span class="price" style="font-size: 13px;">¥${value || '-'}</span>`
             },
             '报名学员': {
-                width: '28%',
+                width: '30%',
                 order: 9,
                 isStudents: true,
                 format: async (_, record) => {
@@ -1053,6 +1090,8 @@
                                                         <th style="padding: 6px; text-align: right; font-weight: 500;">金额</th>
                                                         <th style="padding: 6px; text-align: left; font-weight: 500;">渠道</th>
                                                         <th style="padding: 6px; text-align: center; font-weight: 500;">状态</th>
+                                                        <th style="padding: 6px; text-align: left; font-weight: 500;">添加人</th>
+                                                        <th style="padding: 6px; text-align: left; font-weight: 500;">添加时间</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -1064,6 +1103,8 @@
                                                             <td style="padding: 6px; text-align: center;">
                                                                 ${getStatusBadge(student.status)}
                                                             </td>
+                                                            <td style="padding: 6px;">${student.addedBy || ''}</td>
+                                                            <td style="padding: 6px;">${student.addedAt ? new Date(student.addedAt).toLocaleString('zh-CN') : ''}</td>
                                                         </tr>
                                                     `).join('')}
                                                 </tbody>
@@ -2001,8 +2042,16 @@
                 console.log('服务器响应数据:', result);
                 
                 if (response.ok) {
-                    alert(`成功添加 ${result.count} 名学员`);
+                    // 关闭添加学员弹窗
                     closeAddStudentModal();
+                    // 自动刷新当前课程的学员列表（如果弹窗还开着）
+                    if (typeof loadStudentList === 'function') {
+                        loadStudentList(currentCourseId);
+                    }
+                    // 自动刷新主表格数据，保证报名学员列人数和明细实时更新
+                    if (typeof fetchTableData === 'function') {
+                        fetchTableData(false);
+                    }
                 } else {
                     throw new Error(result.message || '添加失败');
                 }
@@ -2056,18 +2105,151 @@
             }
         }
 
+        // 修改renderStudentList函数，实现单击直接编辑
         function renderStudentList(students) {
             const tableBody = document.getElementById('studentListTableBody');
-            tableBody.innerHTML = students.map(student => `
-                <tr>
-                    <td>${student.wechatName}</td>
-                    <td>¥${student.amount}</td>
-                    <td>${student.channel}</td>
-                    <td>${getStatusBadge(student.status)}</td>
-                    <td>${student.addedBy}</td>
-                    <td>${new Date(student.addedAt).toLocaleString('zh-CN')}</td>
+            tableBody.innerHTML = students.map((student, index) => `
+                <tr data-index="${index}">
+                    <td onclick="makeEditable(this, 'wechatName')">${student.wechatName}</td>
+                    <td onclick="makeEditable(this, 'amount')" style="text-align: right;">¥${student.amount}</td>
+                    <td onclick="makeEditable(this, 'channel')">${student.channel}</td>
+                    <td onclick="makeEditable(this, 'status')" style="text-align: center;">${getStatusBadge(student.status)}</td>
+                    <td>${student.addedBy || ''}</td>
+                    <td>${student.addedAt ? new Date(student.addedAt).toLocaleString('zh-CN') : ''}</td>
                 </tr>
             `).join('');
+
+            // 阻止双击事件冒泡
+            tableBody.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        // 添加单元格编辑相关函数
+        function makeEditable(cell, field) {
+            // 如果是最后两列（添加人和添加时间），不允许编辑
+            if (field === 'addedBy' || field === 'addedAt') return;
+            
+            const currentValue = field === 'amount' 
+                ? cell.textContent.replace('¥', '')
+                : field === 'status' 
+                    ? cell.querySelector('span').textContent
+                    : cell.textContent;
+            
+            // 状态字段使用下拉框
+            if (field === 'status') {
+                const select = document.createElement('select');
+                select.style.width = '100%';
+                select.style.padding = '4px';
+                select.style.border = '1px solid #ddd';
+                select.style.borderRadius = '4px';
+                
+                ['已支付', '意向中', '已退款'].forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.text = status;
+                    if (status === currentValue) option.selected = true;
+                    select.appendChild(option);
+                });
+                
+                select.onchange = () => saveEdit(cell, field, select.value);
+                select.onblur = () => saveEdit(cell, field, select.value);
+                
+                cell.innerHTML = '';
+                cell.appendChild(select);
+                select.focus();
+                return;
+            }
+            
+            // 其他字段使用输入框
+            const input = document.createElement('input');
+            input.type = field === 'amount' ? 'number' : 'text';
+            input.value = currentValue;
+            input.style.width = '100%';
+            input.style.padding = '4px';
+            input.style.border = '1px solid #ddd';
+            input.style.borderRadius = '4px';
+            input.style.boxSizing = 'border-box';
+            
+            if (field === 'amount') {
+                input.min = '0';
+                input.step = '0.01';
+            }
+            
+            input.onblur = () => saveEdit(cell, field, input.value);
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    input.blur();
+                }
+            };
+            
+            cell.innerHTML = '';
+            cell.appendChild(input);
+            input.focus();
+        }
+
+        async function saveEdit(cell, field, value) {
+            try {
+                const row = cell.parentElement;
+                const index = parseInt(row.dataset.index);
+                const student = {...currentStudents[index]};
+                
+                // 验证输入
+                if (field === 'wechatName' && !value.trim()) {
+                    throw new Error('微信名不能为空');
+                }
+                if (field === 'amount') {
+                    const amount = parseFloat(value);
+                    if (isNaN(amount) || amount < 0) {
+                        throw new Error('请输入有效的金额');
+                    }
+                    value = amount;
+                }
+                
+                // 更新学员数据
+                student[field] = value;
+                
+                // 发送更新请求
+                const response = await fetch('/api/students/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        courseId: currentCourseId,
+                        studentIndex: index,
+                        student: student
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('更新失败');
+                }
+                
+                // 更新本地数据
+                currentStudents[index] = student;
+                
+                // 更新显示
+                if (field === 'amount') {
+                    cell.textContent = `¥${value}`;
+                } else if (field === 'status') {
+                    cell.innerHTML = getStatusBadge(value);
+                } else {
+                    cell.textContent = value;
+                }
+                
+                // 刷新主表格以更新学员信息
+                fetchTableData(false);
+                
+            } catch (error) {
+                console.error('保存编辑失败:', error);
+                alert(error.message || '保存失败，请重试');
+                // 重新渲染以恢复原值
+                renderStudentList(currentStudents);
+            }
         }
 
         function getStatusBadge(status) {
@@ -2154,6 +2336,94 @@
             const isExpanded = details.style.display !== 'none';
             details.style.display = isExpanded ? 'none' : 'block';
             btn.textContent = isExpanded ? '展开' : '收起';
+        }
+
+        // 添加编辑相关变量
+        let currentEditingStudent = null;
+        let currentEditingIndex = null;
+
+        // 添加编辑相关函数
+        function showEditStudentModal(index) {
+            currentEditingStudent = {...currentStudents[index]};
+            currentEditingIndex = index;
+            
+            // 填充表单
+            document.getElementById('editWechatName').value = currentEditingStudent.wechatName;
+            document.getElementById('editAmount').value = currentEditingStudent.amount;
+            document.getElementById('editChannel').value = currentEditingStudent.channel;
+            document.getElementById('editStatus').value = currentEditingStudent.status;
+            
+            // 显示模态框
+            document.getElementById('editStudentModal').style.display = 'flex';
+            document.getElementById('editErrorMessage').style.display = 'none';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditStudentModal() {
+            document.getElementById('editStudentModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            currentEditingStudent = null;
+            currentEditingIndex = null;
+        }
+
+        async function saveStudentEdit() {
+            const errorElement = document.getElementById('editErrorMessage');
+            
+            try {
+                // 获取编辑后的值
+                const editedStudent = {
+                    ...currentEditingStudent,
+                    wechatName: document.getElementById('editWechatName').value.trim(),
+                    amount: parseFloat(document.getElementById('editAmount').value),
+                    channel: document.getElementById('editChannel').value.trim(),
+                    status: document.getElementById('editStatus').value
+                };
+                
+                // 验证
+                if (!editedStudent.wechatName) {
+                    throw new Error('微信名不能为空');
+                }
+                if (isNaN(editedStudent.amount) || editedStudent.amount < 0) {
+                    throw new Error('请输入有效的金额');
+                }
+                
+                // 发送更新请求
+                const response = await fetch(`/api/students/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        courseId: currentCourseId,
+                        studentIndex: currentEditingIndex,
+                        student: editedStudent
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('更新失败');
+                }
+                
+                // 更新本地数据
+                currentStudents[currentEditingIndex] = editedStudent;
+                
+                // 重新渲染列表
+                renderStudentList(currentStudents);
+                
+                // 关闭模态框
+                closeEditStudentModal();
+                
+                // 刷新主表格以更新学员信息
+                fetchTableData(false);
+                
+            } catch (error) {
+                console.error('保存编辑失败:', error);
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
+            }
         }
     </script>
 </body>

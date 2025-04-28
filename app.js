@@ -382,6 +382,61 @@ app.get('/api/students/:courseId', requireAuth, (req, res) => {
     }
 });
 
+// 更新学员信息
+app.post('/api/students/update', requireAuth, async (req, res) => {
+    console.log('收到更新学员请求:', req.body);
+    
+    try {
+        const { courseId, studentIndex, student } = req.body;
+        
+        // 验证必要字段
+        if (!courseId || studentIndex === null || !student) {
+            throw new Error('缺少必要参数');
+        }
+        
+        // 读取现有数据
+        const data = await fs.readFile('students.json', 'utf8');
+        const students = JSON.parse(data);
+        
+        // 查找并更新学员信息
+        const courseStudents = students.filter(s => s.courseId === courseId);
+        if (studentIndex >= courseStudents.length) {
+            throw new Error('学员索引无效');
+        }
+        
+        // 找到要更新的学员在整个数组中的索引
+        const globalIndex = students.findIndex(s => 
+            s.courseId === courseId && 
+            s.wechatName === courseStudents[studentIndex].wechatName &&
+            s.addedAt === courseStudents[studentIndex].addedAt
+        );
+        
+        if (globalIndex === -1) {
+            throw new Error('未找到要更新的学员');
+        }
+        
+        // 保留原有的添加人和添加时间
+        const updatedStudent = {
+            ...student,
+            courseId,
+            addedBy: students[globalIndex].addedBy,
+            addedAt: students[globalIndex].addedAt
+        };
+        
+        // 更新数据
+        students[globalIndex] = updatedStudent;
+        
+        // 保存到文件
+        await fs.writeFile('students.json', JSON.stringify(students, null, 2));
+        
+        res.json({ success: true, message: '更新成功' });
+        
+    } catch (error) {
+        console.error('更新学员信息失败:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
 }); 
