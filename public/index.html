@@ -988,16 +988,16 @@
                 format: (_, record) => record.fields['商品ID'] || '-'
             },
             '杭州分区': { 
-                width: '6%',  // 减小分区列宽度
+                width: '3%',  // 减小分区列宽度
                 order: 2,
                 format: (value) => `<span style="font-size: 12px;">${value || '-'}</span>`
             },
             '商品名称': { 
                 width: '15%',
                 order: 3,
-                format: (value) => {
+                format: (value, record) => {
                     const name = value.replace(/【|】/g, '');
-                    return `<div style="line-height: 1.2;">${name}</div>`;
+                    return `<a href="javascript:void(0);" class="product-link" style="color:#1890ff;text-decoration:none;cursor:pointer;" onclick="showProductDetail('${record.record_id}')">${name}</a>`;
                 }
             },
             '上课时间': { 
@@ -1026,7 +1026,7 @@
                 format: (value) => `<span class="price" style="font-size: 13px;">¥${value || '-'}</span>`
             },
             '报名学员': {
-                width: '28%',  // 增加报名学员列宽度
+                width: '28%',
                 order: 9,
                 isStudents: true,
                 format: async (_, record) => {
@@ -1041,10 +1041,10 @@
                                         <button onclick="event.stopPropagation(); toggleStudentDetails(this)" 
                                                 class="toggle-btn" 
                                                 style="padding: 2px 8px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 8px;">
-                                            展开
+                                            收起
                                         </button>
                                     </div>
-                                    <div class="students-details" style="display: none; margin-top: 8px;">
+                                    <div class="students-details" style="display: block; margin-top: 8px;">
                                         <div style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; background: white;">
                                             <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                                                 <thead>
@@ -1073,7 +1073,7 @@
                                 </div>
                             `;
                         }
-                        return '<span>0人</span>';
+                        return '<span style="color: #999;">0人</span>';
                     } catch (error) {
                         console.error('获取学员信息失败:', error);
                         return '<span style="color: red;">加载失败</span>';
@@ -1857,53 +1857,94 @@
             document.body.style.overflow = 'auto';
         }
 
-        function parseStudentInput(input) {
+        // 修改parseStudentInput，增加详细调试信息
+        function parseStudentInput(input, coursePrice = 0) {
             const lines = input.trim().split('\n');
             const students = [];
             const errors = [];
+            console.log('【调试】原始输入行：', lines);
 
             lines.forEach((line, index) => {
                 if (!line.trim()) return;
-
                 const parts = line.trim().split(/\s+/);
-                if (parts.length < 2 || parts.length > 4) {
-                    errors.push(`第 ${index + 1} 行格式错误`);
+                console.log(`【调试】第${index+1}行分割结果:`, parts);
+
+                // 只填微信名
+                if (parts.length === 1) {
+                    const wechatName = parts[0];
+                    const amount = coursePrice;
+                    const channel = '';
+                    const status = '已支付';
+                    students.push({wechatName, amount, channel, status});
+                    console.log(`【调试】第${index+1}行只填微信名，补全默认值:`, {wechatName, amount, channel, status});
                     return;
                 }
 
-                const [wechatName, amount, ...rest] = parts;
-                const channel = rest.length > 1 ? rest[0] : '无';
-                const status = rest.length > 0 ? rest[rest.length - 1] : '已支付';
-
-                // 验证金额
-                if (isNaN(amount)) {
-                    errors.push(`第 ${index + 1} 行金额格式错误`);
+                // 微信名+金额
+                if (parts.length === 2) {
+                    const [wechatName, amount] = parts;
+                    const channel = '';
+                    const status = '已支付';
+                    if (isNaN(amount)) {
+                        errors.push(`第 ${index + 1} 行金额格式错误`);
+                        return;
+                    }
+                    students.push({wechatName, amount: parseFloat(amount), channel, status});
+                    console.log(`【调试】第${index+1}行微信名+金额，补全默认值:`, {wechatName, amount: parseFloat(amount), channel, status});
                     return;
                 }
 
-                // 验证状态
-                if (!['已支付', '意向中', '已退款'].includes(status)) {
-                    errors.push(`第 ${index + 1} 行状态错误，只能是：已支付、意向中、已退款`);
+                // 微信名+金额+渠道
+                if (parts.length === 3) {
+                    const [wechatName, amount, channel] = parts;
+                    const status = '已支付';
+                    if (isNaN(amount)) {
+                        errors.push(`第 ${index + 1} 行金额格式错误`);
+                        return;
+                    }
+                    students.push({wechatName, amount: parseFloat(amount), channel, status});
+                    console.log(`【调试】第${index+1}行微信名+金额+渠道，补全默认值:`, {wechatName, amount: parseFloat(amount), channel, status});
                     return;
                 }
 
-                students.push({
-                    wechatName,
-                    amount: parseFloat(amount),
-                    channel,
-                    status
-                });
+                // 微信名+金额+渠道+状态
+                if (parts.length === 4) {
+                    const [wechatName, amount, channel, status] = parts;
+                    if (isNaN(amount)) {
+                        errors.push(`第 ${index + 1} 行金额格式错误`);
+                        return;
+                    }
+                    if (!['已支付', '意向中', '已退款'].includes(status)) {
+                        errors.push(`第 ${index + 1} 行状态错误，只能是：已支付、意向中、已退款`);
+                        return;
+                    }
+                    students.push({wechatName, amount: parseFloat(amount), channel, status});
+                    console.log(`【调试】第${index+1}行全部字段:`, {wechatName, amount: parseFloat(amount), channel, status});
+                    return;
+                }
+
+                errors.push(`第 ${index + 1} 行格式错误`);
+                console.log(`【调试】第${index+1}行格式错误，内容:`, line);
             });
-
+            console.log('【调试】最终students数组:', students);
+            console.log('【调试】最终errors数组:', errors);
             return { students, errors };
         }
 
+        // 修改submitStudents，传递会员价格给parseStudentInput
         async function submitStudents() {
             const input = document.getElementById('studentsInput').value;
             const errorElement = document.getElementById('errorMessage');
-            
-            console.log('开始处理学员输入');
-            const { students, errors } = parseStudentInput(input);
+            // 获取当前课程会员价格
+            let coursePrice = 0;
+            if (allDataCache && currentCourseId) {
+                const course = allDataCache.items.find(item => item.record_id === currentCourseId);
+                if (course) {
+                    coursePrice = parseFloat(course.fields['会员价格']) || 0;
+                }
+            }
+            console.log('【调试】当前课程会员价格:', coursePrice);
+            const { students, errors } = parseStudentInput(input, coursePrice);
             
             console.log('解析结果:', { students, errors });
             
@@ -2111,7 +2152,6 @@
             const container = btn.closest('.students-container');
             const details = container.querySelector('.students-details');
             const isExpanded = details.style.display !== 'none';
-            
             details.style.display = isExpanded ? 'none' : 'block';
             btn.textContent = isExpanded ? '展开' : '收起';
         }
