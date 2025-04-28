@@ -4,6 +4,7 @@ const lark = require('@larksuiteoapi/node-sdk');
 const fs = require('fs');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const fsPromises = require('fs').promises;
 
 const app = express();
 const port = 4000;
@@ -303,6 +304,82 @@ app.get('/', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// 日志记录函数
+async function logOperation(operation, details, username) {
+    try {
+        const timestamp = new Date().toLocaleString('zh-CN');
+        const logEntry = {
+            timestamp,
+            username,
+            operation,
+            details
+        };
+        
+        const logPath = path.join(__dirname, 'operations.log');
+        
+        // 读取现有日志，如果不存在则创建空数组
+        let logs = [];
+        try {
+            if (fs.existsSync(logPath)) {
+                const logContent = await fsPromises.readFile(logPath, 'utf8');
+                if (logContent.trim()) {
+                    logs = JSON.parse(logContent);
+                    if (!Array.isArray(logs)) {
+                        logs = [];
+                    }
+                }
+            }
+        } catch (readError) {
+            console.error('读取日志文件失败，将创建新日志文件:', readError);
+            logs = [];
+        }
+        
+        // 添加新日志
+        logs.push(logEntry);
+        
+        // 写入日志文件
+        await fsPromises.writeFile(logPath, JSON.stringify(logs, null, 2), 'utf8');
+        console.log('日志已记录:', logEntry);
+    } catch (error) {
+        console.error('写入日志失败:', error);
+    }
+}
+
+// 获取操作日志API
+app.get('/api/logs', requireAuth, async (req, res) => {
+    try {
+        const logPath = path.join(__dirname, 'operations.log');
+        
+        // 如果日志文件不存在，返回空数组
+        if (!fs.existsSync(logPath)) {
+            return res.json({ success: true, logs: [] });
+        }
+        
+        // 读取日志文件
+        const logContent = await fsPromises.readFile(logPath, 'utf8');
+        
+        // 解析日志内容
+        let logs = [];
+        if (logContent.trim()) {
+            try {
+                logs = JSON.parse(logContent);
+                if (!Array.isArray(logs)) {
+                    logs = [];
+                }
+            } catch (parseError) {
+                console.error('解析日志文件失败:', parseError);
+                return res.status(500).json({ success: false, message: '日志文件格式错误' });
+            }
+        }
+        
+        // 返回日志数组（最新的在前面）
+        res.json({ success: true, logs: logs.reverse() });
+    } catch (error) {
+        console.error('读取日志失败:', error);
+        res.status(500).json({ success: false, message: '读取日志失败' });
+    }
+});
+
 // 学员相关 API
 app.post('/api/students/add', requireAuth, async (req, res) => {
     try {
@@ -348,6 +425,17 @@ app.post('/api/students/add', requireAuth, async (req, res) => {
         // 保存数据
         console.log('保存数据到文件');
         fs.writeFileSync('students.json', JSON.stringify(allStudents, null, 2));
+        
+        // 构建详细的日志记录
+        const studentsInfo = newStudents.map(student => 
+            `${student.wechatName}(¥${student.amount}/${student.status})`
+        ).join('、');
+        
+        await logOperation(
+            '添加学员',
+            `课程: ${courseName}(${courseId}), 添加${students.length}名学员: ${studentsInfo}`,
+            req.session.user.username
+        );
         
         console.log('添加学员成功');
         res.json({ 
@@ -415,6 +503,26 @@ app.post('/api/students/update', requireAuth, async (req, res) => {
             throw new Error('未找到要更新的学员');
         }
         
+        // 记录变更内容
+        const oldStudent = students[globalIndex];
+        const changes = [];
+        
+        if (oldStudent.wechatName !== student.wechatName) {
+            changes.push(`微信名: ${oldStudent.wechatName} → ${student.wechatName}`);
+        }
+        
+        if (oldStudent.amount !== student.amount) {
+            changes.push(`金额: ¥${oldStudent.amount} → ¥${student.amount}`);
+        }
+        
+        if (oldStudent.channel !== student.channel) {
+            changes.push(`渠道: ${oldStudent.channel || '无'} → ${student.channel || '无'}`);
+        }
+        
+        if (oldStudent.status !== student.status) {
+            changes.push(`状态: ${oldStudent.status} → ${student.status}`);
+        }
+        
         // 保留原有的添加人和添加时间
         const updatedStudent = {
             ...student,
@@ -428,6 +536,12 @@ app.post('/api/students/update', requireAuth, async (req, res) => {
         
         // 保存到文件
         await fs.writeFile('students.json', JSON.stringify(students, null, 2));
+        
+        await logOperation(
+            '更新学员信息',
+            `课程: ${updatedStudent.courseName || courseId}, 学员: ${student.wechatName}, 变更: ${changes.join(', ')}`,
+            req.session.user.username
+        );
         
         res.json({ success: true, message: '更新成功' });
         
