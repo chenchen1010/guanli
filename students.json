@@ -20,5 +20,16 @@
     "addedBy": "admin",
     "addedAt": "2025-04-28T08:37:05.500Z",
     "id": "1745829425502wjajdl5sj"
+  },
+  {
+    "wechatName": "te1",
+    "amount": 3000,
+    "channel": "朋友介绍",
+    "status": "已退款",
+    "courseId": "recuJnc9yGyXOL",
+    "courseName": "【Deepseek应用与变现-多地址可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-04-28T08:46:43.176Z",
+    "id": "1745830003178gcr5edk7s"
   }
 ]

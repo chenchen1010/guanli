@@ -723,6 +723,23 @@
         #studentListTable tr:hover {
             background-color: #f5f5f5;
         }
+        .students-container {
+            position: relative;
+        }
+        .students-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .students-details table {
+            background: white;
+        }
+        .students-details tr:hover {
+            background: #f5f5f5;
+        }
+        .toggle-btn:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -985,7 +1002,7 @@
                 format: (value) => `<span class="price">¥${value}</span>`
             },
             '报名学员': {
-                width: '10%',
+                width: '25%',  // 增加宽度以适应更多内容
                 order: 9,
                 isStudents: true,
                 format: async (_, record) => {
@@ -993,13 +1010,33 @@
                         const response = await fetch(`/api/students/${record.record_id}`);
                         const students = await response.json();
                         if (students && students.length > 0) {
+                            // 创建一个可展开的内容区域
                             return `
-                                <div style="display: flex; align-items: center; gap: 5px;">
-                                    <span>${students.length}人</span>
-                                    <button onclick="showStudentList('${record.record_id}', '${record.fields['商品名称']}')" 
-                                            style="padding: 2px 8px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                        查看
-                                    </button>
+                                <div class="students-container">
+                                    <div class="students-summary">
+                                        <span>${students.length}人</span>
+                                        <button onclick="event.stopPropagation(); toggleStudentDetails(this)" 
+                                                class="toggle-btn" 
+                                                style="padding: 2px 8px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 8px;">
+                                            展开
+                                        </button>
+                                    </div>
+                                    <div class="students-details" style="display: none; margin-top: 8px;">
+                                        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
+                                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                                ${students.map(student => `
+                                                    <tr style="border-bottom: 1px solid #eee;">
+                                                        <td style="padding: 4px; white-space: nowrap;">${student.wechatName}</td>
+                                                        <td style="padding: 4px; white-space: nowrap;">¥${student.amount}</td>
+                                                        <td style="padding: 4px; white-space: nowrap;">${student.channel}</td>
+                                                        <td style="padding: 4px; white-space: nowrap;">
+                                                            ${getStatusBadge(student.status)}
+                                                        </td>
+                                                    </tr>
+                                                `).join('')}
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             `;
                         }
@@ -1965,7 +2002,7 @@
                 '意向中': '#1890ff',
                 '已退款': '#ff4d4f'
             };
-            return `<span style="padding: 2px 8px; background: ${colors[status]}; color: white; border-radius: 10px;">${status}</span>`;
+            return `<span style="padding: 1px 4px; font-size: 12px; background: ${colors[status]}; color: white; border-radius: 4px;">${status}</span>`;
         }
 
         function filterStudents(status) {
@@ -2034,6 +2071,16 @@
             
             table.appendChild(tbody);
             return table;
+        }
+
+        // 添加展开/收起功能
+        function toggleStudentDetails(btn) {
+            const container = btn.closest('.students-container');
+            const details = container.querySelector('.students-details');
+            const isExpanded = details.style.display !== 'none';
+            
+            details.style.display = isExpanded ? 'none' : 'block';
+            btn.textContent = isExpanded ? '展开' : '收起';
         }
     </script>
 </body>
