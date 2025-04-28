@@ -251,5 +251,16 @@
     "addedBy": "admin",
     "addedAt": "2025-04-28T09:50:08.032Z",
     "id": "17458338080321bzy3oemt"
+  },
+  {
+    "wechatName": "张三",
+    "amount": 3000,
+    "channel": "朋友介绍",
+    "status": "意向中",
+    "courseId": "recuJnc9yGk5ty",
+    "courseName": "【八段锦-上城-闸弄口】",
+    "addedBy": "admin",
+    "addedAt": "2025-04-28T10:08:36.196Z",
+    "id": "1745834916197hsl5qhzyh"
   }
 ]

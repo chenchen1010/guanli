@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            max-width: 1400px;  // 增加最大宽度
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -164,25 +164,25 @@
         }
         
         .refresh-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #3370ff;
+            padding: 6px 12px;
+            background-color: #0071e3;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 100;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 14px;
+            transition: background-color 0.2s;
+            height: 32px;  /* 固定高度 */
+            line-height: 20px;  /* 调整行高 */
+            position: relative;
+            z-index: 1;
         }
         
         .refresh-button:hover {
-            background-color: #2860ff;
+            background-color: #0077ed;
         }
         
         .refresh-button:disabled {
@@ -191,17 +191,17 @@
         }
         
         .refresh-button .icon {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>');
             display: inline-block;
         }
         
         /* 搜索和筛选容器样式 */
         .filter-container {
-            margin: 20px 0;
             display: flex;
-            gap: 20px;
+            gap: 8px;
+            margin: 20px 0;
             align-items: center;
         }
         
@@ -338,7 +338,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.7);
+            background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             overflow-y: auto;
         }
@@ -350,12 +350,18 @@
             max-width: 750px;
             position: relative;
             animation: modalFadeIn 0.3s;
-            padding-bottom: 30px; /* 添加底部内边距，确保内容完全可见 */
+            padding-bottom: 30px;
         }
         
         @keyframes modalFadeIn {
-            from {opacity: 0; transform: translateY(15px);}
-            to {opacity: 1; transform: translateY(0);}
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .modal-header {
@@ -399,6 +405,7 @@
             background: none;
             border: none;
             cursor: pointer;
+            padding: 0;
         }
         
         .product-image {
@@ -665,21 +672,36 @@
 
         .user-info {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
             gap: 10px;
             margin-bottom: 20px;
-            padding: 10px;
+            padding: 10px 20px;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .user-info span {
-            color: #333;
-            font-size: 14px;
+
+        .user-info-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
+        .stats-info {
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .logout-button {
             padding: 6px 12px;
             background-color: #ff3b30;
@@ -689,6 +711,8 @@
             cursor: pointer;
             font-size: 14px;
             transition: background-color 0.2s;
+            height: 32px;  /* 固定高度 */
+            line-height: 20px;  /* 调整行高 */
         }
         
         .logout-button:hover {
@@ -739,13 +763,19 @@
             align-items: center;
             gap: 8px;
         }
-        .students-details table {
-            background: white;
-            box-shadow: none;
-            margin: 0;
+        .students-details {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .students-details td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
         }
         .students-details tr:hover {
             background: #f5f5f5;
+            cursor: pointer;
         }
         .toggle-btn:hover {
             opacity: 0.9;
@@ -760,8 +790,16 @@
 </head>
 <body>
     <div class="user-info">
-        <span>欢迎，<span id="username"></span></span>
-        <button class="logout-button" onclick="handleLogout()">退出登录</button>
+        <div class="user-info-left">
+            <button class="refresh-button" id="refreshButton" onclick="fetchTableData(true)">
+                <span class="icon"></span>更新数据
+            </button>
+            <div class="stats-info" id="stats"></div>
+        </div>
+        <div class="user-info-right">
+            <span>欢迎，<span id="username"></span></span>
+            <button class="logout-button" onclick="handleLogout()">退出登录</button>
+        </div>
     </div>
     <div class="container">
         <h1>杭州新青年夜校课表</h1>
@@ -843,9 +881,6 @@
     <div id="imageModal" class="modal" onclick="this.style.display='none'">
         <img id="modalImage" src="" alt="预览图片">
     </div>
-    <button class="refresh-button" id="refreshButton">
-        <span class="icon"></span>更新数据
-    </button>
 
     <!-- 添加商品详情模态框 -->
     <div id="productDetailModal" class="product-modal">
@@ -1063,7 +1098,7 @@
                 format: (value) => `<span class="price" style="font-size: 13px;">¥${value || '-'}</span>`
             },
             '报名学员': {
-                width: '30%',
+                width: '28%',
                 order: 9,
                 isStudents: true,
                 format: async (_, record) => {
@@ -1237,7 +1272,7 @@
 
                 if (items && items.length > 0 && fields && fields.length > 0) {
                     const statsElement = document.getElementById('stats');
-                    statsElement.style.display = 'block';
+                    statsElement.style.display = 'flex';
                     statsElement.innerHTML = `
                         总课程数: ${totalItems} | 当前显示: ${items.length} | 
                         最后更新: ${lastUpdated.toLocaleString('zh-CN', {
@@ -2297,7 +2332,13 @@
             for (let i = 0; i < items.length; i++) {
                 const record = items[i];
                 const row = document.createElement('tr');
-                row.ondblclick = () => {
+                row.ondblclick = (e) => {
+                    // 获取点击的单元格索引
+                    const cellIndex = e.target.cellIndex;
+                    // 如果点击的是报名学员列（最后一列），不触发添加学员
+                    if (cellIndex === Object.keys(defaultColumnConfig).length - 1) {
+                        return;
+                    }
                     showAddStudentModal(record.record_id, record.fields['商品名称']);
                 };
                 
