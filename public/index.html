@@ -703,6 +703,26 @@
         tr:hover {
             background-color: #f5f5f5;
         }
+
+        .filter-btn {
+            padding: 5px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .filter-btn.active {
+            background: #0071e3;
+            color: white;
+            border-color: #0071e3;
+        }
+        #studentListTable td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        #studentListTable tr:hover {
+            background-color: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -842,6 +862,39 @@
         </div>
     </div>
 
+    <!-- 添加学员列表模态框 -->
+    <div id="studentListModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 800px; position: relative;">
+            <div class="modal-header" style="margin-bottom: 20px;">
+                <h2 style="margin: 0;">报名学员列表 - <span id="studentListCourseName"></span></h2>
+                <button onclick="closeStudentListModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button onclick="filterStudents('all')" class="filter-btn active" data-filter="all">全部</button>
+                        <button onclick="filterStudents('已支付')" class="filter-btn" data-filter="已支付">已支付</button>
+                        <button onclick="filterStudents('意向中')" class="filter-btn" data-filter="意向中">意向中</button>
+                        <button onclick="filterStudents('已退款')" class="filter-btn" data-filter="已退款">已退款</button>
+                    </div>
+                </div>
+                <table id="studentListTable" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">微信名</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">实付金额</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">招生渠道</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">订单状态</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">添加人</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">添加时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentListTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 获取用户名并显示
         const username = document.getElementById('username');
@@ -889,42 +942,73 @@
             '临安区'
         ];
 
-        // 列配置
+        // 修改列配置
         const defaultColumnConfig = {
             '序号': {
                 width: '5%',
                 order: 0,
                 isIndex: true
             },
+            '商品ID': {
+                width: '8%',
+                order: 1,
+                format: (_, record) => record.fields['商品ID'] || '-'
+            },
             '杭州分区': { 
-                width: '10%',
-                order: 1
+                width: '8%',
+                order: 2
             },
             '商品名称': { 
                 width: '15%',
-                order: 2,
+                order: 3,
                 format: (value) => value.replace(/【|】/g, '')
             },
             '上课时间': { 
                 width: '12%',
-                order: 3
+                order: 4
             },
             '机构地址': { 
-                width: '20%',
-                order: 4
+                width: '18%',
+                order: 5
             },
             '最少上课人数': { 
                 width: '8%',
-                order: 5
+                order: 6
             },
             '最大上课人数': { 
                 width: '8%',
-                order: 6
+                order: 7
             },
             '会员价格': { 
                 width: '8%',
-                order: 7,
+                order: 8,
                 format: (value) => `<span class="price">¥${value}</span>`
+            },
+            '报名学员': {
+                width: '10%',
+                order: 9,
+                isStudents: true,
+                format: async (_, record) => {
+                    try {
+                        const response = await fetch(`/api/students/${record.record_id}`);
+                        const students = await response.json();
+                        if (students && students.length > 0) {
+                            return `
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <span>${students.length}人</span>
+                                    <button onclick="showStudentList('${record.record_id}', '${record.fields['商品名称']}')" 
+                                            style="padding: 2px 8px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                        查看
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        return '<span>0人</span>';
+                    } catch (error) {
+                        console.error('获取学员信息失败:', error);
+                        return '<span style="color: red;">加载失败</span>';
+                    }
+                }
             }
         };
 
@@ -1055,72 +1139,7 @@
                         })}
                     `;
 
-                    const table = document.createElement('table');
-                    const thead = document.createElement('thead');
-                    const tbody = document.createElement('tbody');
-                    
-                    // 创建表头
-                    const headerRow = document.createElement('tr');
-                    Object.entries(defaultColumnConfig).forEach(([key, config]) => {
-                        const th = document.createElement('th');
-                        th.textContent = key;
-                        th.style.width = config.width;
-                        headerRow.appendChild(th);
-                    });
-                    thead.appendChild(headerRow);
-                    table.appendChild(thead);
-                    
-                    // 创建表格内容
-                    items.forEach((record, index) => {
-                        const row = document.createElement('tr');
-                        row.ondblclick = () => {
-                            showAddStudentModal(record.record_id, record.fields['商品名称']);
-                        };
-                        Object.entries(defaultColumnConfig).forEach(([key, config]) => {
-                            const td = document.createElement('td');
-                            if (config.isIndex) {
-                                td.textContent = index + 1;
-                                td.style.textAlign = 'center';
-                            } else {
-                                const value = record.fields[key];
-                                // 处理商品名称点击跳转
-                                if (key === '商品名称' && value) {
-                                    const link = document.createElement('a');
-                                    link.innerHTML = formatValue(value, config);
-                                    link.href = "javascript:void(0)";
-                                    link.style.color = '#1890ff';
-                                    link.style.textDecoration = 'none';
-                                    link.style.cursor = 'pointer';
-                                    link.title = '点击查看详情';
-                                    link.setAttribute('data-record-id', record.record_id);
-                                    link.addEventListener('click', function() {
-                                        showProductDetail(record.record_id);
-                                    });
-                                    td.appendChild(link);
-                                } 
-                                // 处理约课信息的显示
-                                else if (key === '上课时间' && value) {
-                                    const bookingInfo = record.fields['约课说明'] || record.fields['约课'] || record.fields['备注'];
-                                    let displayValue = formatValue(value, config);
-                                    
-                                    // 如果是约课信息，添加标记
-                                    if (bookingInfo && bookingInfo.includes('约课')) {
-                                        displayValue = `<span style="color: #1890ff; font-weight: bold;">【可约课】</span> ${displayValue}`;
-                                    }
-                                    
-                                    td.innerHTML = `${displayValue}${
-                                        bookingInfo ? `<br><span class="booking-info">${bookingInfo}</span>` : ''
-                                    }`;
-                                } else {
-                                    td.innerHTML = formatValue(value, config);
-                                }
-                            }
-                            row.appendChild(td);
-                        });
-                        tbody.appendChild(row);
-                    });
-                    
-                    table.appendChild(tbody);
+                    const table = await createTable(items, fields);
                     container.innerHTML = '';
                     container.appendChild(table);
                 } else {
@@ -1887,6 +1906,134 @@
                     window.location.href = '/login';
                 }
             }
+        }
+
+        // 添加学员列表相关函数
+        let currentStudents = [];
+
+        function showStudentList(courseId, courseName) {
+            event.stopPropagation(); // 阻止事件冒泡
+            document.getElementById('studentListCourseName').textContent = courseName;
+            document.getElementById('studentListModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            loadStudentList(courseId);
+        }
+
+        function closeStudentListModal() {
+            document.getElementById('studentListModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        async function loadStudentList(courseId) {
+            const tableBody = document.getElementById('studentListTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">加载中...</td></tr>';
+            
+            try {
+                const response = await fetch(`/api/students/${courseId}`);
+                const students = await response.json();
+                currentStudents = students;
+                
+                if (students.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">暂无学员</td></tr>';
+                    return;
+                }
+                
+                renderStudentList(students);
+            } catch (error) {
+                console.error('加载学员列表失败:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">加载失败</td></tr>';
+            }
+        }
+
+        function renderStudentList(students) {
+            const tableBody = document.getElementById('studentListTableBody');
+            tableBody.innerHTML = students.map(student => `
+                <tr>
+                    <td>${student.wechatName}</td>
+                    <td>¥${student.amount}</td>
+                    <td>${student.channel}</td>
+                    <td>${getStatusBadge(student.status)}</td>
+                    <td>${student.addedBy}</td>
+                    <td>${new Date(student.addedAt).toLocaleString('zh-CN')}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            const colors = {
+                '已支付': '#52c41a',
+                '意向中': '#1890ff',
+                '已退款': '#ff4d4f'
+            };
+            return `<span style="padding: 2px 8px; background: ${colors[status]}; color: white; border-radius: 10px;">${status}</span>`;
+        }
+
+        function filterStudents(status) {
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${status}"]`).classList.add('active');
+            
+            // 筛选并显示学员
+            const filteredStudents = status === 'all' 
+                ? currentStudents 
+                : currentStudents.filter(student => student.status === status);
+            
+            renderStudentList(filteredStudents);
+        }
+
+        // 修改表格生成代码
+        async function createTable(items, fields) {
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+            
+            // 创建表头
+            const headerRow = document.createElement('tr');
+            for (const [key, config] of Object.entries(defaultColumnConfig)) {
+                const th = document.createElement('th');
+                th.textContent = key;
+                th.style.width = config.width;
+                headerRow.appendChild(th);
+            }
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // 创建表格内容
+            for (let i = 0; i < items.length; i++) {
+                const record = items[i];
+                const row = document.createElement('tr');
+                row.ondblclick = () => {
+                    showAddStudentModal(record.record_id, record.fields['商品名称']);
+                };
+                
+                for (const [key, config] of Object.entries(defaultColumnConfig)) {
+                    const td = document.createElement('td');
+                    
+                    if (config.isIndex) {
+                        td.textContent = i + 1;
+                        td.style.textAlign = 'center';
+                    } else if (config.isStudents) {
+                        td.innerHTML = '<span>加载中...</span>';
+                        // 使用立即执行的异步函数来处理异步格式化
+                        (async () => {
+                            td.innerHTML = await config.format(null, record);
+                        })();
+                    } else {
+                        const value = config.format 
+                            ? config.format(record.fields[key], record)
+                            : (record.fields[key] || '-');
+                        td.innerHTML = value;
+                    }
+                    
+                    row.appendChild(td);
+                }
+                tbody.appendChild(row);
+            }
+            
+            table.appendChild(tbody);
+            return table;
         }
     </script>
 </body>
