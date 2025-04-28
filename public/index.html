@@ -106,8 +106,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
+            background: rgba(0,0,0,0.5);
             justify-content: center;
             align-items: center;
         }
@@ -687,6 +686,23 @@
         .logout-button:hover {
             background-color: #ff453a;
         }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        tr {
+            cursor: pointer;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -801,6 +817,29 @@
         <div class="fullscreen-nav fullscreen-prev" onclick="prevFullscreenImage()">&lt;</div>
         <img id="fullscreenImage" class="fullscreen-image" src="" alt="全屏图片">
         <div class="fullscreen-nav fullscreen-next" onclick="nextFullscreenImage()">&gt;</div>
+    </div>
+
+    <!-- 添加学员模态框 -->
+    <div id="addStudentModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; position: relative;">
+            <div class="modal-header" style="margin-bottom: 20px;">
+                <h2 style="margin: 0;">添加学员 - <span id="selectedCourseName"></span></h2>
+                <button onclick="closeAddStudentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;">
+                    <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态</p>
+                    <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
+                    <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付</p>
+                </div>
+                <textarea id="studentsInput" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="请输入学员信息，每行一个"></textarea>
+                <div id="errorMessage" style="color: red; margin-top: 10px; display: none;"></div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button onclick="closeAddStudentModal()" style="margin-right: 10px; padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
+                <button onclick="submitStudents()" style="padding: 8px 16px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">确定添加</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1034,6 +1073,9 @@
                     // 创建表格内容
                     items.forEach((record, index) => {
                         const row = document.createElement('tr');
+                        row.ondblclick = () => {
+                            showAddStudentModal(record.record_id, record.fields['商品名称']);
+                        };
                         Object.entries(defaultColumnConfig).forEach(([key, config]) => {
                             const td = document.createElement('td');
                             if (config.isIndex) {
@@ -1708,6 +1750,144 @@
                 closeProductModal();
             }
         });
+
+        // 添加学员相关函数
+        let currentCourseId = null;
+
+        function showAddStudentModal(courseId, courseName) {
+            currentCourseId = courseId;
+            document.getElementById('selectedCourseName').textContent = courseName;
+            document.getElementById('studentsInput').value = '';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('addStudentModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddStudentModal() {
+            document.getElementById('addStudentModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function parseStudentInput(input) {
+            const lines = input.trim().split('\n');
+            const students = [];
+            const errors = [];
+
+            lines.forEach((line, index) => {
+                if (!line.trim()) return;
+
+                const parts = line.trim().split(/\s+/);
+                if (parts.length < 2 || parts.length > 4) {
+                    errors.push(`第 ${index + 1} 行格式错误`);
+                    return;
+                }
+
+                const [wechatName, amount, ...rest] = parts;
+                const channel = rest.length > 1 ? rest[0] : '无';
+                const status = rest.length > 0 ? rest[rest.length - 1] : '已支付';
+
+                // 验证金额
+                if (isNaN(amount)) {
+                    errors.push(`第 ${index + 1} 行金额格式错误`);
+                    return;
+                }
+
+                // 验证状态
+                if (!['已支付', '意向中', '已退款'].includes(status)) {
+                    errors.push(`第 ${index + 1} 行状态错误，只能是：已支付、意向中、已退款`);
+                    return;
+                }
+
+                students.push({
+                    wechatName,
+                    amount: parseFloat(amount),
+                    channel,
+                    status
+                });
+            });
+
+            return { students, errors };
+        }
+
+        async function submitStudents() {
+            const input = document.getElementById('studentsInput').value;
+            const errorElement = document.getElementById('errorMessage');
+            
+            console.log('开始处理学员输入');
+            const { students, errors } = parseStudentInput(input);
+            
+            console.log('解析结果:', { students, errors });
+            
+            if (errors.length > 0) {
+                console.log('输入验证错误:', errors);
+                errorElement.textContent = errors.join('\n');
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            if (students.length === 0) {
+                console.log('没有有效的学员信息');
+                errorElement.textContent = '请输入有效的学员信息';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            try {
+                console.log('准备提交数据:', {
+                    courseId: currentCourseId,
+                    courseName: document.getElementById('selectedCourseName').textContent,
+                    students
+                });
+                
+                const response = await fetch('/api/students/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 添加防止缓存的头部
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin', // 确保发送cookies
+                    body: JSON.stringify({
+                        courseId: currentCourseId,
+                        courseName: document.getElementById('selectedCourseName').textContent,
+                        students
+                    })
+                });
+                
+                console.log('服务器响应状态:', response.status);
+                console.log('响应头:', Object.fromEntries(response.headers.entries()));
+                
+                // 检查响应的Content-Type
+                const contentType = response.headers.get('content-type');
+                console.log('响应Content-Type:', contentType);
+                
+                if (contentType && contentType.includes('text/html')) {
+                    console.error('收到HTML响应而不是JSON');
+                    throw new Error('服务器返回了HTML页面，可能是会话已过期');
+                }
+                
+                const result = await response.json();
+                console.log('服务器响应数据:', result);
+                
+                if (response.ok) {
+                    alert(`成功添加 ${result.count} 名学员`);
+                    closeAddStudentModal();
+                } else {
+                    throw new Error(result.message || '添加失败');
+                }
+            } catch (error) {
+                console.error('添加学员错误:', error);
+                errorElement.textContent = error.message || '添加失败，请稍后重试';
+                errorElement.style.display = 'block';
+                
+                // 如果是会话过期，重定向到登录页面
+                if (error.message.includes('会话已过期')) {
+                    alert('登录已过期，请重新登录');
+                    window.location.href = '/login';
+                }
+            }
+        }
     </script>
 </body>
 </html> 

@@ -303,6 +303,85 @@ app.get('/', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// 学员相关 API
+app.post('/api/students/add', requireAuth, async (req, res) => {
+    try {
+        console.log('收到添加学员请求');
+        console.log('会话信息:', req.session);
+        console.log('用户信息:', req.session.user);
+        console.log('请求体:', req.body);
+        
+        const { courseId, courseName, students } = req.body;
+        
+        if (!req.session.user) {
+            console.log('用户未登录');
+            return res.status(401).json({ message: '请先登录' });
+        }
+        
+        // 读取现有学员数据
+        let allStudents = [];
+        if (fs.existsSync('students.json')) {
+            console.log('读取现有学员数据');
+            allStudents = JSON.parse(fs.readFileSync('students.json', 'utf8'));
+            console.log('现有学员数量:', allStudents.length);
+        }
+        
+        // 处理每个学员数据
+        console.log('开始处理新学员数据');
+        const newStudents = students.map(student => {
+            const newStudent = {
+                ...student,
+                courseId,
+                courseName,
+                addedBy: req.session.user.username,
+                addedAt: new Date().toISOString(),
+                id: Date.now() + Math.random().toString(36).substr(2, 9)
+            };
+            console.log('处理学员:', newStudent);
+            return newStudent;
+        });
+        
+        // 添加新学员
+        allStudents.push(...newStudents);
+        console.log('新增学员数量:', newStudents.length);
+        
+        // 保存数据
+        console.log('保存数据到文件');
+        fs.writeFileSync('students.json', JSON.stringify(allStudents, null, 2));
+        
+        console.log('添加学员成功');
+        res.json({ 
+            message: '添加成功', 
+            count: newStudents.length,
+            students: newStudents
+        });
+    } catch (error) {
+        console.error('添加学员错误:', error);
+        console.error('错误堆栈:', error.stack);
+        res.status(500).json({ message: '添加学员失败，请稍后重试', error: error.message });
+    }
+});
+
+app.get('/api/students/:courseId', requireAuth, (req, res) => {
+    try {
+        const { courseId } = req.params;
+        
+        // 读取学员数据
+        if (!fs.existsSync('students.json')) {
+            res.json([]);
+            return;
+        }
+        
+        const allStudents = JSON.parse(fs.readFileSync('students.json', 'utf8'));
+        const courseStudents = allStudents.filter(student => student.courseId === courseId);
+        
+        res.json(courseStudents);
+    } catch (error) {
+        console.error('获取学员列表错误:', error);
+        res.status(500).json({ message: '获取学员列表失败，请稍后重试' });
+    }
+});
+
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
 }); 
