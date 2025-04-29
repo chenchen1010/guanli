@@ -2,26 +2,26 @@
   {
     "wechatName": "张三",
     "amount": 3000,
-    "channel": "朋友介绍",
-    "status": "已支付",
+    "channel": "青年俱乐部",
+    "status": "已退款",
     "courseId": "recuJnc9yGyXOL",
     "courseName": "【Deepseek应用与变现-多地址可选】",
     "addedBy": "admin",
     "addedAt": "2025-04-28T08:32:07.066Z",
     "id": "1745829127066ks6pnapyd",
-    "preferredTime": ""
+    "preferredTime": "周一"
   },
   {
-    "wechatName": "里斯",
+    "wechatName": "里修改",
     "amount": 500,
-    "channel": "朋友介绍",
+    "channel": "知喜",
     "status": "已支付",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-04-28T08:37:05.500Z",
     "id": "1745829425502wjajdl5sj",
-    "preferredTime": ""
+    "preferredTime": "周一"
   },
   {
     "wechatName": "te1",
@@ -290,7 +290,7 @@
   {
     "wechatName": "2",
     "amount": 600,
-    "channel": "无",
+    "channel": "知行",
     "status": "已支付",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
@@ -302,7 +302,7 @@
   {
     "wechatName": "11",
     "amount": 600,
-    "channel": "",
+    "channel": "本地宝",
     "status": "已支付",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
@@ -314,7 +314,7 @@
   {
     "wechatName": "33",
     "amount": 600,
-    "channel": "",
+    "channel": "艺启趣",
     "status": "已支付",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
@@ -334,5 +334,17 @@
     "addedAt": "2025-04-28T11:44:27.915Z",
     "id": "1745840667915x6ju98s51",
     "preferredTime": ""
+  },
+  {
+    "wechatName": "11",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-04-29T12:36:18.539Z",
+    "id": "1745930178539j5z28op0l"
   }
 ]

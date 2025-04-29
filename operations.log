@@ -10,5 +10,71 @@
     "username": "admin",
     "operation": "添加学员",
     "details": "课程: 【Deepseek应用与变现-多地址可选】(recuJnc9yGyXOL), 添加1名学员: 啊(¥900/已支付)"
+  },
+  {
+    "timestamp": "2025/4/28 20:07:06",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 里修改, 变更: 微信名: 里斯 → 里修改, 渠道: 朋友介绍 → 新趣"
+  },
+  {
+    "timestamp": "2025/4/28 20:07:14",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 里修改, 变更: 意向上课时间: 无 → 周六下午"
+  },
+  {
+    "timestamp": "2025/4/28 20:08:17",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: 意向上课时间: 无 → 周一"
+  },
+  {
+    "timestamp": "2025/4/28 20:09:52",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: 状态: 已支付 → 已退款"
+  },
+  {
+    "timestamp": "2025/4/28 20:13:10",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 里修改, 变更: 渠道: 新趣 → 知喜"
+  },
+  {
+    "timestamp": "2025/4/28 20:13:24",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 2, 变更: 渠道: 无 → 知行"
+  },
+  {
+    "timestamp": "2025/4/28 20:14:02",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 11, 变更: 渠道: 无 → 本地宝"
+  },
+  {
+    "timestamp": "2025/4/28 20:14:22",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 33, 变更: 渠道: 无 → 艺启趣"
+  },
+  {
+    "timestamp": "2025/4/28 20:14:46",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: 渠道: 朋友介绍 → 青年俱乐部"
+  },
+  {
+    "timestamp": "2025/4/29 20:36:18",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 11(¥600/已支付)"
+  },
+  {
+    "timestamp": "2025/4/29 20:40:33",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 里修改, 变更: 意向上课时间: 周六下午 → 周一"
   }
 ]

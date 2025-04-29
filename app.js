@@ -348,6 +348,7 @@ async function logOperation(operation, details, username) {
 // 获取操作日志API
 app.get('/api/logs', requireAuth, async (req, res) => {
     try {
+        const { startDate, endDate } = req.query;
         const logPath = path.join(__dirname, 'operations.log');
         
         // 如果日志文件不存在，返回空数组
@@ -370,6 +371,60 @@ app.get('/api/logs', requireAuth, async (req, res) => {
                 console.error('解析日志文件失败:', parseError);
                 return res.status(500).json({ success: false, message: '日志文件格式错误' });
             }
+        }
+        
+        // 根据日期范围筛选日志
+        if (startDate || endDate) {
+            console.log(`按日期筛选日志: 开始日期=${startDate}, 结束日期=${endDate}`);
+            
+            const startDateTime = startDate ? new Date(startDate) : new Date(0);
+            // 如果提供了结束日期，设置时间为当天的23:59:59
+            const endDateTime = endDate ? new Date(endDate) : new Date();
+            if (endDate) {
+                endDateTime.setHours(23, 59, 59, 999);
+            }
+            
+            // 筛选符合日期范围的日志
+            logs = logs.filter(log => {
+                // 将日志的时间戳转换为Date对象
+                // 由于中国日期格式(如"2023/5/25 14:30:45")可能不被所有浏览器正确解析
+                // 我们手动解析时间戳
+                let logDate;
+                try {
+                    // 尝试直接解析
+                    logDate = new Date(log.timestamp);
+                    
+                    // 如果解析结果无效，尝试手动解析中文日期格式
+                    if (isNaN(logDate.getTime())) {
+                        const parts = log.timestamp.split(/[\/\s:]/);
+                        if (parts.length >= 6) {
+                            // 根据"年/月/日 时:分:秒"格式解析
+                            logDate = new Date(
+                                parseInt(parts[0]), 
+                                parseInt(parts[1]) - 1, // 月份从0开始
+                                parseInt(parts[2]),
+                                parseInt(parts[3]),
+                                parseInt(parts[4]),
+                                parseInt(parts[5])
+                            );
+                        }
+                    }
+                } catch (e) {
+                    console.error('解析日志日期失败:', log.timestamp, e);
+                    return false; // 解析失败的日志条目不包含在结果中
+                }
+                
+                // 验证解析后的日期是否有效
+                if (!logDate || isNaN(logDate.getTime())) {
+                    console.error('无效的日志日期:', log.timestamp);
+                    return false;
+                }
+                
+                // 判断日期是否在指定范围内
+                return logDate >= startDateTime && logDate <= endDateTime;
+            });
+            
+            console.log(`筛选后找到 ${logs.length} 条日志记录`);
         }
         
         // 返回日志数组（最新的在前面）
@@ -483,7 +538,7 @@ app.post('/api/students/update', requireAuth, async (req, res) => {
         }
         
         // 读取现有数据
-        const data = await fs.readFile('students.json', 'utf8');
+        const data = fs.readFileSync('students.json', 'utf8');
         const students = JSON.parse(data);
         
         // 查找并更新学员信息
@@ -539,7 +594,7 @@ app.post('/api/students/update', requireAuth, async (req, res) => {
         students[globalIndex] = updatedStudent;
         
         // 保存到文件
-        await fs.writeFile('students.json', JSON.stringify(students, null, 2));
+        fs.writeFileSync('students.json', JSON.stringify(students, null, 2));
         
         await logOperation(
             '更新学员信息',
@@ -577,6 +632,31 @@ app.get('/api/preferred-times', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('获取意向上课时间列表失败:', error);
         res.status(500).json({ success: false, message: '获取意向上课时间列表失败' });
+    }
+});
+
+// 获取招生渠道列表
+app.get('/api/channels', requireAuth, async (req, res) => {
+    try {
+        // 读取学员数据
+        let allChannels = new Set(['朋友介绍', '微信群', '公众号', '小红书', '抖音', '社区活动', '新趣', '其他']);
+        
+        if (fs.existsSync('students.json')) {
+            const students = JSON.parse(fs.readFileSync('students.json', 'utf8'));
+            // 从现有学员中获取所有不同的招生渠道
+            students.forEach(student => {
+                if (student.channel && student.channel.trim()) {
+                    allChannels.add(student.channel.trim());
+                }
+            });
+        }
+        
+        // 转换为数组并按字母顺序排序
+        const channelsList = Array.from(allChannels).sort();
+        res.json({ success: true, channels: channelsList });
+    } catch (error) {
+        console.error('获取招生渠道列表失败:', error);
+        res.status(500).json({ success: false, message: '获取招生渠道列表失败' });
     }
 });
 

@@ -792,8 +792,8 @@
           padding: 10px;
           border-bottom: 1px solid #eee;
           display: flex;
-          align-items: center;
-          gap: 20px;
+          flex-direction: column;
+          gap: 5px;
         }
 
         .log-item:hover {
@@ -803,24 +803,20 @@
         .log-timestamp {
           color: #666;
           font-size: 0.9em;
-          width: 180px;
         }
 
         .log-username {
           color: #1890ff;
           font-weight: bold;
-          width: 100px;
         }
 
         .log-operation {
           color: #333;
           font-weight: 500;
-          width: 100px;
         }
 
         .log-details {
           color: #666;
-          flex: 1;
         }
 
         /* 日志按钮样式 */
@@ -844,6 +840,61 @@
         .log-button svg {
           width: 16px;
           height: 16px;
+        }
+
+        /* 日期筛选样式 */
+        .log-filter {
+          padding: 10px 20px;
+          border-bottom: 1px solid #eee;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          align-items: center;
+        }
+
+        .log-filter .date-input {
+          padding: 6px 10px;
+          border: 1px solid #d9d9d9;
+          border-radius: 4px;
+          font-size: 14px;
+        }
+
+        .log-filter .filter-button {
+          padding: 6px 12px;
+          background-color: #1890ff;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .log-filter .filter-button:hover {
+          background-color: #40a9ff;
+        }
+
+        .log-filter .reset-button {
+          padding: 6px 12px;
+          background-color: #f5f5f5;
+          color: #333;
+          border: 1px solid #d9d9d9;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .log-filter .reset-button:hover {
+          background-color: #e6e6e6;
+        }
+
+        .log-header {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+
+        .log-content {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
         }
 
         /* 修改操作日志样式为侧边栏 */
@@ -943,6 +994,50 @@
         .log-details {
           color: #666;
           padding-top: 5px;
+        }
+
+        /* 添加学员表格样式 */
+        #studentListTable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        #studentListTable th {
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #f5f5f5;
+            font-weight: 500;
+            text-align: left;
+        }
+        
+        #studentListTable td {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            transition: background-color 0.2s;
+        }
+        
+        #studentListTable tr:hover {
+            background-color: #f0f7ff;
+        }
+        
+        /* 编辑按钮悬停效果 */
+        .edit-btn:hover {
+            background: #005bb5 !important;
+        }
+        
+        /* 可编辑单元格样式 */
+        #studentListTable td[onclick] {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        #studentListTable td[onclick]:hover:after {
+            content: "✎";
+            position: absolute;
+            right: 5px;
+            color: #aaa;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -1077,6 +1172,7 @@
                     <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
                     <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
                     <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
+                    <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
                 </div>
                 <textarea id="studentsInput" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="请输入学员信息，每行一个"></textarea>
                 <div id="errorMessage" style="color: red; margin-top: 10px; display: none;"></div>
@@ -1112,6 +1208,7 @@
                             <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">招生渠道</th>
                             <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">订单状态</th>
                             <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">意向上课时间</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5; width: 80px;">操作</th>
                         </tr>
                     </thead>
                     <tbody id="studentListTableBody"></tbody>
@@ -1120,7 +1217,7 @@
         </div>
     </div>
 
-    <!-- 添加编辑学员模态框 -->
+    <!-- 修改编辑学员模态框中的招生渠道字段 -->
     <div id="editStudentModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
         <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; position: relative;">
             <div class="modal-header" style="margin-bottom: 20px;">
@@ -1138,7 +1235,12 @@
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; margin-bottom: 5px;">招生渠道</label>
-                    <input type="text" id="editChannel" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <div style="position: relative;">
+                        <input type="text" id="editChannel" list="channelList" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="选择或输入新的渠道">
+                        <datalist id="channelList">
+                            <!-- 选项将通过JavaScript动态添加 -->
+                        </datalist>
+                    </div>
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; margin-bottom: 5px;">订单状态</label>
@@ -1172,6 +1274,18 @@
         <div class="sidebar-header">
           <h2>操作日志</h2>
           <span class="close" onclick="closeLogModal()">&times;</span>
+        </div>
+        <div class="log-filter">
+          <div>
+            <label for="startDate">开始日期：</label>
+            <input type="date" id="startDate" class="date-input">
+          </div>
+          <div>
+            <label for="endDate">结束日期：</label>
+            <input type="date" id="endDate" class="date-input">
+          </div>
+          <button id="filterLogs" class="filter-button">筛选</button>
+          <button id="resetFilter" class="reset-button">重置</button>
         </div>
         <div class="sidebar-body">
           <div id="logList">
@@ -1307,10 +1421,11 @@
                                                         <th style="padding: 6px; text-align: left; font-weight: 500;">渠道</th>
                                                         <th style="padding: 6px; text-align: center; font-weight: 500;">状态</th>
                                                         <th style="padding: 6px; text-align: left; font-weight: 500;">意向上课时间</th>
+                                                        <th style="padding: 6px; text-align: center; font-weight: 500; width: 50px;">操作</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    ${students.map(student => `
+                                                    ${students.map((student, index) => `
                                                         <tr style="border-bottom: 1px solid #eee;">
                                                             <td style="padding: 6px;">${student.wechatName}</td>
                                                             <td style="padding: 6px; text-align: right;">¥${student.amount}</td>
@@ -1319,6 +1434,12 @@
                                                                 ${getStatusBadge(student.status)}
                                                             </td>
                                                             <td style="padding: 6px;">${student.preferredTime || '-'}</td>
+                                                            <td style="padding: 6px; text-align: center;">
+                                                                <button onclick="event.stopPropagation(); editEmbeddedStudent('${record.record_id}', ${index})" 
+                                                                        style="background: #0071e3; color: white; border: none; border-radius: 4px; padding: 2px 5px; cursor: pointer; font-size: 12px;">
+                                                                    编辑
+                                                                </button>
+                                                            </td>
                                                         </tr>
                                                     `).join('')}
                                                 </tbody>
@@ -2111,6 +2232,7 @@
                 <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
                 <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
                 <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
+                <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
             `;
         }
 
@@ -2119,7 +2241,7 @@
             document.body.style.overflow = 'auto';
         }
 
-        // 修改parseStudentInput，支持意向上课时间
+        // 修改parseStudentInput函数，更好地处理渠道字段
         function parseStudentInput(input, coursePrice = 0) {
             const lines = input.trim().split('\n');
             const students = [];
@@ -2128,7 +2250,50 @@
 
             lines.forEach((line, index) => {
                 if (!line.trim()) return;
-                const parts = line.trim().split(/\s+/);
+                
+                // 处理带引号的渠道名（可能包含空格）
+                let parts = [];
+                let inQuotes = false;
+                let currentPart = '';
+                let quotedChannel = '';
+                
+                // 分割字符串，但保留引号内的空格
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"' && !inQuotes) {
+                        inQuotes = true;
+                        continue;
+                    }
+                    
+                    if (char === '"' && inQuotes) {
+                        inQuotes = false;
+                        parts.push(quotedChannel);
+                        quotedChannel = '';
+                        continue;
+                    }
+                    
+                    if (inQuotes) {
+                        quotedChannel += char;
+                        continue;
+                    }
+                    
+                    if (char === ' ' && !inQuotes) {
+                        if (currentPart) {
+                            parts.push(currentPart);
+                            currentPart = '';
+                        }
+                        continue;
+                    }
+                    
+                    currentPart += char;
+                }
+                
+                // 添加最后一部分
+                if (currentPart) {
+                    parts.push(currentPart);
+                }
+                
                 console.log(`【调试】第${index+1}行分割结果:`, parts);
 
                 // 只填微信名
@@ -2357,6 +2522,12 @@
                     <td onclick="makeEditable(this, 'channel')">${student.channel}</td>
                     <td onclick="makeEditable(this, 'status')" style="text-align: center;">${getStatusBadge(student.status)}</td>
                     <td onclick="makeEditable(this, 'preferredTime')">${student.preferredTime || '-'}</td>
+                    <td style="text-align: center;">
+                        <button onclick="event.stopPropagation(); showEditStudentModal(${index})" class="edit-btn" 
+                            style="background: #0071e3; color: white; border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 12px;">
+                            编辑
+                        </button>
+                    </td>
                 </tr>
             `).join('');
 
@@ -2399,6 +2570,47 @@
                 cell.innerHTML = '';
                 cell.appendChild(select);
                 select.focus();
+                return;
+            }
+            
+            // 渠道字段使用带有datalist的输入框
+            if (field === 'channel') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentValue;
+                input.style.width = '100%';
+                input.style.padding = '4px';
+                input.style.border = '1px solid #ddd';
+                input.style.borderRadius = '4px';
+                input.style.boxSizing = 'border-box';
+                
+                // 创建一个临时datalist
+                const datalistId = 'temp-channel-datalist-' + Date.now();
+                const datalist = document.createElement('datalist');
+                datalist.id = datalistId;
+                input.setAttribute('list', datalistId);
+                
+                // 加载渠道选项
+                loadChannels().then(channels => {
+                    datalist.innerHTML = channels.map(channel => `<option value="${channel}">`).join('');
+                });
+                
+                document.body.appendChild(datalist);
+                
+                input.onblur = () => {
+                    saveEdit(cell, field, input.value);
+                    document.body.removeChild(datalist);
+                };
+                
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        input.blur();
+                    }
+                };
+                
+                cell.innerHTML = '';
+                cell.appendChild(input);
+                input.focus();
                 return;
             }
             
@@ -2642,8 +2854,9 @@
             document.getElementById('editStatus').value = currentEditingStudent.status;
             document.getElementById('editPreferredTime').value = currentEditingStudent.preferredTime || '';
             
-            // 加载上课时间选项
+            // 加载上课时间选项和渠道选项
             loadPreferredTimes();
+            loadChannels();
             
             // 显示模态框
             document.getElementById('editStudentModal').style.display = 'flex';
@@ -2736,7 +2949,7 @@
                   </svg>
                   操作日志
                 `;
-                logButton.onclick = showLogModal;
+                logButton.onclick = function() { showLogModal(false); };
                 const userInfoRight = topBar.querySelector('.user-info-right');
                 if (userInfoRight) {
                     userInfoRight.insertBefore(logButton, userInfoRight.firstChild);
@@ -2748,12 +2961,52 @@
             } else {
                 console.error('找不到顶部栏元素');
             }
+            
+            // 设置筛选和重置按钮的事件监听器
+            const filterButton = document.getElementById('filterLogs');
+            if (filterButton) {
+                filterButton.addEventListener('click', function() {
+                    showLogModal(true);
+                });
+            }
+            
+            const resetButton = document.getElementById('resetFilter');
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    document.getElementById('startDate').value = '';
+                    document.getElementById('endDate').value = '';
+                    showLogModal(false);
+                });
+            }
+            
+            // 点击侧边栏以外区域关闭
+            const logModal = document.getElementById('logModal');
+            logModal.addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeLogModal();
+                }
+            });
         });
 
-        async function showLogModal() {
+        async function showLogModal(useFilters = false) {
             try {
                 console.log('正在获取操作日志...');
-                const response = await fetch('/api/logs', {
+                
+                // 获取日期筛选值
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                // 构建查询参数
+                let url = '/api/logs';
+                if (useFilters && (startDate || endDate)) {
+                    const params = new URLSearchParams();
+                    if (startDate) params.append('startDate', startDate);
+                    if (endDate) params.append('endDate', endDate);
+                    url = `${url}?${params.toString()}`;
+                    console.log('使用筛选条件:', url);
+                }
+                
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Cache-Control': 'no-cache',
@@ -2788,7 +3041,7 @@
                     } else {
                         logList.innerHTML = data.logs.map(log => `
                             <div class="log-item">
-                                <div class="log-header" style="display: flex; justify-content: space-between;">
+                                <div class="log-header">
                                     <span class="log-timestamp">${log.timestamp || '未知时间'}</span>
                                     <span class="log-username">${log.username || '未知用户'}</span>
                                 </div>
@@ -2826,16 +3079,6 @@
             document.body.style.overflow = 'auto';
         }
 
-        // 点击侧边栏以外区域关闭
-        document.addEventListener('DOMContentLoaded', function() {
-          const logModal = document.getElementById('logModal');
-          logModal.addEventListener('click', function(event) {
-            if (event.target === this) {
-              closeLogModal();
-            }
-          });
-        });
-
         // 添加获取上课时间选项列表功能
         async function loadPreferredTimes() {
             try {
@@ -2871,6 +3114,60 @@
             // 加载上课时间选项
             loadPreferredTimes();
         });
+
+        // 添加获取渠道列表的函数
+        async function loadChannels() {
+            try {
+                const response = await fetch('/api/channels', {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('获取招生渠道列表失败');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.channels) {
+                    const datalist = document.getElementById('channelList');
+                    datalist.innerHTML = data.channels.map(channel => `<option value="${channel}">`).join('');
+                    return data.channels;
+                }
+                
+                return [];
+            } catch (error) {
+                console.error('获取招生渠道列表失败:', error);
+                return [];
+            }
+        }
+
+        // 编辑内嵌表格中的学员
+        function editEmbeddedStudent(courseId, studentIndex) {
+            // 设置当前课程ID
+            currentCourseId = courseId;
+            // 加载学员数据
+            fetch(`/api/students/${courseId}`)
+                .then(response => response.json())
+                .then(students => {
+                    if (students && students.length > studentIndex) {
+                        // 设置当前学员数组
+                        currentStudents = students;
+                        // 显示编辑模态框
+                        showEditStudentModal(studentIndex);
+                    } else {
+                        console.error('学员数据不存在');
+                        alert('无法编辑学员，数据不存在');
+                    }
+                })
+                .catch(error => {
+                    console.error('获取学员数据失败:', error);
+                    alert('获取学员数据失败');
+                });
+        }
     </script>
 </body>
 </html> 
