@@ -297,7 +297,7 @@
     "addedBy": "admin",
     "addedAt": "2025-04-28T10:49:26.466Z",
     "id": "17458373664664z63onu2f",
-    "preferredTime": ""
+    "preferredTime": "周一"
   },
   {
     "wechatName": "11",
@@ -309,7 +309,7 @@
     "addedBy": "admin",
     "addedAt": "2025-04-28T11:39:32.059Z",
     "id": "1745840372059i0sogrmxv",
-    "preferredTime": ""
+    "preferredTime": "周三晚上"
   },
   {
     "wechatName": "33",
@@ -321,7 +321,7 @@
     "addedBy": "admin",
     "addedAt": "2025-04-28T11:43:20.583Z",
     "id": "1745840600583a5n9ajykb",
-    "preferredTime": ""
+    "preferredTime": "周三晚上"
   },
   {
     "wechatName": "啊",
@@ -336,11 +336,11 @@
     "preferredTime": ""
   },
   {
-    "wechatName": "11",
+    "wechatName": "111",
     "amount": 600,
     "channel": "",
     "status": "已支付",
-    "preferredTime": "",
+    "preferredTime": "周三晚上",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
