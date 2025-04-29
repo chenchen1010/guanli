@@ -1455,7 +1455,10 @@
             '商品名称': { 
                 width: '15%',
                 order: 3,
-                format: (value) => value || '-'
+                format: (value, record) => {
+                    const name = value ? value.replace(/【|】/g, '') : '-';
+                    return `<a href="javascript:void(0);" class="product-link" style="color:#1890ff;text-decoration:none;cursor:pointer;" onclick="showProductDetail('${record.record_id}')">${name}</a>`;
+                }
             },
             '上课时间': { 
                 width: '10%',
