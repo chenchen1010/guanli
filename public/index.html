@@ -1472,7 +1472,7 @@
                         // 按意向上课时间分组
                         const timeGroups = {};
                         paidStudents.forEach(student => {
-                            const time = student.意向上课时间 || '未指定';
+                            const time = student.preferredTime || '未指定';
                             timeGroups[time] = (timeGroups[time] || 0) + 1;
                         });
                         
@@ -1493,12 +1493,12 @@
                             }
                             
                             timeStatusHtml += `
-                                <div style="margin-bottom: 4px;">
-                                    <div style="font-size: 12px; color: #666;">
+                                <div style="margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 4px;">
+                                    <div style="font-size: 13px; font-weight: 500; color: #333; margin-bottom: 2px;">
                                         ${time === '未指定' ? '未指定时间' : time}
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 4px;">
-                                        <span style="color: ${statusColor}; font-weight: 500;">${statusText}</span>
+                                        <span style="color: ${statusColor}; font-weight: 500; border: 1px solid ${statusColor}; border-radius: 2px; padding: 0 4px; font-size: 12px;">${statusText}</span>
                                         <span style="font-size: 12px; color: #666;">
                                             ${count}/${minStudents}-${maxStudents}人
                                         </span>
@@ -1510,9 +1510,9 @@
                         // 如果没有任何已支付学员
                         if (Object.keys(timeGroups).length === 0) {
                             return `
-                                <div style="text-align: center; color: #999;">
+                                <div style="text-align: center; color: #999; padding: 8px;">
                                     <span>暂无报名</span>
-                                    <div style="font-size: 12px;">
+                                    <div style="font-size: 12px; margin-top: 4px;">
                                         需要${minStudents}-${maxStudents}人
                                     </div>
                                 </div>
