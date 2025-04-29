@@ -112,5 +112,11 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "课程: 【形体-上城-闸弄口】, 学员: ok, 变更: 状态: 已支付 → 已退款"
+  },
+  {
+    "timestamp": "2025/4/29 22:38:13",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: momo, 变更: 意向上课时间: 无 → 周六上午"
   }
 ]

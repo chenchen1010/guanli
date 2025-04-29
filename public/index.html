@@ -1457,9 +1457,34 @@
                 order: 3,
                 format: (value) => value || '-'
             },
+            '上课时间': { 
+                width: '10%',
+                order: 4,
+                format: (value) => `<div style="font-size: 13px; line-height: 1.3;">${value || '-'}</div>`
+            },
+            '机构地址': { 
+                width: '8%',
+                order: 5,
+                format: (value) => `<div style="font-size: 13px; line-height: 1.3;">${value || '-'}</div>`
+            },
+            '最少上课人数': { 
+                width: '1%',
+                order: 6,
+                format: (value) => `<span style="font-size: 13px;">${value || '-'}</span>`
+            },
+            '最大上课人数': { 
+                width: '1%',
+                order: 7,
+                format: (value) => `<span style="font-size: 13px;">${value || '-'}</span>`
+            },
+            '会员价格': { 
+                width: '3%',
+                order: 8,
+                format: (value) => `<span class="price" style="font-size: 13px;">¥${value || '-'}</span>`
+            },
             '开课状态': {
                 width: '12%',
-                order: 4,
+                order: 9,
                 async: true,
                 loadData: async (record) => {
                     try {
@@ -1529,31 +1554,6 @@
                         return '<span style="color: red;">加载失败</span>';
                     }
                 }
-            },
-            '上课时间': { 
-                width: '10%',  // 减小上课时间列宽度
-                order: 5,
-                format: (value) => `<div style="font-size: 13px; line-height: 1.3;">${value || '-'}</div>`
-            },
-            '机构地址': { 
-                width: '8%',  // 减小地址列宽度
-                order: 6,
-                format: (value) => `<div style="font-size: 13px; line-height: 1.3;">${value || '-'}</div>`
-            },
-            '最少上课人数': { 
-                width: '1%',  // 减小人数列宽度
-                order: 7,
-                format: (value) => `<span style="font-size: 13px;">${value || '-'}</span>`
-            },
-            '最大上课人数': { 
-                width: '1%',  // 减小人数列宽度
-                order: 8,
-                format: (value) => `<span style="font-size: 13px;">${value || '-'}</span>`
-            },
-            '会员价格': { 
-                width: '3%',  // 减小价格列宽度
-                order: 9,
-                format: (value) => `<span class="price" style="font-size: 13px;">¥${value || '-'}</span>`
             },
             '报名学员': {
                 width: '28%',
