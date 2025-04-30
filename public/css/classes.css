@@ -1,0 +1,142 @@
+/* 日历视图样式 */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: #333;
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.calendar-nav button {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.calendar-nav button:hover {
+    background: #f5f5f5;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-weight: 500;
+    color: #666;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.calendar-day {
+    min-height: 120px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.calendar-day.other-month {
+    background: #f9f9f9;
+    color: #999;
+}
+
+.calendar-day-header {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.class-item {
+    background: #e8f5e9;
+    border-left: 3px solid #4CAF50;
+    padding: 5px 8px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.class-item:hover {
+    background: #c8e6c9;
+}
+
+/* 课程详情模态框 */
+.class-detail-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    width: 500px;
+}
+
+.class-detail-modal h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.student-list {
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.student-list-item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.student-list-item:last-child {
+    border-bottom: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .calendar-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+    
+    .calendar-weekday {
+        display: none;
+    }
+    
+    .calendar-day {
+        min-height: auto;
+    }
+    
+    .class-detail-modal {
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+} 

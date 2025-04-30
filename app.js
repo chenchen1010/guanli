@@ -18,7 +18,14 @@ app.use(session({
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // 在生产环境中应设置为 true
+    cookie: { 
+        secure: false, // 在生产环境中应设置为 true
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30天
+        httpOnly: true, // 防止客户端脚本访问cookie
+        sameSite: 'strict' // 防止CSRF攻击
+    },
+    name: 'sessionId', // 自定义会话cookie名称,
+    rolling: true // 每次请求都重置cookie过期时间
 }));
 
 // 设置视图引擎
