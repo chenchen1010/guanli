@@ -118,5 +118,11 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: momo, 变更: 意向上课时间: 无 → 周六上午"
+  },
+  {
+    "timestamp": "2025/4/30 22:59:21",
+    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/4/30 15:00:00, 学员数: 2",
+    "operation": "admin",
+    "details": "创建课程"
   }
 ]

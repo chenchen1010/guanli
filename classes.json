@@ -1,1 +1,36 @@
-[]
+[
+  {
+    "id": "class_1746025161474_yjinne09c",
+    "startTime": "2025-04-30T15:00",
+    "duration": "12",
+    "location": "11",
+    "students": [
+      {
+        "wechatName": "里修改",
+        "amount": 500,
+        "channel": "知喜",
+        "status": "已支付",
+        "courseId": "recuJnc9yGkAIf",
+        "courseName": "【滑板-多区域可选】",
+        "addedBy": "admin",
+        "addedAt": "2025-04-28T08:37:05.500Z",
+        "id": "1745829425502wjajdl5sj",
+        "preferredTime": "周一"
+      },
+      {
+        "wechatName": "2",
+        "amount": 600,
+        "channel": "知行",
+        "status": "已支付",
+        "courseId": "recuJnc9yGkAIf",
+        "courseName": "【滑板-多区域可选】",
+        "addedBy": "admin",
+        "addedAt": "2025-04-28T10:49:26.466Z",
+        "id": "17458373664664z63onu2f",
+        "preferredTime": "周一"
+      }
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-04-30T14:59:21.474Z"
+  }
+]

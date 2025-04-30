@@ -2005,6 +2005,10 @@
                                                 style="padding: 2px 8px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 8px;">
                                             收起
                                         </button>
+                                        <button onclick="event.stopPropagation(); showSelectStudentsModal('${record.record_id}')" 
+                                                style="padding: 2px 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 8px;">
+                                            查看
+                                        </button>
                                     </div>
                                     <div class="students-details" style="display: block; margin-top: 8px;">
                                         <div style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; background: white;">
@@ -4288,6 +4292,408 @@
         function closeClassDetail() {
             document.getElementById('classDetailModal').style.display = 'none';
         }
+
+        // 修改渲染表格的函数，添加勾选列
+        function renderTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            data.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.dataset.studentId = record.id;
+                
+                // 添加勾选列
+                row.innerHTML = `
+                    <td class="checkbox-wrapper">
+                        <input type="checkbox" onchange="toggleStudent('${record.id}')" ${record.status === '已开班' ? 'disabled' : ''}>
+                    </td>
+                    <td class="student-name">${record.wechatName || ''}</td>
+                    <td>¥${record.amount || ''}</td>
+                    <td>${record.channel || ''}</td>
+                    <td class="status-cell ${getStatusClass(record.status)}">${record.status || ''}</td>
+                    <td>${record.preferredTime || ''}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editStudent(${index})">编辑</button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 学员选择相关变量和函数
+        let selectCourseId = null;
+        let selectCourseName = '';
+        let selectStudents = [];
+        let filteredSelectStudents = [];
+        let selectedStudentsMap = new Map(); // 用于存储已选择的学员ID
+        
+        // 显示学员选择模态框
+        function showSelectStudentsModal(courseId) {
+            selectCourseId = courseId;
+            
+            // 清空选择状态
+            selectedStudentsMap.clear();
+            updateSelectedStudentsCount();
+            
+            // 禁用按钮
+            document.getElementById('createClassBtn').disabled = true;
+            document.getElementById('joinClassBtn').disabled = true;
+            
+            // 加载课程信息和学员列表
+            if (allDataCache) {
+                const course = allDataCache.items.find(item => item.record_id === courseId);
+                if (course) {
+                    selectCourseName = course.fields['商品名称'] || '未命名课程';
+                    document.getElementById('selectCourseTitle').textContent = selectCourseName;
+                }
+            }
+            
+            // 加载学员列表
+            loadSelectStudents(courseId);
+            
+            // 显示模态框
+            document.getElementById('selectStudentsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 加载学员列表
+        async function loadSelectStudents(courseId) {
+            const tableBody = document.getElementById('selectStudentsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px;">加载中...</td></tr>';
+            
+            try {
+                const response = await fetch(`/api/students/${courseId}`);
+                const students = await response.json();
+                
+                selectStudents = students;
+                filteredSelectStudents = [...students];
+                
+                if (students.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px;">暂无学员</td></tr>';
+                    return;
+                }
+                
+                renderSelectStudents(filteredSelectStudents);
+                
+                // 更新筛选按钮状态
+                updateFilterButtons('all');
+                
+            } catch (error) {
+                console.error('加载学员列表失败:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px; color: red;">加载失败</td></tr>';
+            }
+        }
+        
+        // 渲染学员选择表格
+        function renderSelectStudents(students) {
+            const tableBody = document.getElementById('selectStudentsTableBody');
+            tableBody.innerHTML = '';
+            
+            students.forEach((student, index) => {
+                const isDisabled = student.status === '已退款';
+                const isChecked = selectedStudentsMap.has(index);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">
+                        <input type="checkbox" 
+                               data-index="${index}" 
+                               ${isChecked ? 'checked' : ''} 
+                               ${isDisabled ? 'disabled' : ''} 
+                               onchange="toggleSelectStudent(${index})">
+                    </td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${student.wechatName}</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">¥${student.amount}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${student.channel || '-'}</td>
+                    <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee;">
+                        ${getStatusBadge(student.status)}
+                    </td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${student.preferredTime || '-'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 获取状态徽章HTML
+        function getStatusBadge(status) {
+            let color = '#999';
+            
+            if (status === '已支付') {
+                color = '#52c41a';
+            } else if (status === '意向中') {
+                color = '#faad14';
+            } else if (status === '已退款') {
+                color = '#ff4d4f';
+            }
+            
+            return `<span style="display: inline-block; padding: 2px 8px; background-color: ${color}; color: white; border-radius: 10px; font-size: 12px;">${status}</span>`;
+        }
+        
+        // 筛选学员
+        function filterSelectStudents(filter) {
+            if (filter === 'all') {
+                filteredSelectStudents = [...selectStudents];
+            } else {
+                filteredSelectStudents = selectStudents.filter(student => student.status === filter);
+            }
+            
+            renderSelectStudents(filteredSelectStudents);
+            updateFilterButtons(filter);
+        }
+        
+        // 更新筛选按钮状态
+        function updateFilterButtons(activeFilter) {
+            const buttons = document.querySelectorAll('.filter-btn[data-filter]');
+            buttons.forEach(button => {
+                if (button.getAttribute('data-filter') === activeFilter) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+        
+        // 选择/取消选择学员
+        function toggleSelectStudent(index) {
+            if (selectedStudentsMap.has(index)) {
+                selectedStudentsMap.delete(index);
+            } else {
+                selectedStudentsMap.set(index, selectStudents[index]);
+            }
+            
+            updateSelectedStudentsCount();
+        }
+        
+        // 全选/取消全选
+        function toggleAllStudents() {
+            const button = document.getElementById('checkAllStudents');
+            const checkboxes = document.querySelectorAll('#selectStudentsTableBody input[type="checkbox"]:not([disabled])');
+            
+            // 确定是全选还是取消全选（如果当前已选数量等于可选数量，则为取消全选）
+            const isCheckAll = selectedStudentsMap.size < checkboxes.length;
+            
+            // 更新按钮文本
+            button.textContent = isCheckAll ? '取消全选' : '全选';
+            
+            // 更新复选框和选择状态
+            if (isCheckAll) {
+                // 全选：遍历所有可选学员并添加到选中集合
+                checkboxes.forEach(checkbox => {
+                    const index = parseInt(checkbox.getAttribute('data-index'));
+                    checkbox.checked = true;
+                    selectedStudentsMap.set(index, selectStudents[index]);
+                });
+            } else {
+                // 取消全选
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                selectedStudentsMap.clear();
+            }
+            
+            updateSelectedStudentsCount();
+        }
+        
+        // 更新已选学员数量
+        function updateSelectedStudentsCount() {
+            const count = selectedStudentsMap.size;
+            document.getElementById('selectedStudentsCount').textContent = count;
+            
+            // 更新按钮状态
+            const createClassBtn = document.getElementById('createClassBtn');
+            const joinClassBtn = document.getElementById('joinClassBtn');
+            
+            createClassBtn.disabled = count === 0;
+            joinClassBtn.disabled = count === 0;
+        }
+        
+        // 关闭学员选择模态框
+        function closeSelectStudentsModal() {
+            document.getElementById('selectStudentsModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // 显示创建班级模态框
+        function showCreateClassFromSelection() {
+            // 如果没有选择学员，禁止操作
+            if (selectedStudentsMap.size === 0) {
+                alert('请至少选择一名学员');
+                return;
+            }
+            
+            // 默认填充课程名称
+            document.getElementById('newClassName').value = selectCourseName;
+            
+            // 设置默认时间为当前时间的下一个整点
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            now.setMinutes(0);
+            now.setSeconds(0);
+            
+            const dateTimeStr = now.toISOString().slice(0, 16);
+            document.getElementById('newClassStartTime').value = dateTimeStr;
+            
+            // 显示模态框
+            document.getElementById('createClassFromSelectionModal').style.display = 'flex';
+        }
+        
+        // 关闭创建班级模态框
+        function closeCreateClassFromSelectionModal() {
+            document.getElementById('createClassFromSelectionModal').style.display = 'none';
+        }
+        
+        // 创建班级
+        async function createClassFromSelection() {
+            // 获取表单数据
+            const className = document.getElementById('newClassName').value.trim();
+            const startTime = document.getElementById('newClassStartTime').value;
+            const duration = document.getElementById('newClassDuration').value;
+            const location = document.getElementById('newClassLocation').value.trim();
+            
+            // 表单验证
+            if (!className || !startTime || !duration || !location) {
+                alert('请填写完整的班级信息');
+                return;
+            }
+            
+            // 获取选中的学员
+            const selectedStudents = Array.from(selectedStudentsMap.values());
+            
+            try {
+                // 发送请求创建班级
+                const response = await fetch('/api/classes/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        courseId: selectCourseId,
+                        courseName: className,
+                        startTime,
+                        duration,
+                        location,
+                        students: selectedStudents
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('创建班级成功！');
+                    // 关闭所有模态框
+                    closeCreateClassFromSelectionModal();
+                    closeSelectStudentsModal();
+                    // 刷新数据
+                    fetchTableData(false);
+                } else {
+                    alert('创建班级失败：' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('创建班级失败:', error);
+                alert('创建班级失败，请稍后重试');
+            }
+        }
+        
+        // 显示加入班级模态框
+        function showJoinClassFromSelection() {
+            // 如果没有选择学员，禁止操作
+            if (selectedStudentsMap.size === 0) {
+                alert('请至少选择一名学员');
+                return;
+            }
+            
+            // 加载现有班级列表
+            loadExistingClasses();
+            
+            // 显示模态框
+            document.getElementById('joinClassFromSelectionModal').style.display = 'flex';
+        }
+        
+        // 加载现有班级列表
+        async function loadExistingClasses() {
+            const select = document.getElementById('existingClassSelect');
+            select.innerHTML = '<option value="">加载中...</option>';
+            
+            try {
+                const response = await fetch('/api/classes');
+                const classes = await response.json();
+                
+                if (classes.length === 0) {
+                    select.innerHTML = '<option value="">暂无班级</option>';
+                    return;
+                }
+                
+                select.innerHTML = '';
+                classes.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls.id;
+                    const date = new Date(cls.startTime);
+                    option.textContent = `${cls.courseName} (${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载班级列表失败:', error);
+                select.innerHTML = '<option value="">加载失败</option>';
+            }
+        }
+        
+        // 关闭加入班级模态框
+        function closeJoinClassFromSelectionModal() {
+            document.getElementById('joinClassFromSelectionModal').style.display = 'none';
+        }
+        
+        // 加入班级
+        async function joinClassFromSelection() {
+            // 获取选择的班级
+            const classId = document.getElementById('existingClassSelect').value;
+            
+            // 表单验证
+            if (!classId) {
+                alert('请选择要加入的班级');
+                return;
+            }
+            
+            // 获取选中的学员
+            const selectedStudents = Array.from(selectedStudentsMap.values());
+            
+            try {
+                // 发送请求加入班级
+                const response = await fetch('/api/classes/join', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        classId,
+                        courseId: selectCourseId,
+                        students: selectedStudents
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('加入班级成功！');
+                    // 关闭所有模态框
+                    closeJoinClassFromSelectionModal();
+                    closeSelectStudentsModal();
+                    // 刷新数据
+                    fetchTableData(false);
+                } else {
+                    alert('加入班级失败：' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('加入班级失败:', error);
+                alert('加入班级失败，请稍后重试');
+            }
+        }
     </script>
     
     <!-- 备忘录侧边栏 -->
@@ -4298,6 +4704,106 @@
         </div>
         <div class="memo-content">
             <iframe class="memo-iframe" src="https://a1xqanlhro.feishu.cn/docx/LMbddLpL4oLoyuxTjx5c2aynnTd?from=from_copylink" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- 学员选择模态框 -->
+    <div id="selectStudentsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3>选择学员开班 - <span id="selectCourseTitle"></span></h3>
+                <button onclick="closeSelectStudentsModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <button id="checkAllStudents" onclick="toggleAllStudents()" class="filter-btn" style="margin-right: 10px;">全选</button>
+                        <span>已选择: <span id="selectedStudentsCount">0</span> 人</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="filterSelectStudents('已支付')" class="filter-btn" data-filter="已支付">已支付</button>
+                        <button onclick="filterSelectStudents('意向中')" class="filter-btn" data-filter="意向中">意向中</button>
+                        <button onclick="filterSelectStudents('已退款')" class="filter-btn" data-filter="已退款">已退款</button>
+                        <button onclick="filterSelectStudents('all')" class="filter-btn active" data-filter="all">全部</button>
+                    </div>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
+                    <table id="selectStudentsTable" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="position: sticky; top: 0; background: #f5f5f5;">
+                                <th style="padding: 10px; text-align: center; width: 40px;">选择</th>
+                                <th style="padding: 10px; text-align: left;">微信名</th>
+                                <th style="padding: 10px; text-align: right;">金额</th>
+                                <th style="padding: 10px; text-align: left;">渠道</th>
+                                <th style="padding: 10px; text-align: center;">状态</th>
+                                <th style="padding: 10px; text-align: left;">意向上课时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selectStudentsTableBody">
+                            <!-- 学员数据将在这里动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeSelectStudentsModal()" style="padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+                <button onclick="showCreateClassFromSelection()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;" id="createClassBtn" disabled>开设新班</button>
+                <button onclick="showJoinClassFromSelection()" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;" id="joinClassBtn" disabled>加入现有班级</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 从选择学员创建班级模态框 -->
+    <div id="createClassFromSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>开设新班级</h3>
+                <button onclick="closeCreateClassFromSelectionModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>课程名称</label>
+                    <input type="text" id="newClassName" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" required>
+                </div>
+                <div class="form-group">
+                    <label>开课日期</label>
+                    <input type="datetime-local" id="newClassStartTime" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" required>
+                </div>
+                <div class="form-group">
+                    <label>持续周数</label>
+                    <input type="number" id="newClassDuration" min="1" value="12" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" required>
+                </div>
+                <div class="form-group">
+                    <label>上课地点</label>
+                    <input type="text" id="newClassLocation" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" required>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeCreateClassFromSelectionModal()" style="padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+                <button onclick="createClassFromSelection()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">确认开班</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 从选择学员加入现有班级模态框 -->
+    <div id="joinClassFromSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>加入现有班级</h3>
+                <button onclick="closeJoinClassFromSelectionModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>选择班级</label>
+                    <select id="existingClassSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" required>
+                        <!-- 班级列表将通过JavaScript动态填充 -->
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeJoinClassFromSelectionModal()" style="padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+                <button onclick="joinClassFromSelection()" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">确认加入</button>
+            </div>
         </div>
     </div>
 </body>
