@@ -7,17 +7,213 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             background-color: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
         }
+
+        /* 左侧导航栏样式 */
+        .sidebar {
+            width: 180px;
+            height: 100vh;
+            background: #4CAF50;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-160px);
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 60px;
+            background: #4CAF50;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1001;
+        }
+
+        .sidebar-toggle .material-icons {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-toggle .material-icons {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sidebar-header img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .sidebar-header span {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        /* 导航项样式优化 */
+        .nav-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255,255,255,0.2);
+            font-weight: 500;
+        }
+
+        /* 添加开课选择相关样式 */
+        .student-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+
+        .start-class-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .start-class-btn:hover {
+            background-color: #45a049;
+        }
+
+        .start-class-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            width: 400px;
+        }
+
+        .start-class-modal h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .modal-form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .modal-form-group input, .modal-form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 主内容区域样式 */
+        .main-content {
+            margin-left: 180px;
+            padding: 20px;
+            flex: 1;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            width: calc(100% - 180px);
+        }
+
+        .main-content.expanded {
+            margin-left: 20px;
+            width: calc(100% - 20px);
+        }
+
         .container {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        /* 添加图标字体 */
+        @font-face {
+            font-family: 'Material Icons';
+            font-style: normal;
+            font-weight: 400;
+            src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+        }
+
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+        }
+
         h1 {
             color: #333;
             text-align: center;
@@ -763,26 +959,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
             margin-bottom: 20px;
-            padding: 10px 20px;
-            background-color: white;
+            background: white;
+            padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .user-info-left {
+        .user-info-left, .user-info-right {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .user-info-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
         .stats-info {
             color: #666;
             font-size: 14px;
@@ -1131,22 +1320,51 @@
     </style>
 </head>
 <body>
-    <div class="user-info">
-        <div class="user-info-left">
-            <button class="refresh-button" id="refreshButton" onclick="fetchTableData(true)">
-                <span class="icon"></span>更新数据
-            </button>
-
-            <div class="stats-info" id="stats"></div>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="material-icons">chevron_left</i>
         </div>
-        <div class="user-info-right">
-            <button class="memo-button" id="memoButton" onclick="toggleMemo()">
-                <span>备忘录</span>
-            </button>
-            <span>欢迎，<span id="username"></span></span>
-            <button class="logout-button" onclick="handleLogout()">退出登录</button>
+        <div class="sidebar-header">
+            <span>夜校管理系统</span>
         </div>
+        <a href="index.html" class="nav-item active">
+            <i class="material-icons">people</i>
+            <span>报名情况</span>
+        </a>
+        <a href="classes.html" class="nav-item">
+            <i class="material-icons">class</i>
+            <span>开班情况</span>
+        </a>
+        <a href="#" class="nav-item" onclick="alert('功能开发中'); return false;">
+            <i class="material-icons">monetization_on</i>
+            <span>收益情况</span>
+        </a>
+        <a href="#" class="nav-item" onclick="alert('功能开发中'); return false;">
+            <i class="material-icons">security</i>
+            <span>权限管理</span>
+        </a>
     </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content" id="mainContent">
+        <!-- 顶栏 -->
+        <div class="user-info">
+            <div class="user-info-left">
+                <button class="refresh-button" id="refreshButton" onclick="fetchTableData(true)">
+                    <span class="icon"></span>更新数据
+                </button>
+                <div class="stats-info" id="stats"></div>
+            </div>
+            <div class="user-info-right">
+                <button class="memo-button" id="memoButton" onclick="toggleMemo()">
+                    <span>备忘录</span>
+                </button>
+                <span>欢迎，<span id="username"></span></span>
+                <button class="logout-button" onclick="handleLogout()">退出登录</button>
+            </div>
+        </div>
+
     <div class="container">
         <h1>杭州新青年夜校课表</h1>
         
@@ -1251,141 +1469,163 @@
         <div class="fullscreen-nav fullscreen-prev" onclick="prevFullscreenImage()">&lt;</div>
         <img id="fullscreenImage" class="fullscreen-image" src="" alt="全屏图片">
         <div class="fullscreen-nav fullscreen-next" onclick="nextFullscreenImage()">&gt;</div>
-    </div>
-
-    <!-- 添加学员模态框 -->
-    <div id="addStudentModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
-        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; position: relative;">
-            <div class="modal-header" style="margin-bottom: 20px;">
-                <h2 style="margin: 0;">添加学员 - <span id="selectedCourseName"></span></h2>
-                <button onclick="closeAddStudentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="margin-bottom: 20px;">
-                    <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
-                    <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
-                    <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
-                    <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
-                </div>
-                <textarea id="studentsInput" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="请输入学员信息，每行一个"></textarea>
-                <div id="errorMessage" style="color: red; margin-top: 10px; display: none;"></div>
-            </div>
-            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
-                <button onclick="closeAddStudentModal()" style="margin-right: 10px; padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
-                <button onclick="submitStudents()" style="padding: 8px 16px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">确定添加</button>
-            </div>
         </div>
-    </div>
 
-    <!-- 添加学员列表模态框 -->
-    <div id="studentListModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
-        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 800px; position: relative;">
-            <div class="modal-header" style="margin-bottom: 20px;">
-                <h2 style="margin: 0;">报名学员列表 - <span id="studentListCourseName"></span></h2>
-                <button onclick="closeStudentListModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <button onclick="filterStudents('all')" class="filter-btn active" data-filter="all">全部</button>
-                        <button onclick="filterStudents('已支付')" class="filter-btn" data-filter="已支付">已支付</button>
-                        <button onclick="filterStudents('意向中')" class="filter-btn" data-filter="意向中">意向中</button>
-                        <button onclick="filterStudents('已退款')" class="filter-btn" data-filter="已退款">已退款</button>
+        <!-- 添加学员模态框 -->
+        <div id="addStudentModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
+            <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; position: relative;">
+                <div class="modal-header" style="margin-bottom: 20px;">
+                    <h2 style="margin: 0;">添加学员 - <span id="selectedCourseName"></span></h2>
+                    <button onclick="closeAddStudentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 20px;">
+                        <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
+                        <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
+                        <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
+                        <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
                     </div>
+                    <textarea id="studentsInput" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="请输入学员信息，每行一个"></textarea>
+                    <div id="errorMessage" style="color: red; margin-top: 10px; display: none;"></div>
                 </div>
-                <table id="studentListTable" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">微信名</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">实付金额</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">招生渠道</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">订单状态</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">意向上课时间</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5; width: 80px;">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentListTableBody"></tbody>
-                </table>
+                <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                    <button onclick="closeAddStudentModal()" style="margin-right: 10px; padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
+                    <button onclick="submitStudents()" style="padding: 8px 16px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">确定添加</button>
+                </div>
             </div>
+        </div>
+
+        <!-- 添加学员列表模态框 -->
+        <div id="studentListModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
+            <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 800px; position: relative;">
+                <div class="modal-header" style="margin-bottom: 20px;">
+                    <h2 style="margin: 0;">报名学员列表 - <span id="studentListCourseName"></span></h2>
+                    <button onclick="closeStudentListModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button onclick="filterStudents('all')" class="filter-btn active" data-filter="all">全部</button>
+                            <button onclick="filterStudents('已支付')" class="filter-btn" data-filter="已支付">已支付</button>
+                            <button onclick="filterStudents('意向中')" class="filter-btn" data-filter="意向中">意向中</button>
+                            <button onclick="filterStudents('已退款')" class="filter-btn" data-filter="已退款">已退款</button>
+                        </div>
+                    </div>
+                    <table id="studentListTable" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">微信名</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">实付金额</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">招生渠道</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">订单状态</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5;">意向上课时间</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; background: #f5f5f5; width: 80px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentListTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 修改编辑学员模态框中的招生渠道字段 -->
+        <div id="editStudentModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
+            <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; position: relative;">
+                <div class="modal-header" style="margin-bottom: 20px;">
+                    <h2 style="margin: 0;">编辑学员信息</h2>
+                    <button onclick="closeEditStudentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">微信名</label>
+                        <input type="text" id="editWechatName" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">实付金额</label>
+                        <input type="number" id="editAmount" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">招生渠道</label>
+                        <div style="position: relative;">
+                            <input type="text" id="editChannel" list="channelList" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="选择或输入新的渠道">
+                            <datalist id="channelList">
+                                <!-- 选项将通过JavaScript动态添加 -->
+                            </datalist>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">订单状态</label>
+                        <select id="editStatus" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="已支付">已支付</option>
+                            <option value="意向中">意向中</option>
+                            <option value="已退款">已退款</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">意向上课时间</label>
+                        <div style="position: relative;">
+                            <input type="text" id="editPreferredTime" list="preferredTimeList" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="选择或输入新的时间">
+                            <datalist id="preferredTimeList">
+                                <!-- 选项将通过JavaScript动态添加 -->
+                            </datalist>
+                        </div>
+                    </div>
+                    <div id="editErrorMessage" style="color: red; margin-top: 10px; display: none;"></div>
+                </div>
+                <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                    <button onclick="closeEditStudentModal()" style="margin-right: 10px; padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
+                    <button onclick="saveStudentEdit()" style="padding: 8px 16px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 修改操作日志模态框为侧边栏 -->
+        <div id="logModal" class="sidebar-modal">
+          <div class="sidebar-content">
+            <div class="sidebar-header">
+              <h2>操作日志</h2>
+              <span class="close" onclick="closeLogModal()">&times;</span>
+            </div>
+            <div class="log-filter">
+              <div>
+                <label for="startDate">开始日期：</label>
+                <input type="date" id="startDate" class="date-input">
+              </div>
+              <div>
+                <label for="endDate">结束日期：</label>
+                <input type="date" id="endDate" class="date-input">
+              </div>
+              <button id="filterLogs" class="filter-button">筛选</button>
+              <button id="resetFilter" class="reset-button">重置</button>
+            </div>
+            <div class="sidebar-body">
+              <div id="logList">
+                <!-- 日志内容将在这里动态显示 -->
+              </div>
+            </div>
+          </div>
         </div>
     </div>
 
-    <!-- 修改编辑学员模态框中的招生渠道字段 -->
-    <div id="editStudentModal" class="modal" style="background: rgba(0,0,0,0.5); z-index: 2000;">
-        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; position: relative;">
-            <div class="modal-header" style="margin-bottom: 20px;">
-                <h2 style="margin: 0;">编辑学员信息</h2>
-                <button onclick="closeEditStudentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">微信名</label>
-                    <input type="text" id="editWechatName" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">实付金额</label>
-                    <input type="number" id="editAmount" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">招生渠道</label>
-                    <div style="position: relative;">
-                        <input type="text" id="editChannel" list="channelList" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="选择或输入新的渠道">
-                        <datalist id="channelList">
-                            <!-- 选项将通过JavaScript动态添加 -->
-                        </datalist>
-                    </div>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">订单状态</label>
-                    <select id="editStatus" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="已支付">已支付</option>
-                        <option value="意向中">意向中</option>
-                        <option value="已退款">已退款</option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px;">意向上课时间</label>
-                    <div style="position: relative;">
-                        <input type="text" id="editPreferredTime" list="preferredTimeList" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="选择或输入新的时间">
-                        <datalist id="preferredTimeList">
-                            <!-- 选项将通过JavaScript动态添加 -->
-                        </datalist>
-                    </div>
-                </div>
-                <div id="editErrorMessage" style="color: red; margin-top: 10px; display: none;"></div>
-            </div>
-            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
-                <button onclick="closeEditStudentModal()" style="margin-right: 10px; padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
-                <button onclick="saveStudentEdit()" style="padding: 8px 16px; background: #0071e3; color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
-            </div>
+    <!-- 开课设置模态框 -->
+    <div id="startClassModal" class="start-class-modal">
+        <h3>开课设置</h3>
+        <div class="modal-form-group">
+            <label>开课时间</label>
+            <input type="datetime-local" id="classStartTime" required>
         </div>
-    </div>
-
-    <!-- 修改操作日志模态框为侧边栏 -->
-    <div id="logModal" class="sidebar-modal">
-      <div class="sidebar-content">
-        <div class="sidebar-header">
-          <h2>操作日志</h2>
-          <span class="close" onclick="closeLogModal()">&times;</span>
+        <div class="modal-form-group">
+            <label>持续周数</label>
+            <input type="number" id="classDuration" min="1" max="52" value="12" required>
         </div>
-        <div class="log-filter">
-          <div>
-            <label for="startDate">开始日期：</label>
-            <input type="date" id="startDate" class="date-input">
-          </div>
-          <div>
-            <label for="endDate">结束日期：</label>
-            <input type="date" id="endDate" class="date-input">
-          </div>
-          <button id="filterLogs" class="filter-button">筛选</button>
-          <button id="resetFilter" class="reset-button">重置</button>
+        <div class="modal-form-group">
+            <label>上课地点</label>
+            <input type="text" id="classLocation" required>
         </div>
-        <div class="sidebar-body">
-          <div id="logList">
-            <!-- 日志内容将在这里动态显示 -->
-          </div>
+        <div class="modal-buttons">
+            <button onclick="closeStartClassModal()" class="cancel-button">取消</button>
+            <button onclick="confirmStartClass()" class="confirm-button">确认开课</button>
         </div>
-      </div>
     </div>
 
     <script>
@@ -3486,6 +3726,178 @@
                 setTimeout(closeMemo, 50);
             }
         });
+
+        // 添加侧边栏切换功能
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // 保存状态到localStorage
+            localStorage.setItem('sidebarCollapsed', !isCollapsed);
+        }
+
+        // 页面加载时恢复侧边栏状态
+        document.addEventListener('DOMContentLoaded', function() {
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (isCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+            }
+        });
+
+        // 修改登录状态检查
+        function checkLoginStatus() {
+            fetch('/api/check-login')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.isLoggedIn) {
+                        window.location.href = '/login.html';
+                    } else {
+                        document.getElementById('username').textContent = data.username;
+                        // 设置登录状态检查的间隔时间为4小时
+                        setTimeout(checkLoginStatus, 4 * 60 * 60 * 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('检查登录状态失败:', error);
+                    window.location.href = '/login.html';
+                });
+        }
+
+        // 添加开课相关函数
+        function showStartClassModal() {
+            const selectedStudents = getSelectedStudents();
+            if (selectedStudents.length === 0) {
+                alert('请先选择学员');
+                return;
+            }
+            document.getElementById('startClassModal').style.display = 'block';
+        }
+
+        function closeStartClassModal() {
+            document.getElementById('startClassModal').style.display = 'none';
+        }
+
+        function getSelectedStudents() {
+            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            return Array.from(checkboxes).map(cb => ({
+                id: cb.value,
+                name: cb.dataset.name,
+                courseId: cb.dataset.courseId,
+                courseName: cb.dataset.courseName
+            }));
+        }
+
+        function confirmStartClass() {
+            const startTime = document.getElementById('classStartTime').value;
+            const duration = document.getElementById('classDuration').value;
+            const location = document.getElementById('classLocation').value;
+            
+            if (!startTime || !duration || !location) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            const selectedStudents = getSelectedStudents();
+            const classData = {
+                startTime,
+                duration: parseInt(duration),
+                location,
+                students: selectedStudents
+            };
+
+            // 发送开课请求
+            fetch('/api/classes/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(classData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('开课成功！');
+                    closeStartClassModal();
+                    // 刷新学员列表
+                    fetchTableData(true);
+                } else {
+                    alert('开课失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('开课失败:', error);
+                alert('开课失败，请重试');
+            });
+        }
+
+        // 修改渲染学员列表函数，添加复选框
+        function renderStudentList(students, courseId) {
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+            
+            if (!students || students.length === 0) {
+                studentList.innerHTML = '<tr><td colspan="7" style="text-align: center;">暂无学员</td></tr>';
+                return;
+            }
+
+            const headers = `
+                <tr>
+                    <th style="width: 40px;"><input type="checkbox" onclick="toggleAllStudents(this)"></th>
+                    <th>微信名</th>
+                    <th>实付金额</th>
+                    <th>招生渠道</th>
+                    <th>订单状态</th>
+                    <th>添加人</th>
+                    <th>添加时间</th>
+                </tr>
+            `;
+
+            const rows = students.map((student, index) => `
+                <tr>
+                    <td>
+                        <input type="checkbox" 
+                               class="student-checkbox" 
+                               value="${student.id}"
+                               data-name="${student.wechatName}"
+                               data-course-id="${courseId}"
+                               data-course-name="${student.courseName}">
+                    </td>
+                    <td>${student.wechatName}</td>
+                    <td>¥${student.amount}</td>
+                    <td>${student.channel || '-'}</td>
+                    <td>${getStatusBadge(student.status)}</td>
+                    <td>${student.addedBy || '-'}</td>
+                    <td>${new Date(student.addedAt).toLocaleString('zh-CN')}</td>
+                </tr>
+            `).join('');
+
+            studentList.innerHTML = headers + rows;
+
+            // 添加开课按钮
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.marginTop = '10px';
+            buttonContainer.style.textAlign = 'right';
+            buttonContainer.innerHTML = `
+                <button onclick="showStartClassModal()" class="start-class-btn">
+                    <i class="material-icons" style="font-size: 16px; vertical-align: middle;">school</i>
+                    开始上课
+                </button>
+            `;
+            studentList.parentElement.after(buttonContainer);
+        }
+
+        function toggleAllStudents(checkbox) {
+            const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+            studentCheckboxes.forEach(cb => cb.checked = checkbox.checked);
+        }
     </script>
     
     <!-- 备忘录侧边栏 -->

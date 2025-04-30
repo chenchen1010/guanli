@@ -43,6 +43,12 @@ const client = new lark.Client({
 // 数据文件路径
 const dataFilePath = path.join(__dirname, 'bd.json');
 
+// 创建classes.json文件用于存储课程数据
+const classesFilePath = path.join(__dirname, 'classes.json');
+if (!fs.existsSync(classesFilePath)) {
+    fs.writeFileSync(classesFilePath, '[]', 'utf8');
+}
+
 // 从飞书获取数据并保存到本地文件
 async function fetchDataFromFeishu() {
     try {
@@ -657,6 +663,72 @@ app.get('/api/channels', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('获取招生渠道列表失败:', error);
         res.status(500).json({ success: false, message: '获取招生渠道列表失败' });
+    }
+});
+
+// 开课API
+app.post('/api/classes/create', requireAuth, async (req, res) => {
+    try {
+        console.log('收到开课请求');
+        console.log('会话信息:', req.session);
+        console.log('用户信息:', req.session.user);
+        console.log('请求体:', req.body);
+
+        const { startTime, duration, location, students } = req.body;
+
+        // 验证必要字段
+        if (!startTime || !duration || !location || !students || !students.length) {
+            return res.status(400).json({ success: false, message: '缺少必要信息' });
+        }
+
+        // 读取现有课程数据
+        let classes = [];
+        try {
+            const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
+            classes = JSON.parse(classesData);
+        } catch (error) {
+            console.error('读取课程数据失败:', error);
+            classes = [];
+        }
+
+        // 创建新课程
+        const newClass = {
+            id: `class_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            startTime,
+            duration,
+            location,
+            students,
+            createdBy: req.session.user.username,
+            createdAt: new Date().toISOString()
+        };
+
+        // 添加新课程
+        classes.push(newClass);
+
+        // 保存数据
+        await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2), 'utf8');
+
+        // 记录操作日志
+        await logOperation(req.session.user.username, '创建课程', 
+            `课程: ${students[0].courseName}, 开课时间: ${new Date(startTime).toLocaleString('zh-CN')}, 学员数: ${students.length}`);
+
+        res.json({ success: true, message: '开课成功', class: newClass });
+    } catch (error) {
+        console.error('创建课程失败:', error);
+        res.status(500).json({ success: false, message: '创建课程失败' });
+    }
+});
+
+// 获取课程列表API
+app.get('/api/classes', requireAuth, async (req, res) => {
+    try {
+        // 读取课程数据
+        const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
+        const classes = JSON.parse(classesData);
+        res.json(classes);
+    } catch (error) {
+        console.error('获取课程列表失败:', error);
+        res.status(500).json({ success: false, message: '获取课程列表失败' });
     }
 });
 
