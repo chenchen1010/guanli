@@ -124,5 +124,77 @@
     "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/4/30 15:00:00, 学员数: 2",
     "operation": "admin",
     "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/4/30 23:31:00",
+    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/4/30 16:00:00, 学员数: 3",
+    "operation": "admin",
+    "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/5/1 06:39:43",
+    "username": "课程: 【Deepseek应用与变现-多地址可选】, 开课时间: 2025/4/30 19:00:00, 学员数: 2",
+    "operation": "admin",
+    "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/5/1 06:54:57",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: 状态: 已退款 → 已支付"
+  },
+  {
+    "timestamp": "2025/5/1 06:55:05",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: 状态: 已支付 → 意向中"
+  },
+  {
+    "timestamp": "2025/5/1 06:55:06",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: "
+  },
+  {
+    "timestamp": "2025/5/1 06:55:35",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: 状态: 意向中 → 已支付"
+  },
+  {
+    "timestamp": "2025/5/1 06:55:40",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: "
+  },
+  {
+    "timestamp": "2025/5/1 06:55:41",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: "
+  },
+  {
+    "timestamp": "2025/5/1 06:55:41",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: "
+  },
+  {
+    "timestamp": "2025/5/1 06:55:42",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【Deepseek应用与变现-多地址可选】, 学员: 张三, 变更: "
+  },
+  {
+    "timestamp": "2025/5/1 06:56:26",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "课程: 【滑板-多区域可选】, 学员: 2, 变更: 状态: 已支付 → 意向中"
+  },
+  {
+    "timestamp": "2025/5/1 06:56:53",
+    "username": "admin",
+    "operation": "创建课程",
+    "details": "课程: 【滑板-多区域可选】, 开课时间: 2025/4/30 23:00:00, 学员数: 1"
   }
 ]

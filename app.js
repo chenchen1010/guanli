@@ -172,6 +172,11 @@ app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'register.html'));
 });
 
+// 添加classes路由，确保需要登录才能访问
+app.get('/classes', requireAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'classes.html'));
+});
+
 app.post('/api/register', async (req, res) => {
     try {
         const { username, phone, password } = req.body;
@@ -255,6 +260,11 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/logout', (req, res) => {
     req.session.destroy();
     res.json({ message: '已退出登录' });
+});
+
+// 检查登录状态的API
+app.get('/api/check-login', (req, res) => {
+    res.json({ isLoggedIn: !!req.session.user });
 });
 
 // 获取表格数据的API端点 - 优先从文件读取

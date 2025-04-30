@@ -4,14 +4,14 @@ function checkLoginStatus() {
         .then(response => response.json())
         .then(data => {
             if (!data.isLoggedIn) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 return false;
             }
             return true;
         })
         .catch(error => {
             console.error('检查登录状态失败:', error);
-            window.location.href = '/login.html';
+            window.location.href = '/login';
             return false;
         });
 }

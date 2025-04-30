@@ -228,7 +228,7 @@
             <i class="material-icons">people</i>
             <span>报名情况</span>
         </a>
-        <a href="classes.html" class="nav-item active">
+        <a href="/classes" class="nav-item active">
             <i class="material-icons">class</i>
             <span>开班情况</span>
         </a>
@@ -289,12 +289,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (!data.isLoggedIn) {
-                        window.location.href = '/login.html';
+                        window.location.href = '/login';
                     }
                 })
                 .catch(error => {
                     console.error('检查登录状态失败:', error);
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                 });
         }
 
