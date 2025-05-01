@@ -1,0 +1,225 @@
+/* 全局样式 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    display: flex;
+    min-height: 100vh;
+}
+
+/* 左侧导航栏样式 */
+.sidebar {
+    width: 180px;
+    height: 100vh;
+    background: #4CAF50;
+    position: fixed;
+    left: 0;
+    top: 0;
+    color: white;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed {
+    transform: translateX(-160px);
+}
+
+.sidebar-toggle {
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 60px;
+    background: #4CAF50;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    z-index: 1001;
+}
+
+.sidebar-toggle .material-icons {
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-toggle .material-icons {
+    transform: rotate(180deg);
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.sidebar-header img {
+    width: 36px;
+    height: 36px;
+}
+
+.sidebar-header span {
+    font-size: 20px;
+    font-weight: 500;
+    color: white;
+}
+
+/* 导航项样式 */
+.nav-item {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+}
+
+.nav-item:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.nav-item.active {
+    background-color: rgba(255,255,255,0.2);
+    font-weight: 500;
+}
+
+/* 主内容区域样式 */
+.main-content {
+    margin-left: 180px;
+    padding: 20px;
+    flex: 1;
+    min-height: 100vh;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    width: calc(100% - 180px);
+}
+
+.main-content.expanded {
+    margin-left: 20px;
+    width: calc(100% - 20px);
+}
+
+#content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* 状态和提示样式 */
+.loading {
+    text-align: center;
+    color: #666;
+    margin: 20px 0;
+}
+
+.error {
+    color: #ff4444;
+    padding: 15px;
+    background-color: #ffebee;
+    border-radius: 4px;
+    margin: 10px 0;
+    border: 1px solid #ffcdd2;
+}
+
+.error-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #ff4444;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: none;
+    z-index: 9999;
+}
+
+.stats {
+    background-color: #e3f2fd;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+/* 加载动画 */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Material Icons 字体 */
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 标题样式 */
+h1 {
+    color: #333;
+    margin: 0 0 30px 0;
+    font-size: 24px;
+    font-weight: 500;
+} 

@@ -1446,30 +1446,6 @@
             background: #f5f5f5;
             color: #333;
         }
-
-        /* 添加状态样式 */
-        .status-paid {
-            color: #52c41a;
-        }
-        .status-intent {
-            color: #faad14;
-        }
-        .status-refunded {
-            color: #ff4d4f;
-        }
-        .status-started {
-            color: #1890ff;
-        }
-        .status-settled {
-            color: #722ed1;
-        }
-        .status-default {
-            color: #999;
-        }
-
-        .status-cell {
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -1634,7 +1610,7 @@
                 <div class="modal-body">
                     <div style="margin-bottom: 20px;">
                         <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
-                        <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款、已开班、已结算</p>
+                        <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
                         <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
                         <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
                     </div>
@@ -1662,8 +1638,6 @@
                             <button onclick="filterStudents('已支付')" class="filter-btn" data-filter="已支付">已支付</button>
                             <button onclick="filterStudents('意向中')" class="filter-btn" data-filter="意向中">意向中</button>
                             <button onclick="filterStudents('已退款')" class="filter-btn" data-filter="已退款">已退款</button>
-                            <button onclick="filterStudents('已开班')" class="filter-btn" data-filter="已开班">已开班</button>
-                            <button onclick="filterStudents('已结算')" class="filter-btn" data-filter="已结算">已结算</button>
                         </div>
                     </div>
                     <table id="studentListTable" style="width: 100%; border-collapse: collapse;">
@@ -1714,8 +1688,6 @@
                             <option value="已支付">已支付</option>
                             <option value="意向中">意向中</option>
                             <option value="已退款">已退款</option>
-                            <option value="已开班">已开班</option>
-                            <option value="已结算">已结算</option>
                         </select>
                     </div>
                     <div style="margin-bottom: 15px;">
@@ -2857,7 +2829,7 @@
             // 更新学员输入提示说明
             document.querySelector('#addStudentModal .modal-body div:first-child').innerHTML = `
                 <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
-                <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款、已开班、已结算</p>
+                <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款</p>
                 <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
                 <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
             `;
@@ -3374,45 +3346,12 @@
         }
 
         function getStatusBadge(status) {
-            let color;
-            switch(status) {
-                case '已支付':
-                    color = '#52c41a'; // 绿色
-                    break;
-                case '意向中':
-                    color = '#faad14'; // 黄色
-                    break;
-                case '已退款':
-                    color = '#ff4d4f'; // 红色
-                    break;
-                case '已开班':
-                    color = '#1890ff'; // 蓝色
-                    break;
-                case '已结算':
-                    color = '#722ed1'; // 紫色
-                    break;
-                default:
-                    color = '#999'; // 灰色
-            }
-            
-            return `<span style="display: inline-block; padding: 2px 8px; background-color: ${color}; color: white; border-radius: 10px; font-size: 12px;">${status}</span>`;
-        }
-
-        function getStatusClass(status) {
-            switch(status) {
-                case '已支付':
-                    return 'status-paid';
-                case '意向中':
-                    return 'status-intent';
-                case '已退款':
-                    return 'status-refunded';
-                case '已开班':
-                    return 'status-started';
-                case '已结算':
-                    return 'status-settled';
-                default:
-                    return 'status-default';
-            }
+            const colors = {
+                '已支付': '#52c41a',
+                '意向中': '#1890ff',
+                '已退款': '#ff4d4f'
+            };
+            return `<span style="padding: 1px 4px; font-size: 12px; background: ${colors[status]}; color: white; border-radius: 4px;">${status}</span>`;
         }
 
         function filterStudents(status) {
@@ -4785,8 +4724,6 @@
                         <button onclick="filterSelectStudents('已支付')" class="filter-btn" data-filter="已支付">已支付</button>
                         <button onclick="filterSelectStudents('意向中')" class="filter-btn" data-filter="意向中">意向中</button>
                         <button onclick="filterSelectStudents('已退款')" class="filter-btn" data-filter="已退款">已退款</button>
-                        <button onclick="filterSelectStudents('已开班')" class="filter-btn" data-filter="已开班">已开班</button>
-                        <button onclick="filterSelectStudents('已结算')" class="filter-btn" data-filter="已结算">已结算</button>
                         <button onclick="filterSelectStudents('all')" class="filter-btn active" data-filter="all">全部</button>
                     </div>
                 </div>

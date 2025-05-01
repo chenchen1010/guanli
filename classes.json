@@ -136,5 +136,27 @@
     ],
     "createdBy": "admin",
     "createdAt": "2025-04-30T22:56:53.318Z"
+  },
+  {
+    "id": "class_1746097090627_tibcssaod",
+    "startTime": "2025-05-01T11:00",
+    "duration": "12",
+    "location": "sad22",
+    "students": [
+      {
+        "wechatName": "lili",
+        "amount": 458,
+        "channel": "无",
+        "status": "已支付",
+        "courseId": "recuJnc9yGzNrI",
+        "courseName": "【咖啡-多地区可选】",
+        "addedBy": "admin",
+        "addedAt": "2025-04-28T09:17:26.452Z",
+        "id": "1745831846452u9xxeut6m",
+        "preferredTime": ""
+      }
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-01T10:58:10.627Z"
   }
 ]
