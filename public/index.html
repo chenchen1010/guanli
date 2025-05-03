@@ -1473,9 +1473,26 @@
 
         /* 添加备注相关样式 */
         .remarks-cell {
-            max-width: 200px;
-            white-space: pre-wrap;
-            word-break: break-word;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+        }
+        
+        .remarks-cell:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: white;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 1000;
+            white-space: normal;
+            max-width: 300px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .toast {
@@ -3675,6 +3692,77 @@
             currentEditingIndex = null;
         }
 
+        // 添加刷新学员列表的函数
+        async function refreshStudentList() {
+            try {
+                console.log('开始刷新学员列表');
+                console.log('当前课程ID:', currentCourseId);
+                const response = await fetch(`/api/students/${currentCourseId}`);
+                console.log('获取学员数据成功');
+                if (!response.ok) {
+                    throw new Error('获取学员数据失败');
+                }
+                const students = await response.json();
+                currentStudents = students;
+                console.log('学员数据:', students);
+                
+                // 渲染主表格
+                const tableBody = document.getElementById('studentListTableBody');
+                if (!tableBody) {
+                    console.error('找不到表格体元素');
+                    return;
+                }
+                
+                // 清空表格
+                tableBody.innerHTML = '';
+                
+                // 如果没有数据，显示空状态
+                if (!students || students.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">暂无学员</td></tr>';
+                    return;
+                }
+                
+                // 渲染每一行数据
+                students.forEach((student, index) => {
+                    const row = document.createElement('tr');
+                    row.dataset.index = index;
+                    
+                    // 构建状态标签的HTML
+                    const statusHtml = getStatusBadge(student.status);
+                    
+                    // 构建行内容
+                    row.innerHTML = `
+                        <td onclick="makeEditable(this, 'wechatName')">${student.wechatName || ''}</td>
+                        <td onclick="makeEditable(this, 'channel')">${student.channel || ''}</td>
+                        <td onclick="makeEditable(this, 'amount')" style="text-align: right;">¥${student.amount || ''}</td>
+                        <td onclick="makeEditable(this, 'status')" style="text-align: center;">${statusHtml}</td>
+                        <td onclick="makeEditable(this, 'preferredTime')">${student.preferredTime || ''}</td>
+                        <td onclick="makeEditable(this, 'remarks')" class="remarks-cell" title="${student.remarks || ''}">${student.remarks || ''}</td>
+                        <td style="text-align: center;">
+                            <button onclick="event.stopPropagation(); editStudent(${index})" class="edit-btn">
+                                编辑
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                // 更新统计信息
+                const totalCount = document.querySelector('.total-count');
+                if (totalCount) {
+                    totalCount.textContent = students.length + '人';
+                }
+                
+                console.log('学员列表刷新成功，当前学员数:', students.length);
+                showToast('刷新成功');
+            } catch (error) {
+                console.error('刷新学员列表失败:', error);
+                showToast('刷新失败，请重试', 'error');
+            }
+        }
+
+        // 修改保存编辑函数
         async function saveStudentEdit() {
             try {
                 console.log('开始保存学员编辑');
@@ -3745,16 +3833,13 @@
                     throw new Error(errorData.message || '更新学员信息失败');
                 }
 
-                // 更新本地数据
-                if (currentEditingIndex !== null) {
-                    console.log('更新本地数据, 索引:', currentEditingIndex);
-                    currentStudents[currentEditingIndex] = updatedStudent;
-                    console.log('更新后的学员数据:', currentStudents[currentEditingIndex]);
-                    renderStudentTableBody(currentStudents);
-                }
-
-                // 关闭模态框并显示成功消息
+                // 关闭模态框
                 closeEditStudentModal();
+                
+                // 刷新学员列表
+                await refreshStudentList();
+                
+                // 显示成功消息
                 showToast('更新学员信息成功', 'success');
             } catch (error) {
                 console.error('保存学员信息失败:', error);
@@ -4482,7 +4567,7 @@
                     <td>¥${record.amount || ''}</td>
                     <td class="status-cell ${getStatusClass(record.status)}">${record.status || ''}</td>
                     <td>${record.preferredTime || ''}</td>
-                    <td class="remarks-cell" title="${record.remarks || ''}">${record.remarks || ''}</td>
+                    <td class="remarks-cell" title="${record.remarks || '暂无备注'}">${record.remarks || '-'}</td>
                     <td>
                         <button class="edit-btn" onclick="editStudent(${index})">编辑</button>
                     </td>
@@ -4541,7 +4626,7 @@
                     <td>¥${record.amount || ''}</td>
                     <td class="status-cell ${getStatusClass(record.status)}">${record.status || ''}</td>
                     <td>${record.preferredTime || ''}</td>
-                    <td class="remarks-cell" title="${record.remarks || ''}">${record.remarks || ''}</td>
+                    <td class="remarks-cell" title="${record.remarks || '暂无备注'}">${record.remarks || '-'}</td>
                     <td>
                         <button class="edit-btn" onclick="editStudent(${index})">编辑</button>
                     </td>
@@ -4590,7 +4675,7 @@
         // 加载学员列表
         async function loadSelectStudents(courseId) {
             const tableBody = document.getElementById('selectStudentsTableBody');
-            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px;">加载中...</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 15px;">加载中...</td></tr>';
             
             try {
                 const response = await fetch(`/api/students/${courseId}`);
@@ -4600,7 +4685,7 @@
                 filteredSelectStudents = [...students];
                 
                 if (students.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px;">暂无学员</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 15px;">暂无学员</td></tr>';
                     return;
                 }
                 
@@ -4611,7 +4696,7 @@
                 
             } catch (error) {
                 console.error('加载学员列表失败:', error);
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px; color: red;">加载失败</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 15px; color: red;">加载失败</td></tr>';
             }
         }
         
@@ -4640,6 +4725,7 @@
                         ${getStatusBadge(student.status)}
                     </td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">${student.preferredTime || '-'}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;" class="remarks-cell" title="${student.remarks || '暂无备注'}">${student.remarks || '-'}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -4948,7 +5034,7 @@
                     <td>¥${record.amount || ''}</td>
                     <td class="status-cell ${getStatusClass(record.status)}">${record.status || ''}</td>
                     <td>${record.preferredTime || ''}</td>
-                    <td class="remarks-cell" title="${record.remarks || ''}">${record.remarks || ''}</td>
+                    <td class="remarks-cell" title="${record.remarks || '暂无备注'}">${record.remarks || '-'}</td>
                     <td>
                         <button class="edit-btn" onclick="editStudent(${index})">编辑</button>
                     </td>
@@ -5070,9 +5156,9 @@
                 <tr>
                     <th style="width: 40px;"><input type="checkbox" onclick="toggleAllStudents(this)"></th>
                     <th>微信名</th>
-                    <th>渠道</th>
-                    <th>金额</th>
-                    <th>状态</th>
+                    <th>实付金额</th>
+                    <th>招生渠道</th>
+                    <th>订单状态</th>
                     <th>意向上课时间</th>
                     <th>备注</th>
                     <th>操作</th>
@@ -5089,12 +5175,12 @@
                                data-course-id="${courseId}"
                                data-course-name="${student.courseName}">
                     </td>
-                    <td>${student.wechatName || ''}</td>
-                    <td>${student.channel || ''}</td>
-                    <td>¥${student.amount || ''}</td>
+                    <td>${student.wechatName}</td>
+                    <td>¥${student.amount}</td>
+                    <td>${student.channel || '-'}</td>
                     <td>${getStatusBadge(student.status)}</td>
-                    <td>${student.preferredTime || ''}</td>
-                    <td class="remarks-cell" title="${student.remarks || ''}">${student.remarks || ''}</td>
+                    <td>${student.preferredTime || '-'}</td>
+                    <td class="remarks-cell" title="${student.remarks || '暂无备注'}">${student.remarks || '-'}</td>
                     <td>
                         <button class="edit-btn" onclick="editStudent(${index})">编辑</button>
                     </td>
@@ -5102,6 +5188,11 @@
             `).join('');
 
             studentList.innerHTML = headers + rows;
+
+            // 添加开课按钮
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.marginTop = '10px';
+            buttonContainer.style.textAlign = 'right';
         }
 
         // 添加检查API的辅助函数

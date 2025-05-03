@@ -16,15 +16,15 @@
     "wechatName": "里修改",
     "channel": "知喜",
     "amount": 500,
-    "status": "已开班",
+    "status": "已支付",
     "preferredTime": "周一",
-    "remarks": "的单独发的的",
+    "remarks": "我我我发",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-04-28T08:37:05.500Z",
     "id": "1745829425502wjajdl5sj",
-    "updatedAt": "2025-05-03T12:12:18.815Z"
+    "updatedAt": "2025-05-03T12:54:54.960Z"
   },
   {
     "wechatName": "te1",
@@ -434,5 +434,17 @@
     "addedBy": "admin",
     "addedAt": "2025-05-03T10:50:53.840Z",
     "id": "1746269453840wgnck0w1i"
+  },
+  {
+    "wechatName": "的上大分",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-03T12:14:08.537Z",
+    "id": "1746274448537yhxxznh1u"
   }
 ]
