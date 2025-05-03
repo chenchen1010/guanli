@@ -3442,24 +3442,24 @@
                 // 更新学员数据
                 student[field] = value;
                 
-                console.log('准备更新字段:', field, '新值:', value);
-                console.log('学员完整数据:', student);
-                
                 // 发送更新请求
-                const response = await fetch(`/api/students/${student.id}`, {
-                    method: 'PUT',
+                const response = await fetch('/api/students/update', {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
                     },
-                    body: JSON.stringify(student)
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        courseId: currentCourseId,
+                        studentIndex: index,
+                        student: student
+                    })
                 });
                 
-                console.log('服务器响应状态:', response.status);
-                
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    console.error('服务器返回错误:', errorData);
-                    throw new Error(errorData.message || '更新失败');
+                    throw new Error('更新失败');
                 }
                 
                 // 更新本地数据
@@ -3473,6 +3473,9 @@
                 } else {
                     cell.textContent = value;
                 }
+                
+                // 刷新主表格以更新学员信息
+                fetchTableData(false);
                 
             } catch (error) {
                 console.error('保存编辑失败:', error);
@@ -3639,24 +3642,15 @@
 
         // 添加编辑相关函数
         function showEditStudentModal(index) {
-            if (!currentStudents || !currentStudents[index]) {
-                console.error('无效的学员索引:', index);
-                showErrorMessage('无法加载学员数据');
-                return;
-            }
-
             currentEditingStudent = {...currentStudents[index]};
             currentEditingIndex = index;
             
-            console.log('开始编辑学员:', currentEditingStudent);
-            
             // 填充表单
-            document.getElementById('editWechatName').value = currentEditingStudent.wechatName || '';
-            document.getElementById('editAmount').value = currentEditingStudent.amount || '';
+            document.getElementById('editWechatName').value = currentEditingStudent.wechatName;
+            document.getElementById('editAmount').value = currentEditingStudent.amount;
             document.getElementById('editChannel').value = currentEditingStudent.channel || '';
-            document.getElementById('editStatus').value = currentEditingStudent.status || '已支付';
+            document.getElementById('editStatus').value = currentEditingStudent.status;
             document.getElementById('editPreferredTime').value = currentEditingStudent.preferredTime || '';
-            document.getElementById('editRemarks').value = currentEditingStudent.remarks || '';
             
             // 加载上课时间选项和渠道选项
             loadPreferredTimes();
@@ -3678,14 +3672,15 @@
         async function saveStudentEdit() {
             try {
                 console.log('开始保存学员编辑');
+                const studentId = document.getElementById('editStudentId').value;
+                console.log('学员ID:', studentId);
                 
-                // 检查当前编辑的学员数据
-                if (!currentEditingStudent || !currentEditingStudent.id) {
-                    showErrorMessage('无法识别要编辑的学员');
+                if (!studentId) {
+                    showErrorMessage('缺少学员ID，无法保存');
+                    console.error('缺少学员ID，无法保存');
                     return;
                 }
                 
-                // 获取表单数据
                 const wechatName = document.getElementById('editWechatName').value;
                 const channel = document.getElementById('editChannel').value;
                 const amountStr = document.getElementById('editAmount').value;
@@ -3693,7 +3688,7 @@
                 const preferredTime = document.getElementById('editPreferredTime').value;
                 const remarks = document.getElementById('editRemarks').value;
                 
-                console.log('获取到的表单数据:', {
+                console.log('表单数据:', {
                     wechatName,
                     channel,
                     amount: amountStr,
@@ -3705,18 +3700,19 @@
                 // 数据验证
                 if (!wechatName) {
                     showErrorMessage('请输入微信名');
+                    console.error('微信名为空');
                     return;
                 }
 
                 const amount = parseFloat(amountStr);
                 if (isNaN(amount) || amount <= 0) {
                     showErrorMessage('请输入有效的金额');
+                    console.error('金额无效:', amountStr);
                     return;
                 }
 
-                // 构建更新数据
                 const updatedStudent = {
-                    ...currentEditingStudent,  // 保留原有数据
+                    id: studentId,
                     wechatName,
                     channel,
                     amount,
@@ -3725,11 +3721,11 @@
                     remarks
                 };
                 
-                console.log('准备发送的更新数据:', updatedStudent);
+                console.log('准备发送的数据:', updatedStudent);
 
-                // 发送更新请求
-                console.log('开始发送更新请求...');
-                const response = await fetch(`/api/students/${currentEditingStudent.id}`, {
+                // 保存到服务器
+                console.log('发送PUT请求到:', `/api/students/${studentId}`);
+                const response = await fetch(`/api/students/${studentId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3740,17 +3736,24 @@
                 console.log('服务器响应状态:', response.status);
                 
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    console.error('服务器返回错误:', errorData);
-                    throw new Error(errorData.message || '更新学员信息失败');
+                    const errorText = await response.text();
+                    console.error('服务器返回错误:', errorText);
+                    throw new Error(`服务器返回: ${response.status} - ${errorText}`);
                 }
+                
+                const responseData = await response.json();
+                console.log('服务器响应数据:', responseData);
 
                 // 更新本地数据
-                if (currentEditingIndex !== null) {
-                    console.log('更新本地数据, 索引:', currentEditingIndex);
-                    currentStudents[currentEditingIndex] = updatedStudent;
-                    console.log('更新后的学员数据:', currentStudents[currentEditingIndex]);
+                const index = currentStudents.findIndex(s => s.id === studentId);
+                console.log('本地数据索引:', index);
+                
+                if (index !== -1) {
+                    currentStudents[index] = { ...currentStudents[index], ...updatedStudent };
+                    console.log('更新后的学员数据:', currentStudents[index]);
                     renderStudentTableBody(currentStudents);
+                } else {
+                    console.warn('未找到要更新的学员数据:', studentId);
                 }
 
                 // 关闭模态框并显示成功消息
@@ -3758,7 +3761,7 @@
                 showToast('更新学员信息成功', 'success');
             } catch (error) {
                 console.error('保存学员信息失败:', error);
-                console.error('错误堆栈:', error.stack);
+                console.error('错误详情:', error.stack);
                 showErrorMessage(`保存失败: ${error.message}`);
             }
         }
@@ -4929,7 +4932,137 @@
             }
         }
 
-      
+        // 修改编辑学员函数
+        function editStudent(index) {
+            console.log('开始编辑学员, 索引:', index);
+            try {
+                if (!currentStudents || currentStudents.length <= index) {
+                    console.error('无效的学员索引或学员数据不存在:', index, currentStudents?.length);
+                    showErrorMessage('无法加载学员数据');
+                    return;
+                }
+                
+                const student = currentStudents[index];
+                console.log('加载学员数据:', student);
+                
+                if (!student.id) {
+                    console.error('学员数据缺少ID:', student);
+                    showErrorMessage('学员数据缺少ID');
+                    return;
+                }
+                
+                // 填充表单数据
+                document.getElementById('editStudentId').value = student.id;
+                document.getElementById('editWechatName').value = student.wechatName || '';
+                document.getElementById('editChannel').value = student.channel || '';
+                document.getElementById('editAmount').value = student.amount || '';
+                document.getElementById('editStatus').value = student.status || '已支付';
+                document.getElementById('editPreferredTime').value = student.preferredTime || '';
+                document.getElementById('editRemarks').value = student.remarks || '';
+                
+                console.log('表单已填充:', {
+                    id: student.id,
+                    wechatName: student.wechatName,
+                    channel: student.channel,
+                    amount: student.amount,
+                    status: student.status,
+                    preferredTime: student.preferredTime,
+                    remarks: student.remarks
+                });
+                
+                // 清除错误信息
+                const errorElement = document.getElementById('editErrorMessage');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+                
+                // 显示模态框
+                const modal = document.getElementById('editStudentModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    console.log('编辑模态框已显示');
+                } else {
+                    console.error('找不到编辑模态框');
+                }
+            } catch (error) {
+                console.error('编辑学员时出错:', error);
+                console.error('错误详情:', error.stack);
+                alert('加载学员数据失败: ' + error.message);
+            }
+        }
+
+        // 关闭编辑模态框
+        function closeEditStudentModal() {
+            console.log('关闭编辑模态框');
+            const modal = document.getElementById('editStudentModal');
+            if (modal) {
+                modal.style.display = 'none';
+            } else {
+                console.error('找不到编辑模态框');
+            }
+        }
+
+        // 修改保存编辑函数
+        async function saveStudentEdit() {
+            try {
+                const studentId = document.getElementById('editStudentId').value;
+                const wechatName = document.getElementById('editWechatName').value;
+                const channel = document.getElementById('editChannel').value;
+                const amount = parseFloat(document.getElementById('editAmount').value);
+                const status = document.getElementById('editStatus').value;
+                const preferredTime = document.getElementById('editPreferredTime').value;
+                const remarks = document.getElementById('editRemarks').value;
+
+                // 数据验证
+                if (!wechatName) {
+                    showErrorMessage('请输入微信名');
+                    return;
+                }
+
+                if (isNaN(amount) || amount <= 0) {
+                    showErrorMessage('请输入有效的金额');
+                    return;
+                }
+
+                const updatedStudent = {
+                    id: studentId,
+                    wechatName,
+                    channel,
+                    amount,
+                    status,
+                    preferredTime,
+                    remarks
+                };
+
+                // 保存到服务器
+                const response = await fetch(`/api/students/${studentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedStudent)
+                });
+
+                if (!response.ok) {
+                    throw new Error('更新学员信息失败');
+                }
+
+                // 更新本地数据
+                const index = currentStudents.findIndex(s => s.id === studentId);
+                if (index !== -1) {
+                    currentStudents[index] = { ...currentStudents[index], ...updatedStudent };
+                    renderTable(currentStudents);
+                }
+
+                // 关闭模态框并显示成功消息
+                closeEditStudentModal();
+                showToast('更新学员信息成功', 'success');
+            } catch (error) {
+                console.error('保存学员信息失败:', error);
+                showErrorMessage('保存失败，请重试');
+            }
+        }
+
         // 修改渲染表格函数，更新备注列的显示
         function renderTable(data) {
             const tableBody = document.getElementById('tableBody');
@@ -5116,11 +5249,7 @@
                 // 检查个别API
                 const apis = [
                     { url: '/api/students', method: 'GET', name: '获取学员列表' },
-                    { 
-                        url: '/api/students/test', 
-                        method: 'GET',  // 改为GET方法
-                        name: '测试API'
-                    }
+                    { url: '/api/students/test', method: 'PUT', name: '更新学员', body: { test: true } }
                 ];
                 
                 for (const api of apis) {

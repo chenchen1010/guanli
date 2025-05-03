@@ -18,12 +18,13 @@
     "amount": 500,
     "status": "已开班",
     "preferredTime": "周一",
-    "remarks": "",
+    "remarks": "的单独发的的",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-04-28T08:37:05.500Z",
-    "id": "1745829425502wjajdl5sj"
+    "id": "1745829425502wjajdl5sj",
+    "updatedAt": "2025-05-03T12:12:18.815Z"
   },
   {
     "wechatName": "te1",
@@ -421,5 +422,17 @@
     "addedBy": "admin",
     "addedAt": "2025-05-02T00:01:16.313Z",
     "id": "1746144076313fo1d1rfsg"
+  },
+  {
+    "wechatName": "第三方",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-03T10:50:53.840Z",
+    "id": "1746269453840wgnck0w1i"
   }
 ]

@@ -1,1 +1,25 @@
-[]
+[
+  {
+    "id": "class_1746249247526_glqqr8f2w",
+    "startTime": "2025-05-03T06:00",
+    "duration": "12",
+    "location": "收到",
+    "students": [
+      {
+        "wechatName": "里修改",
+        "channel": "知喜",
+        "amount": 500,
+        "status": "已开班",
+        "preferredTime": "周一",
+        "remarks": "",
+        "courseId": "recuJnc9yGkAIf",
+        "courseName": "【滑板-多区域可选】",
+        "addedBy": "admin",
+        "addedAt": "2025-04-28T08:37:05.500Z",
+        "id": "1745829425502wjajdl5sj"
+      }
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-03T05:14:07.526Z"
+  }
+]

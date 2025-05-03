@@ -548,88 +548,134 @@ app.get('/api/students/:courseId', requireAuth, (req, res) => {
     }
 });
 
-// 更新学员信息
-app.post('/api/students/update', requireAuth, async (req, res) => {
-    console.log('收到更新学员请求:', req.body);
-    
+// 处理学员更新 - PUT 方法版本
+app.put('/api/students/:id', requireAuth, async (req, res) => {
     try {
-        const { courseId, studentIndex, student } = req.body;
+        const { id } = req.params;
+        const updatedData = req.body;
         
+        console.log('收到更新学员请求:');
+        console.log('- 学员ID:', id);
+        console.log('- 更新数据:', JSON.stringify(updatedData, null, 2));
+        
+        // 验证更新数据的完整性
+        if (!updatedData || typeof updatedData !== 'object') {
+            console.error('无效的更新数据格式');
+            return res.status(400).json({ message: '无效的更新数据格式' });
+        }
+
         // 验证必要字段
-        if (!courseId || studentIndex === null || !student) {
-            throw new Error('缺少必要参数');
+        const requiredFields = ['wechatName', 'amount', 'status'];
+        const missingFields = requiredFields.filter(field => !updatedData[field]);
+        if (missingFields.length > 0) {
+            console.error('缺少必要字段:', missingFields);
+            return res.status(400).json({ message: `缺少必要字段: ${missingFields.join(', ')}` });
         }
         
         // 读取现有数据
-        const data = fs.readFileSync('students.json', 'utf8');
-        const students = JSON.parse(data);
-        
-        // 查找并更新学员信息
-        const courseStudents = students.filter(s => s.courseId === courseId);
-        if (studentIndex >= courseStudents.length) {
-            throw new Error('学员索引无效');
+        if (!fs.existsSync('students.json')) {
+            console.error('students.json文件不存在');
+            return res.status(404).json({ message: '找不到学员数据文件' });
         }
         
-        // 找到要更新的学员在整个数组中的索引
-        const globalIndex = students.findIndex(s => 
-            s.courseId === courseId && 
-            s.wechatName === courseStudents[studentIndex].wechatName &&
-            s.addedAt === courseStudents[studentIndex].addedAt
-        );
+        // 读取并解析数据
+        console.log('开始读取students.json文件');
+        let data;
+        try {
+            data = fs.readFileSync('students.json', 'utf8');
+        } catch (readError) {
+            console.error('读取students.json失败:', readError);
+            return res.status(500).json({ message: '读取学员数据失败' });
+        }
+
+        let students;
+        try {
+            students = JSON.parse(data);
+            console.log(`成功解析students.json，共有${students.length}条记录`);
+        } catch (parseError) {
+            console.error('解析students.json失败:', parseError);
+            return res.status(500).json({ message: '学员数据文件损坏' });
+        }
         
-        if (globalIndex === -1) {
-            throw new Error('未找到要更新的学员');
+        // 查找要更新的学员
+        const studentIndex = students.findIndex(s => s.id === id);
+        console.log('查找学员索引:', studentIndex);
+        
+        if (studentIndex === -1) {
+            console.error('找不到指定学员:', id);
+            return res.status(404).json({ message: '找不到指定学员' });
         }
         
         // 记录变更内容
-        const oldStudent = students[globalIndex];
+        const oldStudent = students[studentIndex];
         const changes = [];
         
-        if (oldStudent.wechatName !== student.wechatName) {
-            changes.push(`微信名: ${oldStudent.wechatName} → ${student.wechatName}`);
+        // 检查并记录每个字段的变化
+        const fieldsToCheck = {
+            wechatName: '微信名',
+            amount: '金额',
+            channel: '渠道',
+            status: '状态',
+            preferredTime: '意向时间',
+            remarks: '备注'
+        };
+
+        for (const [field, label] of Object.entries(fieldsToCheck)) {
+            if (updatedData[field] !== oldStudent[field]) {
+                changes.push(`${label}: ${oldStudent[field] || '无'} -> ${updatedData[field] || '无'}`);
+            }
         }
         
-        if (oldStudent.amount !== student.amount) {
-            changes.push(`金额: ¥${oldStudent.amount} → ¥${student.amount}`);
-        }
+        console.log('变更内容:', changes);
         
-        if (oldStudent.channel !== student.channel) {
-            changes.push(`渠道: ${oldStudent.channel || '无'} → ${student.channel || '无'}`);
-        }
-        
-        if (oldStudent.status !== student.status) {
-            changes.push(`状态: ${oldStudent.status} → ${student.status}`);
-        }
-        
-        if (oldStudent.preferredTime !== student.preferredTime) {
-            changes.push(`意向上课时间: ${oldStudent.preferredTime || '无'} → ${student.preferredTime || '无'}`);
-        }
-        
-        // 保留原有的添加人和添加时间
+        // 保留原有的不变字段
         const updatedStudent = {
-            ...student,
-            courseId,
-            addedBy: students[globalIndex].addedBy,
-            addedAt: students[globalIndex].addedAt
+            ...oldStudent,
+            ...updatedData,
+            updatedAt: new Date().toISOString()
         };
         
         // 更新数据
-        students[globalIndex] = updatedStudent;
+        students[studentIndex] = updatedStudent;
         
         // 保存到文件
-        fs.writeFileSync('students.json', JSON.stringify(students, null, 2));
+        console.log('开始保存更新后的数据到文件');
+        try {
+            const tempFile = 'students.json.temp';
+            // 先写入临时文件
+            fs.writeFileSync(tempFile, JSON.stringify(students, null, 2));
+            // 然后重命名临时文件
+            fs.renameSync(tempFile, 'students.json');
+            console.log('数据保存成功');
+        } catch (writeError) {
+            console.error('保存数据失败:', writeError);
+            return res.status(500).json({ message: '保存数据失败' });
+        }
         
-        await logOperation(
-            '更新学员信息',
-            `课程: ${updatedStudent.courseName || courseId}, 学员: ${student.wechatName}, 变更: ${changes.join(', ')}`,
-            req.session.user.username
-        );
-        
-        res.json({ success: true, message: '更新成功' });
+        // 记录操作日志
+        try {
+            await logOperation(
+                '更新学员信息',
+                `学员: ${updatedStudent.wechatName}, 变更: ${changes.join(', ')}`,
+                req.session.user.username
+            );
+        } catch (logError) {
+            console.error('记录操作日志失败:', logError);
+            // 不中断操作，继续返回成功
+        }
+
+        // 返回更新后的数据
+        console.log('返回更新成功响应');
+        res.json({
+            message: '更新成功',
+            student: updatedStudent,
+            changes
+        });
         
     } catch (error) {
-        console.error('更新学员信息失败:', error);
-        res.status(500).json({ success: false, message: error.message });
+        console.error('更新学员数据时出错:', error);
+        console.error('错误堆栈:', error.stack);
+        res.status(500).json({ message: '更新学员数据失败，请稍后重试' });
     }
 });
 
@@ -749,88 +795,36 @@ app.get('/api/classes', requireAuth, async (req, res) => {
     }
 });
 
-// 处理学员更新 - PUT 方法版本
-app.put('/api/students/:id', requireAuth, async (req, res) => {
+// 获取所有学员列表
+app.get('/api/students', requireAuth, (req, res) => {
     try {
-        const { id } = req.params;
-        const updatedData = req.body;
+        console.log('收到获取所有学员列表请求');
         
-        console.log(`收到更新学员请求: ID=${id}`);
-        
-        // 读取现有数据
+        // 读取学员数据
         if (!fs.existsSync('students.json')) {
-            return res.status(404).json({ message: '找不到学员数据' });
+            console.log('students.json文件不存在，返回空数组');
+            res.json([]);
+            return;
         }
         
-        const data = fs.readFileSync('students.json', 'utf8');
-        const students = JSON.parse(data);
+        const allStudents = JSON.parse(fs.readFileSync('students.json', 'utf8'));
+        console.log(`成功读取所有学员数据，共${allStudents.length}条记录`);
         
-        // 查找要更新的学员
-        const studentIndex = students.findIndex(s => s.id === id);
-        if (studentIndex === -1) {
-            return res.status(404).json({ message: '找不到指定学员' });
-        }
-        
-        // 记录变更内容
-        const oldStudent = students[studentIndex];
-        const changes = [];
-        
-        if (oldStudent.wechatName !== updatedData.wechatName) {
-            changes.push(`微信名: ${oldStudent.wechatName} → ${updatedData.wechatName}`);
-        }
-        
-        if (oldStudent.amount !== updatedData.amount) {
-            changes.push(`金额: ¥${oldStudent.amount} → ¥${updatedData.amount}`);
-        }
-        
-        if (oldStudent.channel !== updatedData.channel) {
-            changes.push(`渠道: ${oldStudent.channel || '无'} → ${updatedData.channel || '无'}`);
-        }
-        
-        if (oldStudent.status !== updatedData.status) {
-            changes.push(`状态: ${oldStudent.status} → ${updatedData.status}`);
-        }
-        
-        if (oldStudent.preferredTime !== updatedData.preferredTime) {
-            changes.push(`意向上课时间: ${oldStudent.preferredTime || '无'} → ${updatedData.preferredTime || '无'}`);
-        }
-        
-        if (oldStudent.remarks !== updatedData.remarks) {
-            changes.push(`备注: ${oldStudent.remarks || '无'} → ${updatedData.remarks || '无'}`);
-        }
-        
-        // 保留原有的不变字段
-        const updatedStudent = {
-            ...oldStudent,
-            wechatName: updatedData.wechatName,
-            channel: updatedData.channel,
-            amount: updatedData.amount,
-            status: updatedData.status,
-            preferredTime: updatedData.preferredTime,
-            remarks: updatedData.remarks
-        };
-        
-        // 更新数据
-        students[studentIndex] = updatedStudent;
-        
-        // 保存到文件
-        fs.writeFileSync('students.json', JSON.stringify(students, null, 2));
-        
-        // 记录操作日志
-        if (changes.length > 0) {
-            await logOperation(
-                '更新学员信息',
-                `学员: ${updatedStudent.wechatName}, 变更: ${changes.join(', ')}`,
-                req.session.user ? req.session.user.username : 'unknown'
-            );
-        }
-        
-        console.log(`学员 ${id} 更新成功`);
-        res.json({ success: true, message: '更新成功', student: updatedStudent });
-        
+        res.json(allStudents);
     } catch (error) {
-        console.error('更新学员信息失败:', error);
-        res.status(500).json({ success: false, message: error.message });
+        console.error('获取所有学员列表错误:', error);
+        res.status(500).json({ message: '获取学员列表失败，请稍后重试' });
+    }
+});
+
+// 测试API路由
+app.get('/api/students/test', requireAuth, (req, res) => {
+    try {
+        console.log('收到API测试请求');
+        res.json({ message: 'API测试成功' });
+    } catch (error) {
+        console.error('API测试失败:', error);
+        res.status(500).json({ message: 'API测试失败' });
     }
 });
 
