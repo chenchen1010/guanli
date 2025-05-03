@@ -732,25 +732,38 @@ app.get('/api/channels', requireAuth, async (req, res) => {
 // 开课API
 app.post('/api/classes/create', requireAuth, async (req, res) => {
     try {
-        console.log('收到开课请求');
-        console.log('会话信息:', req.session);
-        console.log('用户信息:', req.session.user);
-        console.log('请求体:', req.body);
+        console.log('【开始】创建新班级请求');
+        console.log('请求体数据:', JSON.stringify(req.body, null, 2));
 
-        const { startTime, duration, location, students } = req.body;
+        const { startTime, duration, location, students, className } = req.body;
+        console.log('解构后的数据:');
+        console.log('- className:', className);
+        console.log('- startTime:', startTime);
+        console.log('- duration:', duration);
+        console.log('- location:', location);
+        console.log('- students:', JSON.stringify(students, null, 2));
 
         // 验证必要字段
-        if (!startTime || !duration || !location || !students || !students.length) {
+        if (!startTime || !duration || !location || !students || !students.length || !className) {
+            console.log('【错误】缺少必要信息');
+            console.log('验证结果:');
+            console.log('- startTime:', !!startTime);
+            console.log('- duration:', !!duration);
+            console.log('- location:', !!location);
+            console.log('- students:', !!students && !!students.length);
+            console.log('- className:', !!className);
             return res.status(400).json({ success: false, message: '缺少必要信息' });
         }
 
         // 读取现有课程数据
         let classes = [];
         try {
+            console.log('【读取】正在读取现有课程数据');
             const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
             classes = JSON.parse(classesData);
+            console.log('成功读取现有课程数据，当前课程数量:', classes.length);
         } catch (error) {
-            console.error('读取课程数据失败:', error);
+            console.error('【错误】读取课程数据失败:', error);
             classes = [];
         }
 
@@ -760,25 +773,38 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
             startTime,
             duration,
             location,
+            className,
             students,
             createdBy: req.session.user.username,
             createdAt: new Date().toISOString()
         };
+        console.log('【创建】新班级对象:', JSON.stringify(newClass, null, 2));
 
         // 添加新课程
         classes.push(newClass);
 
-        // 保存数据
-        await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2), 'utf8');
+        // 保存更新后的数据
+        try {
+            console.log('【保存】正在写入更新后的课程数据');
+            await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
+            console.log('课程数据保存成功');
 
-        // 记录操作日志
-        await logOperation(req.session.user.username, '创建课程', 
-            `课程: ${students[0].courseName}, 开课时间: ${new Date(startTime).toLocaleString('zh-CN')}, 学员数: ${students.length}`);
+            // 记录操作日志
+            await logOperation(
+                '创建班级',
+                `创建了新班级：${className}，开课时间：${startTime}，学员数：${students.length}`,
+                req.session.user.username
+            );
 
-        res.json({ success: true, message: '开课成功', class: newClass });
+            console.log('【完成】班级创建成功');
+            res.json({ success: true, message: '班级创建成功' });
+        } catch (error) {
+            console.error('【错误】保存课程数据失败:', error);
+            res.status(500).json({ success: false, message: '保存课程数据失败' });
+        }
     } catch (error) {
-        console.error('创建课程失败:', error);
-        res.status(500).json({ success: false, message: '创建课程失败' });
+        console.error('【错误】创建班级失败:', error);
+        res.status(500).json({ success: false, message: '创建班级失败' });
     }
 });
 

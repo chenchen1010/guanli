@@ -4865,34 +4865,49 @@
         
         // 创建班级
         async function createClassFromSelection() {
+            console.log('【开始】创建班级');
+            
             // 获取表单数据
             const className = document.getElementById('newClassName').value.trim();
             const startTime = document.getElementById('newClassStartTime').value;
             const duration = document.getElementById('newClassDuration').value;
             const location = document.getElementById('newClassLocation').value.trim();
             
+            // 在控制台打印表单数据
+            console.log('【表单数据】:', {
+                className,
+                startTime,
+                duration,
+                location,
+                selectedStudentsCount: selectedStudentsMap.size
+            });
+            
             // 表单验证
             if (!className || !startTime || !duration || !location) {
+                console.log('【错误】表单验证失败:', {
+                    className: !!className,
+                    startTime: !!startTime,
+                    duration: !!duration,
+                    location: !!location
+                });
                 alert('请填写完整的班级信息');
                 return;
             }
             
             // 获取选中的学员
             const selectedStudents = Array.from(selectedStudentsMap.values());
+            console.log('【选中学员】:', selectedStudents);
             
             try {
+                console.log('【发送请求】准备发送创建班级请求');
                 // 发送请求创建班级
                 const response = await fetch('/api/classes/create', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
+                        'Content-Type': 'application/json'
                     },
-                    credentials: 'same-origin',
                     body: JSON.stringify({
-                        courseId: selectCourseId,
-                        courseName: className,
+                        className,
                         startTime,
                         duration,
                         location,
@@ -4900,21 +4915,27 @@
                     })
                 });
                 
+                console.log('【响应状态】:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态码: ${response.status}`);
+                }
+                
                 const result = await response.json();
+                console.log('【响应数据】:', result);
                 
                 if (result.success) {
-                    alert('创建班级成功！');
-                    // 关闭所有模态框
-                    closeCreateClassFromSelectionModal();
-                    closeSelectStudentsModal();
-                    // 刷新数据
-                    fetchTableData(false);
+                    console.log('【成功】班级创建成功');
+                    alert('班级创建成功！');
+                    closeModal('selectStudentsModal');
+                    loadExistingClasses();
                 } else {
-                    alert('创建班级失败：' + (result.message || '未知错误'));
+                    console.log('【错误】服务器返回失败:', result.message);
+                    alert(result.message || '创建班级失败');
                 }
             } catch (error) {
-                console.error('创建班级失败:', error);
-                alert('创建班级失败，请稍后重试');
+                console.error('【错误】创建班级失败:', error);
+                alert('创建班级失败: ' + error.message);
             }
         }
         
@@ -4952,7 +4973,7 @@
                     const option = document.createElement('option');
                     option.value = cls.id;
                     const date = new Date(cls.startTime);
-                    option.textContent = `${cls.courseName} (${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})`;
+                    option.textContent = `${cls.className} (${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})`;
                     select.appendChild(option);
                 });
             } catch (error) {

@@ -1,25 +1,50 @@
 [
   {
-    "id": "class_1746249247526_glqqr8f2w",
-    "startTime": "2025-05-03T06:00",
+    "id": "class_1746280549239_xs2rxf4no",
+    "startTime": "2025-05-03T14:00",
     "duration": "12",
-    "location": "收到",
+    "location": "aaa",
+    "className": "aaaaaa",
     "students": [
       {
-        "wechatName": "里修改",
-        "channel": "知喜",
-        "amount": 500,
-        "status": "已开班",
-        "preferredTime": "周一",
+        "wechatName": "111",
+        "channel": "",
+        "amount": 600,
+        "status": "已支付",
+        "preferredTime": "周三晚上",
         "remarks": "",
         "courseId": "recuJnc9yGkAIf",
         "courseName": "【滑板-多区域可选】",
         "addedBy": "admin",
-        "addedAt": "2025-04-28T08:37:05.500Z",
-        "id": "1745829425502wjajdl5sj"
+        "addedAt": "2025-04-29T12:36:18.539Z",
+        "id": "1745930178539j5z28op0l"
       }
     ],
     "createdBy": "admin",
-    "createdAt": "2025-05-03T05:14:07.526Z"
+    "createdAt": "2025-05-03T13:55:49.239Z"
+  },
+  {
+    "id": "class_1746280597780_7sv8ueolw",
+    "startTime": "2025-05-03T14:00",
+    "duration": "12",
+    "location": "aaa",
+    "className": "fad aaaaaa",
+    "students": [
+      {
+        "wechatName": "111",
+        "channel": "",
+        "amount": 600,
+        "status": "已支付",
+        "preferredTime": "周三晚上",
+        "remarks": "",
+        "courseId": "recuJnc9yGkAIf",
+        "courseName": "【滑板-多区域可选】",
+        "addedBy": "admin",
+        "addedAt": "2025-04-29T12:36:18.539Z",
+        "id": "1745930178539j5z28op0l"
+      }
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-03T13:56:37.781Z"
   }
 ]
