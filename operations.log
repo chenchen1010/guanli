@@ -232,5 +232,65 @@
     "username": "课程: 【咖啡-多地区可选】, 开课时间: 2025/5/1 11:00:00, 学员数: 1",
     "operation": "admin",
     "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/5/1 19:03:51",
+    "username": "课程: 【形体-上城-闸弄口】, 开课时间: 2025/5/1 12:00:00, 学员数: 1",
+    "operation": "admin",
+    "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/5/1 19:09:37",
+    "username": "课程: 【网球-上城区】, 开课时间: 2025/5/1 12:00:00, 学员数: 1",
+    "operation": "admin",
+    "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/5/1 20:29:47",
+    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/2 13:00:00, 学员数: 1",
+    "operation": "admin",
+    "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/5/1 20:43:13",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 张三(¥3000/已支付/周六上午)"
+  },
+  {
+    "timestamp": "2025/5/1 20:45:44",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加3名学员: 111111(¥600/已支付)、2222(¥600/已支付)、333(¥600/已支付)"
+  },
+  {
+    "timestamp": "2025/5/2 08:01:09",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 的(¥600/已支付)"
+  },
+  {
+    "timestamp": "2025/5/2 08:01:16",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 大(¥600/已支付)"
+  },
+  {
+    "timestamp": "2025/5/3 10:26:45",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 里修改, 变更: 备注: 无 → wa"
+  },
+  {
+    "timestamp": "2025/5/3 10:28:53",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 2, 变更: 备注: 无 → 收到"
+  },
+  {
+    "timestamp": "2025/5/3 10:29:03",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 2, 变更: 备注: 收到 → 收到的 "
   }
 ]

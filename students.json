@@ -1,27 +1,29 @@
 [
   {
     "wechatName": "张三",
-    "amount": 3000,
     "channel": "青年俱乐部",
+    "amount": 3000,
     "status": "已支付",
+    "preferredTime": "周一",
+    "remarks": "",
     "courseId": "recuJnc9yGyXOL",
     "courseName": "【Deepseek应用与变现-多地址可选】",
     "addedBy": "admin",
     "addedAt": "2025-04-28T08:32:07.066Z",
-    "id": "1745829127066ks6pnapyd",
-    "preferredTime": "周一"
+    "id": "1745829127066ks6pnapyd"
   },
   {
     "wechatName": "里修改",
-    "amount": 500,
     "channel": "知喜",
+    "amount": 500,
     "status": "已开班",
+    "preferredTime": "周一",
+    "remarks": "",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-04-28T08:37:05.500Z",
-    "id": "1745829425502wjajdl5sj",
-    "preferredTime": "周一"
+    "id": "1745829425502wjajdl5sj"
   },
   {
     "wechatName": "te1",
@@ -337,14 +339,87 @@
   },
   {
     "wechatName": "111",
-    "amount": 600,
     "channel": "",
+    "amount": 600,
     "status": "已支付",
     "preferredTime": "周三晚上",
+    "remarks": "",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-04-29T12:36:18.539Z",
     "id": "1745930178539j5z28op0l"
+  },
+  {
+    "wechatName": "张三",
+    "amount": 3000,
+    "channel": "朋友介绍",
+    "status": "已支付",
+    "preferredTime": "周六上午",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-01T12:43:13.184Z",
+    "id": "1746103393184hd30ug72y"
+  },
+  {
+    "wechatName": "111111",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-01T12:45:44.804Z",
+    "id": "1746103544804c6qx7bigi"
+  },
+  {
+    "wechatName": "2222",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-01T12:45:44.805Z",
+    "id": "1746103544805ua1zrdqh8"
+  },
+  {
+    "wechatName": "333",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-01T12:45:44.807Z",
+    "id": "1746103544807pgr9ahkjm"
+  },
+  {
+    "wechatName": "的",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-02T00:01:09.154Z",
+    "id": "17461440691548szr13auz"
+  },
+  {
+    "wechatName": "大",
+    "amount": 600,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-02T00:01:16.313Z",
+    "id": "1746144076313fo1d1rfsg"
   }
 ]
