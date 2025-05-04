@@ -4554,10 +4554,19 @@
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
             
-            data.forEach((record, index) => {
+            // 过滤掉已开班的学员
+            const filteredData = data.filter(record => record.status !== '已开班');
+            
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">暂无学员数据</td></tr>';
+                return;
+            }
+
+            filteredData.forEach((record, index) => {
                 const row = document.createElement('tr');
                 row.dataset.studentId = record.id;
                 
+                // 添加勾选列
                 row.innerHTML = `
                     <td class="checkbox-wrapper">
                         <input type="checkbox" onchange="toggleStudent('${record.id}')" ${record.status === '已开班' ? 'disabled' : ''}>
@@ -4567,14 +4576,25 @@
                     <td>¥${record.amount || ''}</td>
                     <td class="status-cell ${getStatusClass(record.status)}">${record.status || ''}</td>
                     <td>${record.preferredTime || ''}</td>
-                    <td class="remarks-cell" title="${record.remarks || '暂无备注'}">${record.remarks || '-'}</td>
+                    <td class="remarks-cell" title="${record.remarks || ''}">${record.remarks || '-'}</td>
                     <td>
-                        <button class="edit-btn" onclick="editStudent(${index})">编辑</button>
+                        <button onclick="viewStudentDetails('${record.id}')" class="action-button view-button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="editStudent('${record.id}')" class="action-button edit-button" ${record.status === '已开班' ? 'disabled' : ''}>
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteStudent('${record.id}')" class="action-button delete-button" ${record.status === '已开班' ? 'disabled' : ''}>
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 `;
                 
                 tableBody.appendChild(row);
             });
+            
+            // 更新总数显示
+            document.getElementById('totalCount').textContent = filteredData.length;
         }
 
         // 显示课程详情
@@ -5055,14 +5075,25 @@
                     <td>¥${record.amount || ''}</td>
                     <td class="status-cell ${getStatusClass(record.status)}">${record.status || ''}</td>
                     <td>${record.preferredTime || ''}</td>
-                    <td class="remarks-cell" title="${record.remarks || '暂无备注'}">${record.remarks || '-'}</td>
+                    <td class="remarks-cell" title="${record.remarks || ''}">${record.remarks || '-'}</td>
                     <td>
-                        <button class="edit-btn" onclick="editStudent(${index})">编辑</button>
+                        <button onclick="viewStudentDetails('${record.id}')" class="action-button view-button">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="editStudent('${record.id}')" class="action-button edit-button" ${record.status === '已开班' ? 'disabled' : ''}>
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteStudent('${record.id}')" class="action-button delete-button" ${record.status === '已开班' ? 'disabled' : ''}>
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 `;
                 
                 tableBody.appendChild(row);
             });
+            
+            // 更新总数显示
+            document.getElementById('totalCount').textContent = data.length;
         }
 
         // 修改学员详情表格的列配置

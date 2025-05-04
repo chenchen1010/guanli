@@ -1,68 +1,14 @@
 [
   {
-    "timestamp": "2025/5/3 21:17:16",
+    "timestamp": "2025/5/3 22:22:05",
+    "username": "课程: 1 2 新版, 开课时间: 2025/5/3 15:00:00, 学员数: 2",
+    "operation": "admin",
+    "details": "创建课程"
+  },
+  {
+    "timestamp": "2025/5/4 08:49:11",
     "username": "admin",
-    "operation": "添加学员",
-    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 大(¥600/已支付)"
-  },
-  {
-    "timestamp": "2025/5/3 21:23:52",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:25:53",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 2",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:29:09",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:32:36",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:33:26",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:37:17",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:42:24",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:50:33",
-    "username": "课程: 【滑板-多区域可选】, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:55:49",
-    "username": "课程: aaaaaa, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
-  },
-  {
-    "timestamp": "2025/5/3 21:56:37",
-    "username": "课程: fad aaaaaa, 开课时间: 2025/5/3 14:00:00, 学员数: 1",
-    "operation": "admin",
-    "details": "创建课程"
+    "operation": "创建班级",
+    "details": "创建了新班级：2323，开课时间：2025-05-04T01:00，学员数：2"
   }
 ]

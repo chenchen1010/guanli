@@ -264,7 +264,15 @@ app.get('/api/logout', (req, res) => {
 
 // 检查登录状态的API
 app.get('/api/check-login', (req, res) => {
-    res.json({ isLoggedIn: !!req.session.user });
+    if (req.session.user) {
+        res.json({
+            isLoggedIn: true,
+            username: req.session.user.username,
+            phone: req.session.user.phone
+        });
+    } else {
+        res.json({ isLoggedIn: false });
+    }
 });
 
 // 获取表格数据的API端点 - 优先从文件读取
@@ -765,6 +773,31 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         } catch (error) {
             console.error('【错误】读取课程数据失败:', error);
             classes = [];
+        }
+
+        // 更新学员状态为"已开班"
+        try {
+            console.log('【更新】正在更新学员状态');
+            const studentsData = await fs.promises.readFile('students.json', 'utf8');
+            let allStudents = JSON.parse(studentsData);
+            
+            // 获取要更新的学员ID列表
+            const studentIds = students.map(s => s.id);
+            
+            // 更新学员状态
+            allStudents = allStudents.map(student => {
+                if (studentIds.includes(student.id)) {
+                    return { ...student, status: '已开班' };
+                }
+                return student;
+            });
+            
+            // 保存更新后的学员数据
+            await fs.promises.writeFile('students.json', JSON.stringify(allStudents, null, 2));
+            console.log('学员状态更新成功');
+        } catch (error) {
+            console.error('【错误】更新学员状态失败:', error);
+            return res.status(500).json({ success: false, message: '更新学员状态失败' });
         }
 
         // 创建新课程
