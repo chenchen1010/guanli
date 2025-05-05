@@ -3836,7 +3836,11 @@
 
                 // 关闭模态框
                 closeEditStudentModal();
-                
+
+                // 自动刷新主表格数据，保证报名学员列人数和明细实时更新
+                if (typeof fetchTableData === 'function') {
+                    fetchTableData(false);
+                }
                 // 刷新学员列表
                 await refreshStudentList();
                 

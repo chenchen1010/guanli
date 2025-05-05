@@ -1098,7 +1098,7 @@
                     netIncome,
                     details: detailsData
                 };
-                
+                console.log('准备发送的数据:', JSON.stringify(incomeData));
                 const filters = {
                     status: statusFilter,
                     course: courseFilter,
@@ -1120,7 +1120,7 @@
                 }
                 
                 const result = await response.json();
-                
+                console.log('收到AI分析结果:', result);
                 if (!result.success) {
                     throw new Error(result.error || '分析失败');
                 }

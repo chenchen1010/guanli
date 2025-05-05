@@ -1571,6 +1571,134 @@ _**Assistant**_
 
 ---
 
+```diff
+                          '微信名': student.wechatName || '-',
+                          '报名课程': student.courseName ? student.courseName.replace(/【|】/g, '') : '-',
+-                         '实收金额': amount.toFixed(2),
+-                         '招生收益': recruitmentIncome.toFixed(2),
+-                         '渠道费': channelCost.toFixed(2),
+                          '渠道': student.channel || '-',
+                          '订单状态': student.status || '-',
+```
+
+```diff
+                          '开班日期': formatDate(student.classStartDate),
+                          '所属班级': student.className || '-',
+-                         '备注': student.remarks || '-'
++                         '备注': student.remarks || '-',
++                         '实收金额': amount.toFixed(2),
++                         '招生收益': recruitmentIncome.toFixed(2),
++                         '渠道费': channelCost.toFixed(2)
+                      };
+                  });
+```
+
+---
+
+```diff
+                      { wch: 15 }, // 微信名
+                      { wch: 20 }, // 报名课程
+-                     { wch: 10 }, // 实收金额
+-                     { wch: 10 }, // 招生收益
+-                     { wch: 10 }, // 渠道费
+                      { wch: 10 }, // 渠道
+                      { wch: 10 }, // 订单状态
+```
+
+```diff
+                      { wch: 15 }, // 开班日期
+                      { wch: 15 }, // 所属班级
+-                     { wch: 25 }  // 备注
++                     { wch: 25 }, // 备注
++                     { wch: 10 }, // 实收金额
++                     { wch: 10 }, // 招生收益
++                     { wch: 10 }  // 渠道费
+                  ];
+                  
+```
+
+---
+
+```diff
+                  // 添加统计信息
+                  const totalIncome = exportData.reduce((sum, student) => {
+-                     if (student.status === '已支付' || student.status === '已开班') {
++                     if (student.status === '已支付' || student.status === '已开班' || student.status === '已结算') {
+                          return sum + (parseFloat(student.amount) || 0);
+                      }
+```
+
+```diff
+                  
+                  const totalRecruitmentIncome = exportData.reduce((sum, student) => {
+-                     if (student.status === '已支付' || student.status === '已开班') {
++                     if (student.status === '已支付' || student.status === '已开班' || student.status === '已结算') {
+                          const amount = parseFloat(student.amount) || 0;
+                          let recruitmentIncome = 0;
+```
+
+---
+
+```diff
+              color: #1890ff;
+          }
++ 
++         .status-badge.status-settled {
++             background: #e6f1b8;
++             color: #7cb305;
++         }
+  
+          .amount-cell {
+```
+
+---
+
+```diff
+                          } else if (student.status === '已开班') {
+                              statusClass = 'status-class';
++                         } else if (student.status === '已结算') {
++                             statusClass = 'status-settled';
+                          }
+  
+```
+
+---
+
+我已经成功修改了收益情况页面的列顺序，将实收金额、招生收益和渠道费三列移到了最末尾，同时做了相关的配套更新：
+
+### 主要修改内容
+
+1. **表格列顺序调整**：
+   - 修改了表格表头，将金额相关的三列移到了最后
+   - 调整了表格行数据显示顺序，保持与表头一致
+
+2. **Excel导出功能相应更新**：
+   - 更新了导出Excel时的数据顺序，与表格显示保持一致
+   - 调整了Excel列宽设置，适应新的列顺序
+
+3. **新增"已结算"状态支持**：
+   - 添加了"已结算"状态的CSS样式，使用绿色底色
+   - 在计算总收益时包含"已结算"状态的订单
+   - 在Excel导出功能中同样更新了对应的状态处理
+
+### 优化效果
+
+1. 现在表格将更关注学员的基本信息，如微信名、课程名、渠道等，方便用户首先查看学员情况
+2. 金额相关信息放在最后，更符合财务报表的常见排版习惯
+3. "已结算"状态有了专门的颜色标识，使页面信息更清晰
+
+这样的排列更加符合用户的阅读习惯，让重要的基本信息优先展示，金额相关信息作为辅助信息展示在最后。
+
+---
+
+_**User**_
+
+修订bug：勾选学员，确认开班报错，控制台输出如图
+
+---
+
+_**Assistant**_
+
 
 
 ---

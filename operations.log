@@ -1,20 +1,10 @@
 [
   {
-    "timestamp": "2025/5/5 20:00:35",
+    "timestamp": "2025/5/5 22:53:07",
     "username": "admin",
-    "operation": "添加学员",
-    "details": "课程: 【八段锦-上城-闸弄口】(recuJnc9yGk5ty), 添加1名学员: 自营学员(¥500/已支付)"
-  },
-  {
-    "timestamp": "2025/5/5 20:01:30",
-    "username": "admin",
-    "operation": "添加学员",
-    "details": "课程: 【太极-上城九堡】(recuJnc9yGCuPY), 添加1名学员: stu1(¥1000/已支付)"
-  },
-  {
-    "timestamp": "2025/5/5 21:37:14",
-    "username": "admin",
-    "operation": "收益AI分析",
-    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
+    "operation": "更新学员信息",
+    "details": "学员: 222222, 变更: "
+  }
+] 意向中 -> 已支付"
   }
 ]

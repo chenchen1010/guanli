@@ -1018,6 +1018,104 @@ app.get('/api/classes/:classId/students', requireAuth, async (req, res) => {
     }
 });
 
+// 加入已有班级API
+app.post('/api/classes/join', requireAuth, async (req, res) => {
+    try {
+        console.log('【开始】加入已有班级请求');
+        console.log('请求体数据:', JSON.stringify(req.body, null, 2));
+
+        const { classId, students } = req.body;
+        console.log('解构后的数据:');
+        console.log('- classId:', classId);
+        console.log('- students:', JSON.stringify(students, null, 2));
+
+        // 验证必要字段
+        if (!classId || !students || !students.length) {
+            console.log('【错误】缺少必要信息');
+            console.log('验证结果:');
+            console.log('- classId:', !!classId);
+            console.log('- students:', !!students && !!students.length);
+            return res.status(400).json({ success: false, message: '缺少必要信息' });
+        }
+
+        // 读取现有课程数据
+        let classes = [];
+        try {
+            console.log('【读取】正在读取现有课程数据');
+            const classesData = await fs.readFile(classesFilePath, 'utf8');
+            classes = JSON.parse(classesData);
+            console.log('成功读取现有课程数据，当前课程数量:', classes.length);
+        } catch (error) {
+            console.error('【错误】读取课程数据失败:', error);
+            return res.status(500).json({ success: false, message: '读取课程数据失败' });
+        }
+
+        // 查找指定的班级
+        const classIndex = classes.findIndex(c => c.id === classId);
+        if (classIndex === -1) {
+            console.error('【错误】找不到指定班级:', classId);
+            return res.status(404).json({ success: false, message: '找不到指定班级' });
+        }
+        console.log('找到班级:', classes[classIndex].className);
+
+        // 确保班级有students数组
+        if (!Array.isArray(classes[classIndex].students)) {
+            classes[classIndex].students = [];
+        }
+
+        // 更新学员状态为"已开班"
+        try {
+            console.log('【更新】正在更新学员状态');
+            const studentsData = await fs.readFile('students.json', 'utf8');
+            let allStudents = JSON.parse(studentsData);
+            
+            // 获取要更新的学员ID列表
+            const studentIds = students.map(s => s.id);
+            
+            // 更新学员状态
+            allStudents = allStudents.map(student => {
+                if (studentIds.includes(student.id)) {
+                    return { ...student, status: '已开班' };
+                }
+                return student;
+            });
+            
+            // 添加选中的学员到班级
+            studentIds.forEach(id => {
+                if (!classes[classIndex].students.includes(id)) {
+                    classes[classIndex].students.push(id);
+                }
+            });
+            
+            // 保存更新后的学员数据
+            await fs.writeFile('students.json', JSON.stringify(allStudents, null, 2));
+            console.log('学员状态更新成功');
+            
+            // 保存更新后的班级数据
+            await fs.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
+            console.log('班级数据更新成功');
+
+            // 记录操作日志
+            await logOperation(
+                '加入班级',
+                `将${students.length}名学员加入班级：${classes[classIndex].className}`,
+                req.session.user.username
+            );
+
+            console.log('【完成】学员成功加入班级');
+            res.json({ success: true, message: '学员成功加入班级' });
+        } catch (error) {
+            console.error('【错误】更新数据失败:', error);
+            console.error('错误堆栈:', error.stack);
+            res.status(500).json({ success: false, message: '更新数据失败' });
+        }
+    } catch (error) {
+        console.error('【错误】加入班级失败:', error);
+        console.error('错误堆栈:', error.stack);
+        res.status(500).json({ success: false, message: '加入班级失败' });
+    }
+});
+
 // 获取所有学员列表
 app.get('/api/students', requireAuth, (req, res) => {
     try {
@@ -1134,7 +1232,7 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
         
         // 准备提交给AI模型的提示词
         const prompt = `
-        我是一位财务分析师，需要你帮我分析以下飞书夜校的收益数据，并给出建议：
+        我是一位新青年夜校的会计师，需要你帮我计算这些学员的收益情况，并且和相关方（机构和渠道）如何转账：
         
         收益数据概要:
         - 总收入: ${incomeData.totalIncome}
@@ -1148,13 +1246,17 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
         
         ${filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : '无筛选条件'}
         
+        注意：
+        渠道为招生渠道，收取了学员学费为实收金额，招生收益是招生渠道的实际收益。
+        实收金额减去招生收益是机构收益。
+        渠道费是给课程所有方的费用，正数是应付给新青年夜校的，负数是新青年夜校付给机构的费用。
+
         请提供以下分析:
-        1. 收益概述和主要指标分析
-        2. 最赚钱的课程及原因分析
-        3. 渠道效益分析
-        4. 提高收益的建议
-        5. 未来收益预测
+        1. 应转给不同机构的金额，附录报名学员详情
+        2. 应转给不同渠道的金额，附录报名学员详情
+        3. 应转给新青年的金额
         `;
+        console.log('AI分析请求提示词:', prompt);
         
         const modelId = process.env.ARK_ENDPOINT_ID || 'doubao-1.5-thinking-pro';
         console.log('使用的AI模型:', modelId);
@@ -1167,7 +1269,7 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
                 messages: [
                     { 
                         role: 'system', 
-                        content: '你是一位专业的财务数据分析师，擅长分析教育机构的收益数据并提供有价值的建议。' 
+                        content: '你是一位专业的会议师，擅长计算收入支出。' 
                     },
                     { 
                         role: 'user', 
@@ -1183,6 +1285,7 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
                 temperature: 0.7,
                 max_tokens: 2000,
             });
+                    
             
             console.log('AI模型调用成功，获得响应');
             
