@@ -1,70 +1,14 @@
 [
   {
-    "timestamp": "2025/5/3 22:22:05",
-    "username": "课程: 1 2 新版, 开课时间: 2025/5/3 15:00:00, 学员数: 2",
-    "operation": "admin",
-    "details": "创建课程"
+    "timestamp": "2025/5/5 20:00:35",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【八段锦-上城-闸弄口】(recuJnc9yGk5ty), 添加1名学员: 自营学员(¥500/已支付)"
   },
   {
-    "timestamp": "2025/5/4 08:49:11",
+    "timestamp": "2025/5/5 20:01:30",
     "username": "admin",
-    "operation": "创建班级",
-    "details": "创建了新班级：2323，开课时间：2025-05-04T01:00，学员数：2"
-  },
-  {
-    "timestamp": "2025/5/5 11:43:19",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 3, 变更: 渠道: 无 -> 本地宝, 状态: 已开班 -> 已支付, 意向时间: 无 -> 周一晚, 备注: 无 -> 备注"
-  },
-  {
-    "timestamp": "2025/5/5 11:43:32",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 3, 变更: 渠道: 本地宝 -> 无, 意向时间: 周一晚 -> 无, 备注: 备注 ->  水电费"
-  },
-  {
-    "timestamp": "2025/5/5 11:44:57",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 3, 变更: 金额: 600 -> 500, 渠道: 无 -> 本地宝, 状态: 已支付 -> 已开班, 意向时间: 无 -> 周一晚, 备注:  水电费 -> 备注test"
-  },
-  {
-    "timestamp": "2025/5/5 12:02:31",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 3, 变更: 金额: 500 -> 600, 渠道: 本地宝 -> 无, 状态: 已开班 -> 已支付, 意向时间: 周一晚 -> 无, 备注: 备注test -> 发"
-  },
-  {
-    "timestamp": "2025/5/5 13:00:46",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 1, 变更: 意向时间: 无 -> 发"
-  },
-  {
-    "timestamp": "2025/5/5 15:46:57",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 3, 变更: 备注: 发 -> ev发"
-  },
-  {
-    "timestamp": "2025/5/5 15:48:43",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 3, 变更: 状态: 已支付 -> 已开班"
-  },
-  {
-    "timestamp": "2025/5/5 16:21:19",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 3, 变更: 渠道: 无 -> 本地宝, 意向时间: 无 -> 周一晚"
-  },
-  {
-    "timestamp": "2025/5/5 17:09:20",
-    "username": "admin",
-    "operation": "更新学员信息",
-    "details": "学员: 1, 变更: "
-  }
-] 已支付 -> 已退款, 备注: 发 -> 已退款\n"
+    "operation": "添加学员",
+    "details": "课程: 【太极-上城九堡】(recuJnc9yGCuPY), 添加1名学员: stu1(¥1000/已支付)"
   }
 ]

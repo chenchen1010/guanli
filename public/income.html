@@ -348,6 +348,48 @@
             overflow-x: auto;
             margin-bottom: 20px;
         }
+        
+        /* 导出按钮样式 */
+        .export-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .export-button:hover {
+            background-color: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .export-button i {
+            font-size: 18px;
+        }
+        
+        /* Excel下载中状态 */
+        .export-button.loading {
+            background-color: #888;
+            pointer-events: none;
+        }
+        
+        .export-button.loading:after {
+            content: "...";
+            display: inline-block;
+            animation: ellipsis 1.5s infinite;
+        }
+        
+        @keyframes ellipsis {
+            0% { content: "."; }
+            33% { content: ".."; }
+            66% { content: "..."; }
+        }
     </style>
 </head>
 <body>
@@ -392,6 +434,10 @@
         <div class="income-container">
             <div class="income-header">
                 <h2 class="income-title">收益概览</h2>
+                <button id="exportExcel" class="export-button">
+                    <i class="material-icons">file_download</i>
+                    <span>导出Excel</span>
+                </button>
             </div>
             
             <!-- 收益概览卡片 -->
@@ -413,7 +459,7 @@
                     <div class="amount" id="netIncome">¥0</div>
                 </div>
             </div>
-            
+
             <!-- 过滤器 -->
             <div class="filters">
                 <div class="filter-item">
@@ -432,11 +478,11 @@
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label for="startDate">开始日期:</label>
+                    <label for="startDate">报名开始日期:</label>
                     <input type="date" id="startDate">
                 </div>
                 <div class="filter-item">
-                    <label for="endDate">结束日期:</label>
+                    <label for="endDate">报名结束日期:</label>
                     <input type="date" id="endDate">
                 </div>
                 <button class="filter-button" id="applyFilter">应用筛选</button>
@@ -445,29 +491,29 @@
 
             <!-- 表格容器 -->
             <div class="table-container">
-                <!-- 收益明细表格 -->
-                <table class="income-table">
-                    <thead>
-                        <tr>
-                            <th>微信名</th>
-                            <th>报名课程</th>
+            <!-- 收益明细表格 -->
+            <table class="income-table">
+                <thead>
+                    <tr>
+                        <th>微信名</th>
+                        <th>报名课程</th>
                             <th>实收金额</th>
-                            <th>招生收益</th>
-                            <th>渠道费</th>
-                            <th>渠道</th>
+                        <th>招生收益</th>
+                        <th>渠道费</th>
+                        <th>渠道</th>
                             <th>订单状态</th>
-                            <th>意向上课时间</th>
-                            <th>报名日期</th>
-                            <th>退款日期</th>
-                            <th>开班日期</th>
+                        <th>意向上课时间</th>
+                        <th>报名日期</th>
+                        <th>退款日期</th>
+                        <th>开班日期</th>
                             <th>所属班级</th>
-                            <th>备注</th>
-                        </tr>
-                    </thead>
-                    <tbody id="incomeTableBody">
-                        <!-- 数据将通过JavaScript动态填充 -->
-                    </tbody>
-                </table>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody id="incomeTableBody">
+                    <!-- 数据将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
             </div>
         </div>
     </div>
@@ -483,6 +529,9 @@
         </div>
     </div>
 
+    <!-- 引入xlsx库 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    
     <script>
         // 全局变量存储数据
         let allStudents = [];
@@ -515,7 +564,7 @@
                 return false;
             }
         }
-        
+
         // 初始化页面数据
         async function initializeData() {
             try {
@@ -801,6 +850,7 @@
                         } else if (student.status === '已开班') {
                             statusClass = 'status-class';
                         }
+
                         
                         tr.innerHTML = `
                             <td>${student.wechatName || '-'}</td>
@@ -847,7 +897,7 @@
                 return '-';
             }
         }
-        
+
         // 显示错误信息
         function showErrorMessage(message) {
             const errorDiv = document.createElement('div');
@@ -910,7 +960,184 @@
             // 加载收益数据
             console.log('页面加载时初始化...');
             initializeData();
+            
+            // 添加导出Excel事件监听
+            document.getElementById('exportExcel').addEventListener('click', exportToExcel);
         });
+        
+        // 导出Excel函数
+        function exportToExcel() {
+            try {
+                const exportButton = document.getElementById('exportExcel');
+                exportButton.classList.add('loading');
+                exportButton.innerHTML = '<i class="material-icons">file_download</i><span>导出中</span>';
+                
+                // 应用当前筛选条件获取数据
+                const statusFilter = document.getElementById('statusFilter').value;
+                const courseFilter = document.getElementById('courseFilter').value;
+                const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
+                const endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value + 'T23:59:59') : null;
+                
+                // 筛选数据
+                let exportData = [...allStudents];
+                
+                if (statusFilter) {
+                    exportData = exportData.filter(student => student.status === statusFilter);
+                }
+                
+                if (courseFilter) {
+                    exportData = exportData.filter(student => 
+                        student.courseName && student.courseName.replace(/【|】/g, '') === courseFilter
+                    );
+                }
+                
+                if (startDate) {
+                    exportData = exportData.filter(student => {
+                        const addedDate = student.addedAt ? new Date(student.addedAt) : null;
+                        return addedDate && addedDate >= startDate;
+                    });
+                }
+                
+                if (endDate) {
+                    exportData = exportData.filter(student => {
+                        const addedDate = student.addedAt ? new Date(student.addedAt) : null;
+                        return addedDate && addedDate <= endDate;
+                    });
+                }
+                
+                // 准备Excel数据
+                const excelData = exportData.map(student => {
+                    // 计算招生收益
+                    const amount = parseFloat(student.amount) || 0;
+                    let recruitmentIncome = 0;
+                    
+                    if (bdData[student.courseId]) {
+                        recruitmentIncome = bdData[student.courseId].recruitmentIncome;
+                    } else {
+                        recruitmentIncome = amount * 0.3;
+                    }
+                    
+                    // 渠道费为招生收益的15%
+                    const channelCost = recruitmentIncome * 0.15;
+                    
+                    return {
+                        '微信名': student.wechatName || '-',
+                        '报名课程': student.courseName ? student.courseName.replace(/【|】/g, '') : '-',
+                        '实收金额': amount.toFixed(2),
+                        '招生收益': recruitmentIncome.toFixed(2),
+                        '渠道费': channelCost.toFixed(2),
+                        '渠道': student.channel || '-',
+                        '订单状态': student.status || '-',
+                        '意向上课时间': student.preferredTime || '-',
+                        '报名日期': formatDate(student.addedAt),
+                        '退款日期': formatDate(student.refundDate),
+                        '开班日期': formatDate(student.classStartDate),
+                        '所属班级': student.className || '-',
+                        '备注': student.remarks || '-'
+                    };
+                });
+                
+                // 创建工作表
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                
+                // 创建工作簿
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, '收益情况');
+                
+                // 设置列宽
+                const columnWidths = [
+                    { wch: 15 }, // 微信名
+                    { wch: 20 }, // 报名课程 
+                    { wch: 10 }, // 实收金额
+                    { wch: 10 }, // 招生收益
+                    { wch: 10 }, // 渠道费
+                    { wch: 10 }, // 渠道
+                    { wch: 10 }, // 订单状态
+                    { wch: 15 }, // 意向上课时间
+                    { wch: 15 }, // 报名日期
+                    { wch: 15 }, // 退款日期
+                    { wch: 15 }, // 开班日期
+                    { wch: 15 }, // 所属班级
+                    { wch: 25 }  // 备注
+                ];
+                
+                worksheet['!cols'] = columnWidths;
+                
+                // 添加统计信息
+                const totalIncome = exportData.reduce((sum, student) => {
+                    if (student.status === '已支付' || student.status === '已开班') {
+                        return sum + (parseFloat(student.amount) || 0);
+                    }
+                    return sum;
+                }, 0);
+                
+                const totalRecruitmentIncome = exportData.reduce((sum, student) => {
+                    if (student.status === '已支付' || student.status === '已开班') {
+                        const amount = parseFloat(student.amount) || 0;
+                        let recruitmentIncome = 0;
+                        
+                        if (bdData[student.courseId]) {
+                            recruitmentIncome = bdData[student.courseId].recruitmentIncome;
+                        } else {
+                            recruitmentIncome = amount * 0.3;
+                        }
+                        
+                        return sum + recruitmentIncome;
+                    }
+                    return sum;
+                }, 0);
+                
+                const totalChannelCost = totalRecruitmentIncome * 0.15;
+                
+                // 获取当前日期时间作为文件名
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('zh-CN').replace(/\//g, '-');
+                const timeStr = now.toLocaleTimeString('zh-CN').replace(/:/g, '-');
+                const fileName = `收益情况统计_${dateStr}_${timeStr}.xlsx`;
+                
+                // 导出Excel
+                setTimeout(() => {
+                    XLSX.writeFile(workbook, fileName);
+                    
+                    // 恢复按钮状态
+                    exportButton.classList.remove('loading');
+                    exportButton.innerHTML = '<i class="material-icons">file_download</i><span>导出Excel</span>';
+                    
+                    showSuccessMessage('导出成功');
+                }, 1000);
+            } catch (error) {
+                console.error('导出Excel失败:', error);
+                showErrorMessage(`导出失败: ${error.message}`);
+                
+                // 恢复按钮状态
+                const exportButton = document.getElementById('exportExcel');
+                exportButton.classList.remove('loading');
+                exportButton.innerHTML = '<i class="material-icons">file_download</i><span>导出Excel</span>';
+            }
+        }
+        
+        // 显示成功信息
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #4CAF50;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 5px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                z-index: 1000;
+            `;
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
     </script>
 </body>
 </html> 

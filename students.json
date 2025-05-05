@@ -31,7 +31,7 @@
     "wechatName": "3",
     "amount": 600,
     "channel": "本地宝",
-    "status": "已开班",
+    "status": "意向中",
     "preferredTime": "周一晚",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
@@ -39,7 +39,7 @@
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120ld0p164ti",
     "remarks": "ev发",
-    "updatedAt": "2025-05-05T08:21:19.723Z"
+    "updatedAt": "2025-05-05T11:56:44.693Z"
   },
   {
     "wechatName": "4",
@@ -69,7 +69,7 @@
     "wechatName": "6",
     "amount": 600,
     "channel": "本地宝",
-    "status": "已支付",
+    "status": "已结算",
     "preferredTime": "周一晚上",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
@@ -77,7 +77,7 @@
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120smjwyo0in",
     "remarks": "11",
-    "updatedAt": "2025-05-03T14:20:51.560Z"
+    "updatedAt": "2025-05-05T11:56:57.583Z"
   },
   {
     "wechatName": "7",
@@ -102,5 +102,29 @@
     "addedBy": "admin",
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "17462820351202cemodcet"
+  },
+  {
+    "wechatName": "自营学员",
+    "amount": 500,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGk5ty",
+    "courseName": "【八段锦-上城-闸弄口】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-05T12:00:35.441Z",
+    "id": "1746446435441qi532s2p9"
+  },
+  {
+    "wechatName": "stu1",
+    "amount": 1000,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGCuPY",
+    "courseName": "【太极-上城九堡】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-05T12:01:30.070Z",
+    "id": "1746446490070fc50h8ceq"
   }
 ]
