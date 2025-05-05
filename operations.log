@@ -28,5 +28,29 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "学员: 3, 变更: 金额: 600 -> 500, 渠道: 无 -> 本地宝, 状态: 已支付 -> 已开班, 意向时间: 无 -> 周一晚, 备注:  水电费 -> 备注test"
+  },
+  {
+    "timestamp": "2025/5/5 12:02:31",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 3, 变更: 金额: 500 -> 600, 渠道: 本地宝 -> 无, 状态: 已开班 -> 已支付, 意向时间: 周一晚 -> 无, 备注: 备注test -> 发"
+  },
+  {
+    "timestamp": "2025/5/5 13:00:46",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: 意向时间: 无 -> 发"
+  },
+  {
+    "timestamp": "2025/5/5 15:46:57",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 3, 变更: 备注: 发 -> ev发"
+  },
+  {
+    "timestamp": "2025/5/5 15:48:43",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 3, 变更: 状态: 已支付 -> 已开班"
   }
 ]

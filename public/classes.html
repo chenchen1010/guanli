@@ -827,9 +827,10 @@
                     <label for="editStudentStatus">订单状态</label>
                     <select id="editStudentStatus">
                         <option value="已支付">已支付</option>
-                        <option value="未支付">未支付</option>
+                        <option value="未支付">意向中</option>
                         <option value="已退款">已退款</option>
                         <option value="已开班">已开班</option>
+                        <option value="已开班">已结算</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1121,96 +1122,58 @@
         // 加载班级学员
         async function loadClassStudents(classId) {
             try {
-                console.log('【loadClassStudents】开始加载班级学员:', classId);
+                // 获取班级学员信息
+                console.log('【loadClassStudents】开始获取班级学员信息:', classId);
                 
-                // 尝试清理classId，确保没有非法字符
-                const cleanClassId = encodeURIComponent(classId.trim());
-                console.log('【loadClassStudents】清理后的classId:', cleanClassId);
-                
-                // 构建API URL
-                const apiUrl = `/api/classes/${cleanClassId}/students`;
-                console.log('【loadClassStudents】请求URL:', apiUrl);
-                
-                const response = await fetch(apiUrl);
-                console.log('【loadClassStudents】API响应状态:', response.status, response.statusText);
+                const response = await fetch(`/api/classes/${classId}/students`);
+                console.log('- API响应状态:', response.status);
                 
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        console.error('【loadClassStudents】未找到班级学员数据，尝试从班级对象加载');
-                        // 如果API返回404，尝试从当前classes中获取
-                        if (currentClassData && currentClassData.students) {
-                            console.log('【loadClassStudents】从currentClassData加载学员数据');
-                            renderStudentsList(currentClassData.students);
-                            return;
-                        }
-                        // 从classes中查找
-                        const classData = classes.find(cls => cls.id === classId);
-                        if (classData && classData.students) {
-                            console.log('【loadClassStudents】从classes中找到班级数据');
-                            currentClassData = classData;
-                            renderStudentsList(classData.students);
-                            return;
-                        }
-                        console.log('【loadClassStudents】没有可用的学员数据');
-                        renderStudentsList([]);
-                        return;
-                    }
-                    throw new Error(`API返回错误: ${response.status} ${response.statusText}`);
+                    throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
                 }
                 
                 const students = await response.json();
-                console.log('【loadClassStudents】获取到学员数据:', students);
+                console.log('- 获取到的学员信息:', students);
                 
-                // 确保currentClassData存在
-                if (currentClassData && currentClassData.id === classId) {
-                    console.log('【loadClassStudents】更新currentClassData中的students');
+                // 更新当前班级的学员数据
+                if (currentClassData) {
                     currentClassData.students = students;
-                } else {
-                    // 如果currentClassData不存在或ID不匹配，尝试从classes中找到对应的班级
-                    console.log('【loadClassStudents】尝试从classes中找班级:', classId);
-                    console.log('【loadClassStudents】当前classes:', classes);
-                    const classData = classes.find(cls => cls.id === classId);
-                    if (classData) {
-                        console.log('【loadClassStudents】找到班级，更新students');
-                        classData.students = students;
-                        currentClassData = classData;
-                    } else {
-                        console.log('【loadClassStudents】未找到班级:', classId);
-                    }
                 }
                 
-                console.log('【loadClassStudents】currentClassData更新后:', currentClassData);
+                // 使用renderStudentsList函数渲染学员列表
                 renderStudentsList(students);
+                
+                console.log('【loadClassStudents】学员列表更新完成');
             } catch (error) {
                 console.error('【loadClassStudents】加载班级学员失败:', error);
+                console.error('错误详情:', {
+                    message: error.message,
+                    stack: error.stack
+                });
                 // 显示错误提示
-                document.getElementById('classStudentsList').innerHTML = 
-                    '<tr><td colspan="7" style="text-align: center; color: red;">加载失败: ' + error.message + '</td></tr>';
+                showToast('加载班级学员失败，请重试', 'error');
             }
         }
 
         // 渲染学员列表
         function renderStudentsList(students) {
-            console.log('【renderStudentsList】开始渲染学员列表:', students);
+            console.log('【renderStudentsList】开始渲染学员列表');
+            console.log('- 待渲染的学员数据:', students);
+            
             const studentsList = document.getElementById('classStudentsList');
-            studentsList.innerHTML = '';
-
+            if (!studentsList) {
+                console.error('【renderStudentsList】错误: 未找到classStudentsList元素');
+                return;
+            }
+            
             if (!students || students.length === 0) {
-                console.log('【renderStudentsList】没有学员数据，显示空提示');
+                console.log('- 没有学员数据，显示空提示');
                 studentsList.innerHTML = '<tr><td colspan="7" style="text-align: center;">暂无学员</td></tr>';
                 return;
             }
-
-            console.log(`【renderStudentsList】渲染${students.length}名学员`);
-            students.forEach((student, index) => {
-                console.log(`【renderStudentsList】渲染第${index+1}名学员:`, student);
-                
-                // 确保每个学员都有id
-                if (!student.id) {
-                    console.warn(`【renderStudentsList】警告：学员缺少ID，使用索引作为临时ID:`, index);
-                    student.id = `temp_${index}`;
-                }
-                
+            
+            studentsList.innerHTML = '';
+            students.forEach(student => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${student.wechatName || '-'}</td>
@@ -1227,6 +1190,7 @@
                 `;
                 studentsList.appendChild(tr);
             });
+            
             console.log('【renderStudentsList】学员列表渲染完成');
         }
 

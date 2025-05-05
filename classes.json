@@ -6,34 +6,8 @@
     "location": "大",
     "className": "1 2 新版",
     "students": [
-      {
-        "wechatName": "1",
-        "amount": 600,
-        "channel": "新趣",
-        "status": "已支付",
-        "preferredTime": "",
-        "courseId": "recuJnc9yGkAIf",
-        "courseName": "【滑板-多区域可选】",
-        "addedBy": "admin",
-        "addedAt": "2025-05-03T14:20:35.120Z",
-        "id": "1746282035120fj1cw5wxf",
-        "remarks": "发",
-        "updatedAt": "2025-05-03T14:21:22.541Z"
-      },
-      {
-        "wechatName": "2",
-        "amount": 600,
-        "channel": "本地宝",
-        "status": "已支付",
-        "preferredTime": "周日上午",
-        "courseId": "recuJnc9yGkAIf",
-        "courseName": "【滑板-多区域可选】",
-        "addedBy": "admin",
-        "addedAt": "2025-05-03T14:20:35.120Z",
-        "id": "1746282035120c0kci39wi",
-        "remarks": "发",
-        "updatedAt": "2025-05-03T14:21:04.985Z"
-      }
+      "1746282035120fj1cw5wxf",
+      "1746282035120c0kci39wi"
     ],
     "createdBy": "admin",
     "createdAt": "2025-05-03T14:22:05.985Z"
@@ -45,30 +19,8 @@
     "location": "23",
     "className": "2323",
     "students": [
-      {
-        "wechatName": "3",
-        "amount": 600,
-        "channel": "",
-        "status": "已支付",
-        "preferredTime": "",
-        "courseId": "recuJnc9yGkAIf",
-        "courseName": "【滑板-多区域可选】",
-        "addedBy": "admin",
-        "addedAt": "2025-05-03T14:20:35.120Z",
-        "id": "1746282035120ld0p164ti"
-      },
-      {
-        "wechatName": "4",
-        "amount": 600,
-        "channel": "",
-        "status": "已支付",
-        "preferredTime": "",
-        "courseId": "recuJnc9yGkAIf",
-        "courseName": "【滑板-多区域可选】",
-        "addedBy": "admin",
-        "addedAt": "2025-05-03T14:20:35.120Z",
-        "id": "1746282035120el5uz2tf7"
-      }
+      "1746282035120ld0p164ti",
+      "1746282035120el5uz2tf7"
     ],
     "createdBy": "admin",
     "createdAt": "2025-05-04T00:49:11.007Z"

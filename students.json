@@ -4,14 +4,14 @@
     "amount": 600,
     "channel": "新趣",
     "status": "已支付",
-    "preferredTime": "",
+    "preferredTime": "发",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120fj1cw5wxf",
     "remarks": "发",
-    "updatedAt": "2025-05-03T14:21:22.541Z"
+    "updatedAt": "2025-05-05T05:00:46.563Z"
   },
   {
     "wechatName": "2",
@@ -29,17 +29,17 @@
   },
   {
     "wechatName": "3",
-    "amount": 500,
-    "channel": "本地宝",
+    "amount": 600,
+    "channel": "",
     "status": "已开班",
-    "preferredTime": "周一晚",
+    "preferredTime": "",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120ld0p164ti",
-    "remarks": "备注test",
-    "updatedAt": "2025-05-05T03:44:57.718Z"
+    "remarks": "ev发",
+    "updatedAt": "2025-05-05T07:48:43.877Z"
   },
   {
     "wechatName": "4",
