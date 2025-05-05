@@ -5037,23 +5037,30 @@
             const selectedStudents = Array.from(selectedStudentsMap.values());
             
             try {
+                console.log('【前端】准备发送加入班级请求');
+                console.log('- classId:', classId);
+                console.log('- selectedStudents:', selectedStudents);
+
                 // 发送请求加入班级
                 const response = await fetch('/api/classes/join', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
+                        'Content-Type': 'application/json'
                     },
-                    credentials: 'same-origin',
                     body: JSON.stringify({
                         classId,
-                        courseId: selectCourseId,
                         students: selectedStudents
                     })
                 });
+
+                console.log('【前端】收到服务器响应:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const result = await response.json();
+                console.log('【前端】解析响应数据:', result);
                 
                 if (result.success) {
                     alert('加入班级成功！');

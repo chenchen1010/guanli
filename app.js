@@ -1179,6 +1179,80 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
     }
 });
 
+// 加入班级API
+app.post('/api/classes/join', requireAuth, async (req, res) => {
+    try {
+        console.log('【API】收到加入班级请求');
+        const { classId, students } = req.body;
+        console.log('- classId:', classId);
+        console.log('- students:', students);
+
+        // 验证必要字段
+        if (!classId || !students || !Array.isArray(students) || students.length === 0) {
+            console.log('【API】缺少必要信息');
+            return res.status(400).json({ success: false, message: '缺少必要信息' });
+        }
+
+        // 读取班级数据
+        if (!fs.existsSync('classes.json')) {
+            console.log('【API】classes.json不存在');
+            return res.status(404).json({ success: false, message: '找不到班级数据' });
+        }
+
+        // 读取并解析班级数据
+        const classesData = fs.readFileSync('classes.json', 'utf8');
+        const classes = JSON.parse(classesData);
+        console.log('【API】成功读取班级数据');
+
+        // 查找指定班级
+        const classIndex = classes.findIndex(c => c.id === classId);
+        if (classIndex === -1) {
+            console.log('【API】找不到指定班级:', classId);
+            return res.status(404).json({ success: false, message: '找不到指定班级' });
+        }
+        console.log('【API】找到班级:', classes[classIndex]);
+
+        // 更新学员状态
+        if (!fs.existsSync('students.json')) {
+            fs.writeFileSync('students.json', '[]', 'utf8');
+        }
+        const studentsData = fs.readFileSync('students.json', 'utf8');
+        let allStudents = JSON.parse(studentsData);
+
+        // 获取要更新的学员ID列表
+        const studentIds = students.map(s => s.id);
+
+        // 更新学员状态
+        allStudents = allStudents.map(student => {
+            if (studentIds.includes(student.id)) {
+                return { ...student, status: '已开班' };
+            }
+            return student;
+        });
+
+        // 更新班级的学员列表
+        classes[classIndex].students = classes[classIndex].students || [];
+        classes[classIndex].students.push(...studentIds);
+
+        // 保存更新后的数据
+        fs.writeFileSync('classes.json', JSON.stringify(classes, null, 2));
+        fs.writeFileSync('students.json', JSON.stringify(allStudents, null, 2));
+
+        // 记录操作日志
+        await logOperation(
+            '加入班级',
+            `将${students.length}名学员加入班级${classes[classIndex].className}`,
+            req.session.user.username
+        );
+
+        console.log('【API】加入班级成功');
+        res.json({ success: true, message: '加入班级成功' });
+    } catch (error) {
+        console.error('【API】加入班级失败:', error);
+        res.status(500).json({ success: false, message: '加入班级失败' });
+    }
+});
+
 // 静态文件服务 - 放在API路由之后
 app.use(express.static(path.join(__dirname, 'public')));
 

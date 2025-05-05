@@ -231,12 +231,24 @@
     "wechatName": "搜索",
     "amount": 500,
     "channel": "",
-    "status": "已支付",
+    "status": "已开班",
     "preferredTime": "",
     "courseId": "recuJnc9yGk5ty",
     "courseName": "【八段锦-上城-闸弄口】",
     "addedBy": "admin",
     "addedAt": "2025-05-05T23:03:10.741Z",
     "id": "174648619074109qhgehn1"
+  },
+  {
+    "wechatName": "张三李四",
+    "amount": 500,
+    "channel": "",
+    "status": "已开班",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGk5ty",
+    "courseName": "【八段锦-上城-闸弄口】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-05T23:21:57.248Z",
+    "id": "17464873172488fp4uquvc"
   }
 ]

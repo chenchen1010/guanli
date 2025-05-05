@@ -28,5 +28,23 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "学员: 自营学员1, 变更: 微信名: 自营学员 -> 自营学员1, 备注: 无 -> 无"
+  },
+  {
+    "timestamp": "2025/5/6 07:21:41",
+    "username": "admin",
+    "operation": "加入班级",
+    "details": "将1名学员加入班级事实上【八段锦-上城-闸弄口】"
+  },
+  {
+    "timestamp": "2025/5/6 07:21:57",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【八段锦-上城-闸弄口】(recuJnc9yGk5ty), 添加1名学员: 张三李四(¥500/已支付)"
+  },
+  {
+    "timestamp": "2025/5/6 07:22:08",
+    "username": "admin",
+    "operation": "加入班级",
+    "details": "将1名学员加入班级事实上【八段锦-上城-闸弄口】"
   }
 ]
