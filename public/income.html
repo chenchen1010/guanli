@@ -561,6 +561,7 @@
                         <th>开班日期</th>
                         <th>所属班级</th>
                         <th>备注</th>
+                        <th>机构</th>
                         <th>实收金额</th>
                         <th>招生收益</th>
                         <th>渠道费</th>
@@ -709,7 +710,8 @@
                                                 bdData[item.id] = {
                                                     recruitmentRate: parseFloat(item.fields.招生收益 || 0) / parseFloat(item.fields.会员价格 || 1),
                                                     recruitmentIncome: parseFloat(item.fields.招生收益 || 0),
-                                                    courseName: item.fields.商品名称 || ''
+                                                    courseName: item.fields.商品名称 || '',
+                                                    institution: item.fields.机构 || ''
                                                 };
                                             }
                                         });
@@ -922,22 +924,28 @@
                             statusClass = 'status-settled';
                         }
 
+                        // 获取机构名称
+                        let institutionName = '-';
+                        if (bdData[student.courseId]) {
+                            institutionName = bdData[student.courseId].institution || '-';
+                        }
                         
-                            tr.innerHTML = `
-                                <td>${student.wechatName || '-'}</td>
-                                <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
-                                <td>${student.channel || '-'}</td>
+                        tr.innerHTML = `
+                            <td>${student.wechatName || '-'}</td>
+                            <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
+                            <td>${student.channel || '-'}</td>
                             <td><span class="status-badge ${statusClass}">${student.status || '-'}</span></td>
-                                <td>${student.preferredTime || '-'}</td>
-                                <td>${addedDate}</td>
+                            <td>${student.preferredTime || '-'}</td>
+                            <td>${addedDate}</td>
                             <td>${refundDate}</td>
                             <td>${classStartDate}</td>
                             <td>${student.className || '-'}</td>
-                                <td>${student.remarks || '-'}</td>
+                            <td>${student.remarks || '-'}</td>
+                            <td>${institutionName}</td>
                             <td class="amount-cell">¥${amount.toFixed(2)}</td>
                             <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
                             <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
-                            `;
+                        `;
                         
                             tableBody.appendChild(tr);
                     });
@@ -1217,6 +1225,7 @@
                         '开班日期': formatDate(student.classStartDate),
                         '所属班级': student.className || '-',
                         '备注': student.remarks || '-',
+                        '机构': bdData[student.courseId] ? bdData[student.courseId].institution || '-' : '-',
                         '实收金额': amount.toFixed(2),
                         '招生收益': recruitmentIncome.toFixed(2),
                         '渠道费': channelCost.toFixed(2)
@@ -1242,6 +1251,7 @@
                     { wch: 15 }, // 开班日期
                     { wch: 15 }, // 所属班级
                     { wch: 25 }, // 备注
+                    { wch: 10 }, // 机构
                     { wch: 10 }, // 实收金额
                     { wch: 10 }, // 招生收益
                     { wch: 10 }  // 渠道费

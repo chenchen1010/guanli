@@ -250,5 +250,17 @@
     "addedBy": "admin",
     "addedAt": "2025-05-05T23:21:57.248Z",
     "id": "17464873172488fp4uquvc"
+  },
+  {
+    "wechatName": "9",
+    "amount": 500,
+    "channel": "本地宝",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-05T23:24:19.338Z",
+    "id": "1746487459338f9gfp5vjs"
   }
 ]
