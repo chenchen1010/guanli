@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -449,7 +449,7 @@
             background: #ddd;
         }
 
-        /* 添加学员列表样式 */
+        /* 学员列表样式 */
         .students-section {
             margin-top: 20px;
             border-top: 1px solid #eee;
@@ -471,112 +471,209 @@
 
         .students-list {
             border: 1px solid #eee;
-            border-radius: 4px;
+            border-radius: 8px;
             overflow: hidden;
-        }
-
-        .student-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
             background: #fff;
-            transition: background-color 0.3s;
         }
 
-        .student-item:last-child {
-            border-bottom: none;
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .student-item:hover {
-            background: #f5f5f7;
+        .students-table th,
+        .students-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
         }
 
-        .student-info {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .student-name {
+        .students-table th {
+            background: #f8f9fa;
             font-weight: 500;
-            min-width: 80px;
+            color: #333;
         }
 
-        .student-phone {
+        .students-table tr:hover {
+            background: #f5f7fa;
+        }
+
+        .students-table td {
             color: #666;
-            min-width: 120px;
         }
 
-        .student-course {
-            color: #666;
-            flex: 1;
+        .students-table td:nth-child(2) {
+            color: #f56c6c;
+            font-weight: 500;
         }
 
-        .student-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .student-edit-btn,
-        .student-remove-btn {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
+        .students-table td.remarks-cell {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
+        }
+
+        .students-table td.remarks-cell:hover {
+            background-color: #f0f9eb;
+            color: #67c23a;
         }
 
         .student-edit-btn {
-            background: #1890ff;
-            color: white;
+            background: transparent;
+            border: none;
+            color: #409eff;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.3s;
         }
 
         .student-edit-btn:hover {
-            background: #40a9ff;
+            background: #ecf5ff;
         }
 
-        .student-remove-btn {
-            background: #ff4d4f;
-            color: white;
+        .student-edit-btn .material-icons {
+            font-size: 18px;
         }
 
-        .student-remove-btn:hover {
-            background: #ff7875;
-        }
-
-        /* 学员编辑表单样式 */
-        .student-edit-form {
+        /* 编辑表单样式 */
+        .student-edit-modal {
             display: none;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            margin-top: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
         }
 
-        .student-edit-form.active {
-            display: block;
+        .student-edit-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
         }
 
-        .student-edit-form .form-row {
+        .student-edit-header {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
-        .student-edit-form input {
-            padding: 4px 8px;
-            border: 1px solid #ddd;
+        .student-edit-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .student-edit-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .student-edit-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
             border-radius: 4px;
             font-size: 14px;
+            transition: all 0.3s;
         }
 
-        .student-edit-form .form-buttons {
+        .form-group select {
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.3s;
+            background-color: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #409eff;
+            outline: none;
+        }
+
+        .form-group input[type=number] {
+            text-align: right;
+        }
+
+        .form-buttons {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 提示框样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-success {
+            background: #67c23a;
+        }
+
+        .toast-error {
+            background: #f56c6c;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 状态标签样式 */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .status-badge.status-paid {
+            background: #f0f9eb;
+            color: #67c23a;
         }
     </style>
 </head>
@@ -672,8 +769,23 @@
                 <div class="students-header">
                     <h3 class="students-title">已开班学员</h3>
                 </div>
-                <div class="students-list" id="classStudentsList">
-                    <!-- 学员列表将通过JavaScript动态生成 -->
+                <div class="students-list">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>微信名</th>
+                                <th>实付金额</th>
+                                <th>招生渠道</th>
+                                <th>订单状态</th>
+                                <th>意向上课时间</th>
+                                <th>备注</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classStudentsList">
+                            <!-- 学员列表将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -690,23 +802,77 @@
         </div>
     </div>
 
+    <!-- 学员编辑模态框 -->
+    <div id="studentEditModal" class="student-edit-modal">
+        <div class="student-edit-content">
+            <div class="student-edit-header">
+                <h3 class="student-edit-title">编辑学员信息</h3>
+                <button class="student-edit-close" onclick="closeStudentEditModal()">&times;</button>
+            </div>
+            <form id="studentEditForm" class="student-edit-form">
+                <input type="hidden" id="editStudentId">
+                <div class="form-group">
+                    <label for="editStudentName">微信名</label>
+                    <input type="text" id="editStudentName" placeholder="请输入微信名">
+                </div>
+                <div class="form-group">
+                    <label for="editStudentAmount">实付金额</label>
+                    <input type="number" id="editStudentAmount" placeholder="请输入实付金额">
+                </div>
+                <div class="form-group">
+                    <label for="editStudentChannel">招生渠道</label>
+                    <input type="text" id="editStudentChannel" placeholder="请输入招生渠道">
+                </div>
+                <div class="form-group">
+                    <label for="editStudentStatus">订单状态</label>
+                    <select id="editStudentStatus">
+                        <option value="已支付">已支付</option>
+                        <option value="未支付">未支付</option>
+                        <option value="已退款">已退款</option>
+                        <option value="已开班">已开班</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editStudentTime">意向上课时间</label>
+                    <input type="text" id="editStudentTime" placeholder="请输入意向上课时间">
+                </div>
+                <div class="form-group">
+                    <label for="editStudentRemarks">备注</label>
+                    <input type="text" id="editStudentRemarks" placeholder="请输入备注">
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="cancel-button" onclick="closeStudentEditModal()">取消</button>
+                    <button type="button" class="save-button" onclick="saveStudentEdit()">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let currentDate = new Date();
         let classes = [];
+        let currentClassData = null;
 
         // 页面加载时获取班级数据
         async function loadClasses() {
+            console.log('【loadClasses】开始加载所有班级数据');
             try {
                 const response = await fetch('/api/classes');
+                console.log('【loadClasses】API响应状态:', response.status, response.statusText);
                 classes = await response.json();
+                console.log(`【loadClasses】成功加载${classes.length}个班级:`);
+                classes.forEach((cls, index) => {
+                    console.log(`班级${index+1}:`, cls.id, cls.className);
+                });
                 renderCalendar();
             } catch (error) {
-                console.error('加载班级数据失败:', error);
+                console.error('【loadClasses】加载班级数据失败:', error);
             }
         }
 
         // 渲染日历
         function renderCalendar() {
+            console.log('【renderCalendar】开始渲染日历');
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const firstDay = new Date(year, month, 1);
@@ -771,6 +937,7 @@
                         classItem.textContent = `${cls.className} ${classTime.getHours()}:${String(classTime.getMinutes()).padStart(2, '0')}`;
                         classItem.onclick = (e) => {
                             e.stopPropagation();
+                            console.log('【renderCalendar】点击班级，准备打开编辑模态框:', cls.id, cls.className);
                             openEditModal(cls);
                         };
                         dayElement.appendChild(classItem);
@@ -779,6 +946,7 @@
 
                 calendarGrid.appendChild(dayElement);
             }
+            console.log('【renderCalendar】日历渲染完成');
         }
 
         // 导航函数
@@ -799,6 +967,9 @@
 
         // 编辑班级相关函数
         async function openEditModal(classData) {
+            console.log('【openEditModal】开始打开编辑模态框', classData);
+            currentClassData = classData;
+            console.log('【openEditModal】保存currentClassData:', currentClassData);
             document.getElementById('editClassId').value = classData.id;
             document.getElementById('editClassName').value = classData.className;
             document.getElementById('editStartTime').value = classData.startTime.slice(0, 16);
@@ -807,6 +978,7 @@
             document.getElementById('editClassModal').style.display = 'block';
 
             // 加载班级学员
+            console.log('【openEditModal】准备加载班级学员:', classData.id);
             await loadClassStudents(classData.id);
         }
 
@@ -949,114 +1121,289 @@
         // 加载班级学员
         async function loadClassStudents(classId) {
             try {
-                const response = await fetch(`/api/classes/${classId}/students`);
+                console.log('【loadClassStudents】开始加载班级学员:', classId);
+                
+                // 尝试清理classId，确保没有非法字符
+                const cleanClassId = encodeURIComponent(classId.trim());
+                console.log('【loadClassStudents】清理后的classId:', cleanClassId);
+                
+                // 构建API URL
+                const apiUrl = `/api/classes/${cleanClassId}/students`;
+                console.log('【loadClassStudents】请求URL:', apiUrl);
+                
+                const response = await fetch(apiUrl);
+                console.log('【loadClassStudents】API响应状态:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.error('【loadClassStudents】未找到班级学员数据，尝试从班级对象加载');
+                        // 如果API返回404，尝试从当前classes中获取
+                        if (currentClassData && currentClassData.students) {
+                            console.log('【loadClassStudents】从currentClassData加载学员数据');
+                            renderStudentsList(currentClassData.students);
+                            return;
+                        }
+                        // 从classes中查找
+                        const classData = classes.find(cls => cls.id === classId);
+                        if (classData && classData.students) {
+                            console.log('【loadClassStudents】从classes中找到班级数据');
+                            currentClassData = classData;
+                            renderStudentsList(classData.students);
+                            return;
+                        }
+                        console.log('【loadClassStudents】没有可用的学员数据');
+                        renderStudentsList([]);
+                        return;
+                    }
+                    throw new Error(`API返回错误: ${response.status} ${response.statusText}`);
+                }
+                
                 const students = await response.json();
+                console.log('【loadClassStudents】获取到学员数据:', students);
+                
+                // 确保currentClassData存在
+                if (currentClassData && currentClassData.id === classId) {
+                    console.log('【loadClassStudents】更新currentClassData中的students');
+                    currentClassData.students = students;
+                } else {
+                    // 如果currentClassData不存在或ID不匹配，尝试从classes中找到对应的班级
+                    console.log('【loadClassStudents】尝试从classes中找班级:', classId);
+                    console.log('【loadClassStudents】当前classes:', classes);
+                    const classData = classes.find(cls => cls.id === classId);
+                    if (classData) {
+                        console.log('【loadClassStudents】找到班级，更新students');
+                        classData.students = students;
+                        currentClassData = classData;
+                    } else {
+                        console.log('【loadClassStudents】未找到班级:', classId);
+                    }
+                }
+                
+                console.log('【loadClassStudents】currentClassData更新后:', currentClassData);
                 renderStudentsList(students);
             } catch (error) {
-                console.error('加载班级学员失败:', error);
+                console.error('【loadClassStudents】加载班级学员失败:', error);
+                // 显示错误提示
+                document.getElementById('classStudentsList').innerHTML = 
+                    '<tr><td colspan="7" style="text-align: center; color: red;">加载失败: ' + error.message + '</td></tr>';
             }
         }
 
         // 渲染学员列表
         function renderStudentsList(students) {
+            console.log('【renderStudentsList】开始渲染学员列表:', students);
             const studentsList = document.getElementById('classStudentsList');
             studentsList.innerHTML = '';
 
-            students.forEach(student => {
-                const studentItem = document.createElement('div');
-                studentItem.className = 'student-item';
-                studentItem.innerHTML = `
-                    <div class="student-info">
-                        <span class="student-name">${student.name}</span>
-                        <span class="student-phone">${student.phone}</span>
-                        <span class="student-course">${student.courseName}</span>
-                    </div>
-                    <div class="student-actions">
-                        <button class="student-edit-btn" onclick="editStudent(${student.id})">编辑</button>
-                        <button class="student-remove-btn" onclick="removeStudentFromClass(${student.id})">移出班级</button>
-                    </div>
-                    <div class="student-edit-form" id="studentEditForm_${student.id}">
-                        <div class="form-row">
-                            <input type="text" id="editStudentName_${student.id}" value="${student.name}" placeholder="姓名">
-                            <input type="tel" id="editStudentPhone_${student.id}" value="${student.phone}" placeholder="电话">
-                            <input type="text" id="editStudentCourse_${student.id}" value="${student.courseName}" placeholder="课程">
-                        </div>
-                        <div class="form-buttons">
-                            <button type="button" class="cancel-button" onclick="cancelEditStudent(${student.id})">取消</button>
-                            <button type="button" class="save-button" onclick="saveStudentEdit(${student.id})">保存</button>
-                        </div>
-                    </div>
+            if (!students || students.length === 0) {
+                console.log('【renderStudentsList】没有学员数据，显示空提示');
+                studentsList.innerHTML = '<tr><td colspan="7" style="text-align: center;">暂无学员</td></tr>';
+                return;
+            }
+
+            console.log(`【renderStudentsList】渲染${students.length}名学员`);
+            students.forEach((student, index) => {
+                console.log(`【renderStudentsList】渲染第${index+1}名学员:`, student);
+                
+                // 确保每个学员都有id
+                if (!student.id) {
+                    console.warn(`【renderStudentsList】警告：学员缺少ID，使用索引作为临时ID:`, index);
+                    student.id = `temp_${index}`;
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${student.wechatName || '-'}</td>
+                    <td>¥${student.amount || 0}</td>
+                    <td>${student.channel || '-'}</td>
+                    <td><span class="status-badge ${student.status === '已支付' ? 'status-paid' : ''}">${student.status || '-'}</span></td>
+                    <td>${student.preferredTime || '-'}</td>
+                    <td class="remarks-cell" title="${student.remarks || ''}">${student.remarks || '-'}</td>
+                    <td>
+                        <button class="student-edit-btn" data-student-id="${student.id}" onclick="editStudent('${student.id}')">
+                            <i class="material-icons">edit</i>
+                        </button>
+                    </td>
                 `;
-                studentsList.appendChild(studentItem);
+                studentsList.appendChild(tr);
             });
+            console.log('【renderStudentsList】学员列表渲染完成');
         }
 
         // 编辑学员
         function editStudent(studentId) {
-            const editForm = document.getElementById(`studentEditForm_${studentId}`);
-            editForm.classList.add('active');
+            console.log('【editStudent】开始编辑学员:', studentId);
+            console.log('【editStudent】currentClassData:', currentClassData);
+            
+            if (!currentClassData || !currentClassData.students) {
+                console.error('【editStudent】currentClassData或students不存在');
+                alert('获取学员数据失败，请重新打开班级');
+                return;
+            }
+            
+            // 尝试根据ID找到学员
+            let student = currentClassData.students.find(s => s.id === studentId);
+            
+            // 如果找不到，可能是ID格式问题，尝试其他匹配方式
+            if (!student) {
+                console.warn('【editStudent】通过精确ID未找到学员，尝试其他匹配方式');
+                
+                // 尝试找到包含该ID的学员
+                student = currentClassData.students.find(s => 
+                    s.id && (s.id.includes(studentId) || studentId.includes(s.id))
+                );
+                
+                if (student) {
+                    console.log('【editStudent】通过部分匹配找到学员:', student);
+                } else {
+                    // 最后尝试从DOM元素中获取
+                    const editBtn = document.querySelector(`[data-student-id="${studentId}"]`);
+                    if (editBtn) {
+                        const studentIndex = Array.from(document.querySelectorAll('.student-edit-btn')).indexOf(editBtn);
+                        if (studentIndex >= 0 && studentIndex < currentClassData.students.length) {
+                            student = currentClassData.students[studentIndex];
+                            console.log('【editStudent】通过DOM索引找到学员:', student);
+                        }
+                    }
+                }
+            }
+            
+            console.log('【editStudent】找到学员数据:', student);
+            
+            if (!student) {
+                console.error('【editStudent】未找到学员:', studentId);
+                alert('找不到学员数据');
+                return;
+            }
+
+            // 填充表单
+            document.getElementById('editStudentId').value = student.id;
+            document.getElementById('editStudentName').value = student.wechatName || '';
+            document.getElementById('editStudentAmount').value = student.amount || '';
+            document.getElementById('editStudentChannel').value = student.channel || '';
+            document.getElementById('editStudentStatus').value = student.status || '已支付';
+            document.getElementById('editStudentTime').value = student.preferredTime || '';
+            document.getElementById('editStudentRemarks').value = student.remarks || '';
+
+            // 显示模态框
+            document.getElementById('studentEditModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            console.log('【editStudent】模态框已显示');
         }
 
-        // 取消编辑学员
-        function cancelEditStudent(studentId) {
-            const editForm = document.getElementById(`studentEditForm_${studentId}`);
-            editForm.classList.remove('active');
+        // 关闭编辑模态框
+        function closeStudentEditModal() {
+            document.getElementById('studentEditModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
 
         // 保存学员编辑
-        async function saveStudentEdit(studentId) {
-            const name = document.getElementById(`editStudentName_${studentId}`).value;
-            const phone = document.getElementById(`editStudentPhone_${studentId}`).value;
-            const courseName = document.getElementById(`editStudentCourse_${studentId}`).value;
+        async function saveStudentEdit() {
+            const studentId = document.getElementById('editStudentId').value;
+            console.log('【saveStudentEdit】开始保存学员编辑:', studentId);
+            
+            const data = {
+                wechatName: document.getElementById('editStudentName').value,
+                amount: parseFloat(document.getElementById('editStudentAmount').value) || 0,
+                channel: document.getElementById('editStudentChannel').value,
+                status: document.getElementById('editStudentStatus').value,
+                preferredTime: document.getElementById('editStudentTime').value,
+                remarks: document.getElementById('editStudentRemarks').value
+            };
+            
+            console.log('【saveStudentEdit】需要更新的数据:', data);
 
             try {
+                // 检查是否是临时ID
+                if (studentId.startsWith('temp_')) {
+                    console.warn('【saveStudentEdit】临时ID无法保存到服务器');
+                    alert('由于学员ID问题，无法保存到服务器，但已更新本地显示');
+                    
+                    // 仅更新本地数据
+                    if (currentClassData && currentClassData.students) {
+                        const indexPart = studentId.split('_')[1];
+                        const index = parseInt(indexPart);
+                        if (!isNaN(index) && index >= 0 && index < currentClassData.students.length) {
+                            currentClassData.students[index] = { 
+                                ...currentClassData.students[index], 
+                                ...data 
+                            };
+                            console.log('【saveStudentEdit】已更新本地数据');
+                            
+                            // 重新渲染学员列表
+                            renderStudentsList(currentClassData.students);
+                            
+                            // 关闭模态框
+                            closeStudentEditModal();
+                            
+                            // 显示成功提示
+                            showToast('本地数据已更新');
+                            return;
+                        }
+                    }
+                    throw new Error('无法更新本地数据');
+                }
+            
+                console.log('【saveStudentEdit】发送API请求更新学员数据');
                 const response = await fetch(`/api/students/${studentId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        name,
-                        phone,
-                        courseName
-                    })
+                    body: JSON.stringify(data)
                 });
+                
+                console.log('【saveStudentEdit】API响应状态:', response.status, response.statusText);
 
-                if (response.ok) {
-                    const classId = document.getElementById('editClassId').value;
-                    await loadClassStudents(classId);
-                    alert('学员信息更新成功！');
-                } else {
-                    alert('更新失败，请重试');
+                if (!response.ok) {
+                    throw new Error('保存失败，服务器返回错误');
                 }
+                
+                const result = await response.json();
+                console.log('【saveStudentEdit】API响应数据:', result);
+
+                // 更新本地数据
+                const classId = document.getElementById('editClassId').value;
+                console.log('【saveStudentEdit】更新班级的本地数据:', classId);
+                
+                const classData = classes.find(cls => cls.id === classId);
+                if (classData) {
+                    const studentIndex = classData.students.findIndex(s => s.id === studentId);
+                    if (studentIndex !== -1) {
+                        classData.students[studentIndex] = { ...classData.students[studentIndex], ...data };
+                        console.log('【saveStudentEdit】本地数据更新成功');
+                    } else {
+                        console.log('【saveStudentEdit】在本地找不到学员，尝试通过服务器重新加载');
+                    }
+                } else {
+                    console.log('【saveStudentEdit】在本地找不到班级，尝试通过服务器重新加载');
+                }
+
+                // 重新渲染学员列表
+                await loadClassStudents(classId);
+                console.log('【saveStudentEdit】学员列表已重新加载');
+
+                // 关闭模态框
+                closeStudentEditModal();
+
+                // 显示成功提示
+                showToast('保存成功');
             } catch (error) {
-                console.error('更新学员信息失败:', error);
-                alert('更新失败，请重试');
+                console.error('【saveStudentEdit】保存学员信息失败:', error);
+                showToast('保存失败，请重试: ' + error.message, 'error');
             }
         }
 
-        // 从班级中移除学员
-        async function removeStudentFromClass(studentId) {
-            if (!confirm('确定要将该学员移出班级吗？')) {
-                return;
-            }
+        // 显示提示信息
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
 
-            try {
-                const classId = document.getElementById('editClassId').value;
-                const response = await fetch(`/api/classes/${classId}/students/${studentId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    await loadClassStudents(classId);
-                    alert('已将学员移出班级！');
-                } else {
-                    alert('操作失败，请重试');
-                }
-            } catch (error) {
-                console.error('移除学员失败:', error);
-                alert('操作失败，请重试');
-            }
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         }
 
         // 初始化

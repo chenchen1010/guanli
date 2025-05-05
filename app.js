@@ -562,56 +562,107 @@ app.put('/api/students/:id', requireAuth, async (req, res) => {
         const { id } = req.params;
         const updatedData = req.body;
         
-        console.log('收到更新学员请求:');
+        console.log('【API】收到更新学员请求:');
         console.log('- 学员ID:', id);
         console.log('- 更新数据:', JSON.stringify(updatedData, null, 2));
         
         // 验证更新数据的完整性
         if (!updatedData || typeof updatedData !== 'object') {
-            console.error('无效的更新数据格式');
-            return res.status(400).json({ message: '无效的更新数据格式' });
+            console.error('【API】无效的更新数据格式');
+            return res.status(400).json({ success: false, message: '无效的更新数据格式' });
         }
 
-        // 验证必要字段
-        const requiredFields = ['wechatName', 'amount', 'status'];
-        const missingFields = requiredFields.filter(field => !updatedData[field]);
-        if (missingFields.length > 0) {
-            console.error('缺少必要字段:', missingFields);
-            return res.status(400).json({ message: `缺少必要字段: ${missingFields.join(', ')}` });
+        // 确保必要字段存在
+        const requiredFields = ['wechatName'];
+        for (const field of requiredFields) {
+            if (updatedData[field] === undefined) {
+                console.error(`【API】缺少必要字段: ${field}`);
+                return res.status(400).json({ success: false, message: `缺少必要字段: ${field}` });
+            }
         }
         
         // 读取现有数据
         if (!fs.existsSync('students.json')) {
-            console.error('students.json文件不存在');
-            return res.status(404).json({ message: '找不到学员数据文件' });
+            console.error('【API】students.json文件不存在');
+            return res.status(404).json({ success: false, message: '找不到学员数据文件' });
         }
         
         // 读取并解析数据
-        console.log('开始读取students.json文件');
+        console.log('【API】开始读取students.json文件');
         let data;
         try {
             data = fs.readFileSync('students.json', 'utf8');
         } catch (readError) {
-            console.error('读取students.json失败:', readError);
-            return res.status(500).json({ message: '读取学员数据失败' });
+            console.error('【API】读取students.json失败:', readError);
+            return res.status(500).json({ success: false, message: '读取学员数据失败' });
         }
 
         let students;
         try {
             students = JSON.parse(data);
-            console.log(`成功解析students.json，共有${students.length}条记录`);
+            console.log(`【API】成功解析students.json，共有${students.length}条记录`);
         } catch (parseError) {
-            console.error('解析students.json失败:', parseError);
-            return res.status(500).json({ message: '学员数据文件损坏' });
+            console.error('【API】解析students.json失败:', parseError);
+            return res.status(500).json({ success: false, message: '学员数据文件损坏' });
         }
         
         // 查找要更新的学员
         const studentIndex = students.findIndex(s => s.id === id);
-        console.log('查找学员索引:', studentIndex);
+        console.log('【API】查找学员索引:', studentIndex);
         
         if (studentIndex === -1) {
-            console.error('找不到指定学员:', id);
-            return res.status(404).json({ message: '找不到指定学员' });
+            // 在班级数据中查找
+            console.log('【API】在students.json中找不到学员，尝试在classes.json中查找');
+            let foundInClass = false;
+            
+            try {
+                const classesData = fs.readFileSync(classesFilePath, 'utf8');
+                const classes = JSON.parse(classesData);
+                
+                // 遍历所有班级查找学员
+                for (const classData of classes) {
+                    if (!Array.isArray(classData.students)) continue;
+                    
+                    const classStudentIndex = classData.students.findIndex(s => s.id === id);
+                    if (classStudentIndex !== -1) {
+                        console.log('【API】在班级中找到学员:', classData.id);
+                        
+                        // 更新班级中的学员数据
+                        const oldStudent = classData.students[classStudentIndex];
+                        classData.students[classStudentIndex] = {
+                            ...oldStudent,
+                            ...updatedData,
+                            updatedAt: new Date().toISOString()
+                        };
+                        
+                        // 保存更新后的班级数据
+                        fs.writeFileSync(classesFilePath, JSON.stringify(classes, null, 2));
+                        console.log('【API】已更新班级中的学员数据');
+                        
+                        // 记录操作日志
+                        await logOperation(
+                            '更新学员信息',
+                            `班级: ${classData.className}, 学员: ${updatedData.wechatName}`,
+                            req.session.user.username
+                        );
+                        
+                        // 返回更新后的数据
+                        foundInClass = true;
+                        return res.json({
+                            success: true,
+                            message: '更新成功',
+                            student: classData.students[classStudentIndex]
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('【API】读取/更新班级数据失败:', error);
+            }
+            
+            if (!foundInClass) {
+                console.error('【API】找不到指定学员:', id);
+                return res.status(404).json({ success: false, message: '找不到指定学员' });
+            }
         }
         
         // 记录变更内容
@@ -629,12 +680,12 @@ app.put('/api/students/:id', requireAuth, async (req, res) => {
         };
 
         for (const [field, label] of Object.entries(fieldsToCheck)) {
-            if (updatedData[field] !== oldStudent[field]) {
+            if (updatedData[field] !== undefined && updatedData[field] !== oldStudent[field]) {
                 changes.push(`${label}: ${oldStudent[field] || '无'} -> ${updatedData[field] || '无'}`);
             }
         }
         
-        console.log('变更内容:', changes);
+        console.log('【API】变更内容:', changes);
         
         // 保留原有的不变字段
         const updatedStudent = {
@@ -647,17 +698,17 @@ app.put('/api/students/:id', requireAuth, async (req, res) => {
         students[studentIndex] = updatedStudent;
         
         // 保存到文件
-        console.log('开始保存更新后的数据到文件');
+        console.log('【API】开始保存更新后的数据到文件');
         try {
             const tempFile = 'students.json.temp';
             // 先写入临时文件
             fs.writeFileSync(tempFile, JSON.stringify(students, null, 2));
             // 然后重命名临时文件
             fs.renameSync(tempFile, 'students.json');
-            console.log('数据保存成功');
+            console.log('【API】数据保存成功');
         } catch (writeError) {
-            console.error('保存数据失败:', writeError);
-            return res.status(500).json({ message: '保存数据失败' });
+            console.error('【API】保存数据失败:', writeError);
+            return res.status(500).json({ success: false, message: '保存数据失败' });
         }
         
         // 记录操作日志
@@ -668,22 +719,23 @@ app.put('/api/students/:id', requireAuth, async (req, res) => {
                 req.session.user.username
             );
         } catch (logError) {
-            console.error('记录操作日志失败:', logError);
+            console.error('【API】记录操作日志失败:', logError);
             // 不中断操作，继续返回成功
         }
 
         // 返回更新后的数据
-        console.log('返回更新成功响应');
+        console.log('【API】返回更新成功响应');
         res.json({
+            success: true,
             message: '更新成功',
             student: updatedStudent,
             changes
         });
         
     } catch (error) {
-        console.error('更新学员数据时出错:', error);
-        console.error('错误堆栈:', error.stack);
-        res.status(500).json({ message: '更新学员数据失败，请稍后重试' });
+        console.error('【API】更新学员数据时出错:', error);
+        console.error('【API】错误堆栈:', error.stack);
+        res.status(500).json({ success: false, message: '更新学员数据失败，请稍后重试' });
     }
 });
 
@@ -851,6 +903,79 @@ app.get('/api/classes', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('获取课程列表失败:', error);
         res.status(500).json({ success: false, message: '获取课程列表失败' });
+    }
+});
+
+// 获取特定班级的学员API
+app.get('/api/classes/:classId/students', requireAuth, async (req, res) => {
+    try {
+        const { classId } = req.params;
+        console.log('【API】获取班级学员请求:', classId);
+        
+        // 尝试解码URL编码的classId
+        const decodedClassId = decodeURIComponent(classId);
+        console.log('【API】解码后的classId:', decodedClassId);
+        
+        // 读取课程数据
+        console.log('【API】开始读取classes.json');
+        const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
+        const classes = JSON.parse(classesData);
+        console.log(`【API】成功读取classes.json, 共${classes.length}个班级`);
+        
+        // 打印所有班级ID用于调试
+        const allClassIds = classes.map(cls => cls.id);
+        console.log('【API】所有班级ID:', allClassIds);
+        
+        // 查找指定班级 - 尝试精确匹配和部分匹配
+        let classData = classes.find(cls => cls.id === decodedClassId);
+        
+        // 如果精确匹配失败，尝试部分匹配
+        if (!classData) {
+            console.log('【API】精确匹配失败，尝试部分匹配');
+            classData = classes.find(cls => 
+                cls.id.includes(decodedClassId) || decodedClassId.includes(cls.id)
+            );
+        }
+        
+        console.log('【API】查找班级结果:', classData ? '找到班级' : '未找到班级');
+        
+        if (!classData) {
+            console.log('【API】未找到班级:', decodedClassId);
+            console.log('【API】所有班级ID:', classes.map(c => c.id).join(', '));
+            return res.status(404).json({ success: false, message: '找不到指定班级' });
+        }
+        
+        // 确保学员数据是数组类型
+        if (!Array.isArray(classData.students)) {
+            console.warn('【API】班级没有学员数组属性或不是数组类型');
+            classData.students = [];
+            
+            // 保存更新后的数据
+            await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
+            console.log('【API】已修复班级数据并保存');
+        }
+        
+        console.log('【API】班级学员数量:', classData.students.length);
+        
+        // 确保所有学员都有ID
+        classData.students.forEach((student, index) => {
+            if (!student.id) {
+                student.id = `student_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
+                console.log(`【API】为学员${index}生成ID:`, student.id);
+            }
+        });
+        
+        // 保存更新后的数据（如果有学员ID被更新）
+        await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
+        
+        console.log('【API】班级学员数据样例:', JSON.stringify(classData.students.slice(0, 2)));
+        
+        // 返回班级学员
+        res.json(classData.students);
+        console.log('【API】已返回班级学员数据');
+    } catch (error) {
+        console.error('【API】获取班级学员失败:', error);
+        res.status(500).json({ success: false, message: '获取班级学员失败' });
     }
 });
 

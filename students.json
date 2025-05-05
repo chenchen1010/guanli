@@ -29,15 +29,17 @@
   },
   {
     "wechatName": "3",
-    "amount": 600,
-    "channel": "",
+    "amount": 500,
+    "channel": "本地宝",
     "status": "已开班",
-    "preferredTime": "",
+    "preferredTime": "周一晚",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-05-03T14:20:35.120Z",
-    "id": "1746282035120ld0p164ti"
+    "id": "1746282035120ld0p164ti",
+    "remarks": "备注test",
+    "updatedAt": "2025-05-05T03:44:57.718Z"
   },
   {
     "wechatName": "4",
