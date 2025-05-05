@@ -395,6 +395,49 @@
             33% { content: ".."; }
             66% { content: "..."; }
         }
+        
+        /* 旋转动画 */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* AI分析结果样式 */
+        .analysis-section {
+            margin-top: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .analysis-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .analysis-content {
+            line-height: 1.6;
+            color: #444;
+        }
+        
+        .analysis-highlight {
+            background-color: #f6f2ff;
+            padding: 10px 15px;
+            border-left: 4px solid #9c27b0;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
     </style>
 </head>
 <body>
@@ -439,10 +482,16 @@
         <div class="income-container">
             <div class="income-header">
                 <h2 class="income-title">收益概览</h2>
-                <button id="exportExcel" class="export-button">
-                    <i class="material-icons">file_download</i>
-                    <span>导出Excel</span>
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="aiAnalysisBtn" class="export-button" style="background-color: #9c27b0;">
+                        <i class="material-icons">analytics</i>
+                        <span>AI分析</span>
+                    </button>
+                    <button id="exportExcel" class="export-button">
+                        <i class="material-icons">file_download</i>
+                        <span>导出Excel</span>
+                    </button>
+                </div>
             </div>
             
             <!-- 收益概览卡片 -->
@@ -521,6 +570,19 @@
                     <!-- 数据将通过JavaScript动态填充 -->
                 </tbody>
             </table>
+            </div>
+            
+            <!-- AI分析结果区域 -->
+            <div id="aiAnalysisSection" style="display: none; margin-top: 30px; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 500;">AI智能分析结果</h2>
+                    <button id="closeAnalysisBtn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">×</button>
+                </div>
+                <div id="loadingAnalysis" style="display: none; text-align: center; padding: 20px;">
+                    <i class="material-icons" style="font-size: 48px; color: #9c27b0; animation: rotate 2s linear infinite;">autorenew</i>
+                    <p>AI正在分析数据，请稍候...</p>
+                </div>
+                <div id="aiAnalysisResult" style="line-height: 1.6; font-size: 14px;"></div>
             </div>
         </div>
     </div>
@@ -972,7 +1034,122 @@
             
             // 添加导出Excel事件监听
             document.getElementById('exportExcel').addEventListener('click', exportToExcel);
+            
+            // 添加AI分析按钮事件监听
+            document.getElementById('aiAnalysisBtn').addEventListener('click', requestAIAnalysis);
+            
+            // 添加关闭分析结果按钮事件监听
+            document.getElementById('closeAnalysisBtn').addEventListener('click', () => {
+                document.getElementById('aiAnalysisSection').style.display = 'none';
+            });
         });
+        
+        // AI分析功能
+        async function requestAIAnalysis() {
+            try {
+                // 获取当前筛选条件
+                const statusFilter = document.getElementById('statusFilter').value;
+                const courseFilter = document.getElementById('courseFilter').value;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                // 显示分析区域和加载动画
+                document.getElementById('aiAnalysisSection').style.display = 'block';
+                document.getElementById('loadingAnalysis').style.display = 'block';
+                document.getElementById('aiAnalysisResult').innerHTML = '';
+                
+                // 滚动到分析区域
+                document.getElementById('aiAnalysisSection').scrollIntoView({ behavior: 'smooth' });
+                
+                // 准备收益数据
+                const totalIncome = parseFloat(document.getElementById('totalIncome').textContent.replace('¥', ''));
+                const recruitmentIncome = parseFloat(document.getElementById('recruitmentIncome').textContent.replace('¥', ''));
+                const channelCost = parseFloat(document.getElementById('channelCost').textContent.replace('¥', ''));
+                const netIncome = parseFloat(document.getElementById('netIncome').textContent.replace('¥', ''));
+                
+                // 获取详细数据
+                const tableRows = Array.from(document.querySelectorAll('#incomeTableBody tr'));
+                const detailsData = tableRows.map(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length < 13) return null;
+                    
+                    return {
+                        wechatName: cells[0].textContent,
+                        courseName: cells[1].textContent,
+                        channel: cells[2].textContent,
+                        status: cells[3].textContent.trim(),
+                        preferredTime: cells[4].textContent,
+                        enrollDate: cells[5].textContent,
+                        refundDate: cells[6].textContent,
+                        classStartDate: cells[7].textContent,
+                        className: cells[8].textContent,
+                        remarks: cells[9].textContent,
+                        amount: parseFloat(cells[10].textContent.replace('¥', '')),
+                        recruitmentIncome: parseFloat(cells[11].textContent.replace('¥', '')),
+                        channelCost: parseFloat(cells[12].textContent.replace('¥', ''))
+                    };
+                }).filter(item => item !== null);
+                
+                // 准备发送到服务器的数据
+                const incomeData = {
+                    totalIncome,
+                    recruitmentIncome,
+                    channelCost,
+                    netIncome,
+                    details: detailsData
+                };
+                
+                const filters = {
+                    status: statusFilter,
+                    course: courseFilter,
+                    startDate,
+                    endDate
+                };
+                
+                // 发送请求到服务器
+                const response = await fetch('/api/analyze-income', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ incomeData, filters })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`分析请求失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || '分析失败');
+                }
+                
+                // 隐藏加载动画
+                document.getElementById('loadingAnalysis').style.display = 'none';
+                
+                // 格式化分析结果（替换标题和重点内容）
+                let formattedAnalysis = result.analysis
+                    .replace(/##\s*(.*?)(?=\n|$)/g, '<h3 style="margin-top:15px;color:#333;border-bottom:1px solid #eee;padding-bottom:5px;">$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n\n/g, '<br><br>')
+                    .replace(/\n/g, '<br>');
+                
+                // 显示分析结果
+                document.getElementById('aiAnalysisResult').innerHTML = formattedAnalysis;
+                
+            } catch (error) {
+                console.error('AI分析请求失败:', error);
+                document.getElementById('loadingAnalysis').style.display = 'none';
+                document.getElementById('aiAnalysisResult').innerHTML = `
+                    <div style="color: #f44336; padding: 15px; background-color: #ffeeed; border-radius: 5px;">
+                        <strong>分析失败:</strong> ${error.message}
+                        <p>请稍后重试，或检查网络连接和API配置。</p>
+                    </div>
+                `;
+                showErrorMessage('AI分析失败: ' + error.message);
+            }
+        }
         
         // 导出Excel函数
         function exportToExcel() {

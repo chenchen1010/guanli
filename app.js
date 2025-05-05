@@ -5,6 +5,19 @@ const fs = require('fs');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const fsPromises = require('fs').promises;
+// 引入dotenv加载环境变量
+const dotenv = require('dotenv');
+// 引入OpenAI库用于调用火山方舟AI
+const OpenAI = require('openai');
+
+// 加载环境变量
+dotenv.config();
+
+// 初始化火山方舟AI客户端
+const openai = new OpenAI({
+  apiKey: process.env.ARK_API_KEY || 'e55940e4-f583-43b1-9c4e-58e651e5a66d',
+  baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
+});
 
 const app = express();
 const port = 4000;
@@ -1103,6 +1116,105 @@ app.get('/api/bd', requireAuth, (req, res) => {
                 error: error.message
             },
             lastUpdated: new Date().toISOString()
+        });
+    }
+});
+
+// AI结算分析接口
+app.post('/api/analyze-income', requireAuth, async (req, res) => {
+    try {
+        // 从请求中获取收益数据
+        const { incomeData, filters } = req.body;
+        
+        console.log('收到AI分析请求，请求数据大小:', JSON.stringify(req.body).length);
+        
+        if (!incomeData) {
+            return res.status(400).json({ error: '收益数据不能为空' });
+        }
+        
+        // 准备提交给AI模型的提示词
+        const prompt = `
+        我是一位财务分析师，需要你帮我分析以下飞书夜校的收益数据，并给出建议：
+        
+        收益数据概要:
+        - 总收入: ${incomeData.totalIncome}
+        - 招生收益: ${incomeData.recruitmentIncome}
+        - 渠道费用: ${incomeData.channelCost}
+        - 净收益: ${incomeData.netIncome}
+        
+        详细数据:
+        ${JSON.stringify(incomeData.details ? incomeData.details.slice(0, 10) : [], null, 2)}
+        ${incomeData.details && incomeData.details.length > 10 ? `...以及其他 ${incomeData.details.length - 10} 条数据` : ''}
+        
+        ${filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : '无筛选条件'}
+        
+        请提供以下分析:
+        1. 收益概述和主要指标分析
+        2. 最赚钱的课程及原因分析
+        3. 渠道效益分析
+        4. 提高收益的建议
+        5. 未来收益预测
+        `;
+        
+        const modelId = process.env.ARK_ENDPOINT_ID || 'doubao-1.5-thinking-pro';
+        console.log('使用的AI模型:', modelId);
+        console.log('使用的API密钥:', process.env.ARK_API_KEY ? '已设置' : '未设置');
+        
+        // 调用火山方舟AI模型
+        try {
+            console.log('开始调用AI模型...');
+            const response = await openai.chat.completions.create({
+                messages: [
+                    { 
+                        role: 'system', 
+                        content: '你是一位专业的财务数据分析师，擅长分析教育机构的收益数据并提供有价值的建议。' 
+                    },
+                    { 
+                        role: 'user', 
+                        content: [
+                            {
+                                type: 'text',
+                                text: prompt
+                            }
+                        ]
+                    }
+                ],
+                model: modelId,
+                temperature: 0.7,
+                max_tokens: 2000,
+            });
+            
+            console.log('AI模型调用成功，获得响应');
+            
+            // 记录操作
+            await logOperation(
+                '收益AI分析', 
+                `用户${req.session.user.username}使用AI分析了收益数据，筛选条件: ${JSON.stringify(filters)}`, 
+                req.session.user.username
+            );
+            
+            // 返回AI分析结果
+            res.json({
+                success: true,
+                analysis: response.choices[0].message.content
+            });
+        } catch (apiError) {
+            console.error('调用AI API失败:', apiError);
+            console.error('错误详情:', JSON.stringify(apiError, null, 2));
+            
+            if (apiError.response) {
+                console.error('API响应状态:', apiError.response.status);
+                console.error('API响应数据:', apiError.response.data);
+            }
+            
+            throw new Error(`AI API调用失败: ${apiError.message}`);
+        }
+    } catch (error) {
+        console.error('AI分析失败:', error);
+        console.error('错误堆栈:', error.stack);
+        res.status(500).json({
+            success: false,
+            error: '分析失败: ' + error.message
         });
     }
 });
