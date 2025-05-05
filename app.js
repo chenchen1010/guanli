@@ -9,8 +9,7 @@ const fsPromises = require('fs').promises;
 const app = express();
 const port = 4000;
 
-// 配置静态文件目录
-app.use(express.static('public'));
+// 配置JSON解析
 app.use(express.json());
 
 // 配置会话中间件
@@ -802,7 +801,7 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         let classes = [];
         try {
             console.log('【读取】正在读取现有课程数据');
-            const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
+            const classesData = await fs.readFile(classesFilePath, 'utf8');
             classes = JSON.parse(classesData);
             console.log('成功读取现有课程数据，当前课程数量:', classes.length);
         } catch (error) {
@@ -813,7 +812,7 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         // 更新学员状态为"已开班"
         try {
             console.log('【更新】正在更新学员状态');
-            const studentsData = await fs.promises.readFile('students.json', 'utf8');
+            const studentsData = await fs.readFile('students.json', 'utf8');
             let allStudents = JSON.parse(studentsData);
             
             // 获取要更新的学员ID列表
@@ -828,7 +827,7 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
             });
             
             // 保存更新后的学员数据
-            await fs.promises.writeFile('students.json', JSON.stringify(allStudents, null, 2));
+            await fs.writeFile('students.json', JSON.stringify(allStudents, null, 2));
             console.log('学员状态更新成功');
         } catch (error) {
             console.error('【错误】更新学员状态失败:', error);
@@ -854,7 +853,7 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         // 保存更新后的数据
         try {
             console.log('【保存】正在写入更新后的课程数据');
-            await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
+            await fs.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
             console.log('课程数据保存成功');
 
             // 记录操作日志
@@ -880,7 +879,7 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
 app.get('/api/classes', requireAuth, async (req, res) => {
     try {
         // 读取课程数据
-        const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
+        const classesData = await fs.readFile(classesFilePath, 'utf8');
         const classes = JSON.parse(classesData);
         res.json(classes);
     } catch (error) {
@@ -909,7 +908,7 @@ app.get('/api/classes/:classId/students', requireAuth, async (req, res) => {
         console.log('3. 开始读取classes.json文件');
         let classesData;
         try {
-            classesData = await fs.promises.readFile('classes.json', 'utf8');
+            classesData = await fs.readFile('classes.json', 'utf8');
             console.log('4. classes.json读取成功，文件大小:', classesData.length, '字节');
         } catch (readError) {
             console.error('4. 错误: 读取classes.json失败:', readError);
@@ -958,7 +957,7 @@ app.get('/api/classes/:classId/students', requireAuth, async (req, res) => {
         console.log('9. 开始读取students.json文件');
         let studentsData;
         try {
-            studentsData = await fs.promises.readFile('students.json', 'utf8');
+            studentsData = await fs.readFile('students.json', 'utf8');
             console.log('10. students.json读取成功，文件大小:', studentsData.length, '字节');
         } catch (readError) {
             console.error('10. 错误: 读取students.json失败:', readError);
@@ -1010,6 +1009,7 @@ app.get('/api/classes/:classId/students', requireAuth, async (req, res) => {
 app.get('/api/students', requireAuth, (req, res) => {
     try {
         console.log('收到获取所有学员列表请求');
+        res.setHeader('Content-Type', 'application/json');
         
         // 读取学员数据
         if (!fs.existsSync('students.json')) {
@@ -1038,6 +1038,77 @@ app.get('/api/students/test', requireAuth, (req, res) => {
         res.status(500).json({ message: 'API测试失败' });
     }
 });
+
+app.get('/api/bd', requireAuth, (req, res) => {
+    try {
+        console.log('收到获取招生收益数据请求');
+        res.setHeader('Content-Type', 'application/json');
+        
+        // 优先从本地文件读取数据
+        let bdData = null;
+        if (fs.existsSync('bd.json')) {
+            try {
+                const fileContent = fs.readFileSync('bd.json', 'utf8');
+                bdData = JSON.parse(fileContent);
+                console.log(`成功读取招生收益数据文件`);
+            } catch (parseError) {
+                console.error('解析bd.json失败:', parseError);
+                // 如果解析失败，继续尝试从dataFilePath读取
+            }
+        }
+        
+        // 如果本地bd.json不存在或解析失败，尝试从飞书数据文件中读取
+        if (!bdData && fs.existsSync(dataFilePath)) {
+            try {
+                const fileContent = fs.readFileSync(dataFilePath, 'utf8');
+                const feishuData = JSON.parse(fileContent);
+                
+                if (feishuData && feishuData.records && feishuData.records.data) {
+                    bdData = feishuData;
+                    console.log('从飞书数据文件中获取招生收益数据');
+                }
+            } catch (dataFileError) {
+                console.error('从dataFilePath读取数据失败:', dataFileError);
+            }
+        }
+        
+        // 如果两者都不存在或读取失败，返回空数据结构而不是空数组
+        if (!bdData) {
+            console.log('未找到招生收益数据，返回空数据结构');
+            bdData = {
+                records: {
+                    code: 0,
+                    data: {
+                        items: [],
+                        total: 0
+                    },
+                    msg: "success"
+                },
+                lastUpdated: new Date().toISOString()
+            };
+        }
+        
+        res.json(bdData);
+    } catch (error) {
+        console.error('获取招生收益数据错误:', error);
+        // 发生错误时返回一个基本的数据结构，而不是错误信息，让前端能正常运行
+        res.json({
+            records: {
+                code: 500,
+                data: {
+                    items: [],
+                    total: 0
+                },
+                msg: "error",
+                error: error.message
+            },
+            lastUpdated: new Date().toISOString()
+        });
+    }
+});
+
+// 静态文件服务 - 放在API路由之后
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);

@@ -3,15 +3,15 @@
     "wechatName": "1",
     "amount": 600,
     "channel": "新趣",
-    "status": "已支付",
+    "status": "已退款",
     "preferredTime": "发",
     "courseId": "recuJnc9yGkAIf",
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120fj1cw5wxf",
-    "remarks": "发",
-    "updatedAt": "2025-05-05T05:00:46.563Z"
+    "remarks": "已退款\n",
+    "updatedAt": "2025-05-05T17:09:20.567+08:00"
   },
   {
     "wechatName": "2",

@@ -58,5 +58,13 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "学员: 3, 变更: 渠道: 无 -> 本地宝, 意向时间: 无 -> 周一晚"
+  },
+  {
+    "timestamp": "2025/5/5 17:09:20",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: "
+  }
+] 已支付 -> 已退款, 备注: 发 -> 已退款\n"
   }
 ]
