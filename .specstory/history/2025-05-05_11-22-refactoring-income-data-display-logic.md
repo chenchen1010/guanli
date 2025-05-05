@@ -1174,6 +1174,403 @@ _**User**_
 
 _**Assistant**_
 
+我将为收益情况列表添加导出Excel功能，这样用户可以将数据导出进行进一步分析或报表生成。
+
+---
+
+```bash
+npm list xlsx
+```
+
+```
+(base) burning@chenzhongqideMacBook-Air 基于飞书表格的夜校后台 % npm list xlsx
+feishu-bitable-reader@1.0.0 /Users/burning/Desktop/Code/基于飞书表格的夜校后台
+└── (empty)
+
+(base) burning@chenzhongqideMacBook-Air 基于飞书表格的夜校后台 %
+```
+
+---
+
+```bash
+npm install xlsx --save
+```
+
+```
+(base) burning@chenzhongqideMacBook-Air 基于飞书表格的夜校后台 % npm install xlsx --save
+
+added 9 packages in 2s
+
+20 packages are looking for funding
+  run `npm fund` for details
+(base) burning@chenzhongqideMacBook-Air 基于飞书表格的夜校后台 %
+```
+
+---
+
+现在我们已经安装了xlsx库，我将修改收益情况页面，添加导出Excel功能：
+
+---
+
+```diff
+              <div class="income-header">
+                  <h2 class="income-title">收益概览</h2>
++                 <button id="exportExcel" class="export-button">
++                     <i class="material-icons">file_download</i>
++                     <span>导出Excel</span>
++                 </button>
+              </div>
+              
+```
+
+---
+
+```diff
+              margin-bottom: 20px;
+          }
++         
++         /* 导出按钮样式 */
++         .export-button {
++             display: flex;
++             align-items: center;
++             gap: 8px;
++             background-color: #1976d2;
++             color: white;
++             border: none;
++             border-radius: 4px;
++             padding: 8px 16px;
++             cursor: pointer;
++             transition: all 0.3s ease;
++         }
++         
++         .export-button:hover {
++             background-color: #1565c0;
++             transform: translateY(-2px);
++             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
++         }
++         
++         .export-button i {
++             font-size: 18px;
++         }
++         
++         /* Excel下载中状态 */
++         .export-button.loading {
++             background-color: #888;
++             pointer-events: none;
++         }
++         
++         .export-button.loading:after {
++             content: "...";
++             display: inline-block;
++             animation: ellipsis 1.5s infinite;
++         }
++         
++         @keyframes ellipsis {
++             0% { content: "."; }
++             33% { content: ".."; }
++             66% { content: "..."; }
++         }
+      </style>
+  </head>
+```
+
+---
+
+```diff
+      </div>
+  
++     <!-- 引入xlsx库 -->
++     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
++     
+      <script>
+          // 全局变量存储数据
+```
+
+---
+
+```diff
+              console.log('页面加载时初始化...');
+              initializeData();
+-         });
++             
++             // 添加导出Excel事件监听
++             document.getElementById('exportExcel').addEventListener('click', exportToExcel);
++         });
++         
++         // 导出Excel函数
++         function exportToExcel() {
++             try {
++                 const exportButton = document.getElementById('exportExcel');
++                 exportButton.classList.add('loading');
++                 exportButton.innerHTML = '<i class="material-icons">file_download</i><span>导出中</span>';
++                 
++                 // 应用当前筛选条件获取数据
++                 const statusFilter = document.getElementById('statusFilter').value;
++                 const courseFilter = document.getElementById('courseFilter').value;
++                 const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
++                 const endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value + 'T23:59:59') : null;
++                 
++                 // 筛选数据
++                 let exportData = [...allStudents];
++                 
++                 if (statusFilter) {
++                     exportData = exportData.filter(student => student.status === statusFilter);
++                 }
++                 
++                 if (courseFilter) {
++                     exportData = exportData.filter(student => 
++                         student.courseName && student.courseName.replace(/【|】/g, '') === courseFilter
++                     );
++                 }
++                 
++                 if (startDate) {
++                     exportData = exportData.filter(student => {
++                         const addedDate = student.addedAt ? new Date(student.addedAt) : null;
++                         return addedDate && addedDate >= startDate;
++                     });
++                 }
++                 
++                 if (endDate) {
++                     exportData = exportData.filter(student => {
++                         const addedDate = student.addedAt ? new Date(student.addedAt) : null;
++                         return addedDate && addedDate <= endDate;
++                     });
++                 }
++                 
++                 // 准备Excel数据
++                 const excelData = exportData.map(student => {
++                     // 计算招生收益
++                     const amount = parseFloat(student.amount) || 0;
++                     let recruitmentIncome = 0;
++                     
++                     if (bdData[student.courseId]) {
++                         recruitmentIncome = bdData[student.courseId].recruitmentIncome;
++                     } else {
++                         recruitmentIncome = amount * 0.3;
++                     }
++                     
++                     // 渠道费为招生收益的15%
++                     const channelCost = recruitmentIncome * 0.15;
++                     
++                     return {
++                         '微信名': student.wechatName || '-',
++                         '报名课程': student.courseName ? student.courseName.replace(/【|】/g, '') : '-',
++                         '实收金额': amount.toFixed(2),
++                         '招生收益': recruitmentIncome.toFixed(2),
++                         '渠道费': channelCost.toFixed(2),
++                         '渠道': student.channel || '-',
++                         '订单状态': student.status || '-',
++                         '意向上课时间': student.preferredTime || '-',
++                         '报名日期': formatDate(student.addedAt),
++                         '退款日期': formatDate(student.refundDate),
++                         '开班日期': formatDate(student.classStartDate),
++                         '所属班级': student.className || '-',
++                         '备注': student.remarks || '-'
++                     };
++                 });
++                 
++                 // 创建工作表
++                 const worksheet = XLSX.utils.json_to_sheet(excelData);
++                 
++                 // 创建工作簿
++                 const workbook = XLSX.utils.book_new();
++                 XLSX.utils.book_append_sheet(workbook, worksheet, '收益情况');
++                 
++                 // 设置列宽
++                 const columnWidths = [
++                     { wch: 15 }, // 微信名
++                     { wch: 20 }, // 报名课程 
++                     { wch: 10 }, // 实收金额
++                     { wch: 10 }, // 招生收益
++                     { wch: 10 }, // 渠道费
++                     { wch: 10 }, // 渠道
++                     { wch: 10 }, // 订单状态
++                     { wch: 15 }, // 意向上课时间
++                     { wch: 15 }, // 报名日期
++                     { wch: 15 }, // 退款日期
++                     { wch: 15 }, // 开班日期
++                     { wch: 15 }, // 所属班级
++                     { wch: 25 }  // 备注
++                 ];
++                 
++                 worksheet['!cols'] = columnWidths;
++                 
++                 // 添加统计信息
++                 const totalIncome = exportData.reduce((sum, student) => {
++                     if (student.status === '已支付' || student.status === '已开班') {
++                         return sum + (parseFloat(student.amount) || 0);
++                     }
++                     return sum;
++                 }, 0);
++                 
++                 const totalRecruitmentIncome = exportData.reduce((sum, student) => {
++                     if (student.status === '已支付' || student.status === '已开班') {
++                         const amount = parseFloat(student.amount) || 0;
++                         let recruitmentIncome = 0;
++                         
++                         if (bdData[student.courseId]) {
++                             recruitmentIncome = bdData[student.courseId].recruitmentIncome;
++                         } else {
++                             recruitmentIncome = amount * 0.3;
++                         }
++                         
++                         return sum + recruitmentIncome;
++                     }
++                     return sum;
++                 }, 0);
++                 
++                 const totalChannelCost = totalRecruitmentIncome * 0.15;
++                 
++                 // 获取当前日期时间作为文件名
++                 const now = new Date();
++                 const dateStr = now.toLocaleDateString('zh-CN').replace(/\//g, '-');
++                 const timeStr = now.toLocaleTimeString('zh-CN').replace(/:/g, '-');
++                 const fileName = `收益情况统计_${dateStr}_${timeStr}.xlsx`;
++                 
++                 // 导出Excel
++                 setTimeout(() => {
++                     XLSX.writeFile(workbook, fileName);
++                     
++                     // 恢复按钮状态
++                     exportButton.classList.remove('loading');
++                     exportButton.innerHTML = '<i class="material-icons">file_download</i><span>导出Excel</span>';
++                     
++                     showSuccessMessage('导出成功');
++                 }, 1000);
++             } catch (error) {
++                 console.error('导出Excel失败:', error);
++                 showErrorMessage(`导出失败: ${error.message}`);
++                 
++                 // 恢复按钮状态
++                 const exportButton = document.getElementById('exportExcel');
++                 exportButton.classList.remove('loading');
++                 exportButton.innerHTML = '<i class="material-icons">file_download</i><span>导出Excel</span>';
++             }
++         }
++         
++         // 显示成功信息
++         function showSuccessMessage(message) {
++             const successDiv = document.createElement('div');
++             successDiv.style.cssText = `
++                 position: fixed;
++                 top: 20px;
++                 right: 20px;
++                 background-color: #4CAF50;
++                 color: white;
++                 padding: 15px 25px;
++                 border-radius: 5px;
++                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
++                 z-index: 1000;
++             `;
++             successDiv.textContent = message;
++             document.body.appendChild(successDiv);
++             
++             // 3秒后自动消失
++             setTimeout(() => {
++                 successDiv.remove();
++             }, 3000);
++         }
+      </script>
+  </body>
+```
+
+---
+
+我已经成功为收益情况页面添加了导出Excel功能！现在您可以通过以下方式导出数据：
+
+### 功能说明
+
+1. **导出按钮**：
+   - 在收益概览标题旁添加了一个蓝色的"导出Excel"按钮
+   - 按钮有加载状态显示，点击后会显示"导出中..."
+   - 导出完成后会自动恢复
+
+2. **导出内容**：
+   - 导出的Excel包含当前筛选条件下的所有学员数据
+   - 保留了表格中显示的所有字段：微信名、报名课程、实收金额、招生收益、渠道费等
+   - 设置了合适的列宽，使数据更容易阅读
+
+3. **文件命名**：
+   - 生成的文件名格式为"收益情况统计_日期_时间.xlsx"
+   - 使用当前日期和时间确保文件名唯一
+
+4. **用户体验**：
+   - 导出成功会显示绿色成功提示
+   - 发生错误会显示红色错误提示
+   - 按钮有动画效果，提供良好的视觉反馈
+
+### 技术实现
+
+1. 使用CDN引入了xlsx库：`https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js`
+2. 导出时复用了现有的筛选逻辑，确保Excel内容与页面显示一致
+3. 添加了加载状态和完成反馈，提升用户体验
+
+如果还需要添加额外功能，如统计汇总表或数据分析图表，可以在现有基础上进一步扩展。
+
+### 使用方法
+
+1. 先根据需要设置筛选条件（订单状态、课程、日期范围）
+2. 点击"导出Excel"按钮
+3. 文件会自动下载到您的电脑上
+
+这样用户就可以轻松将收益数据导出进行更深入的分析或报表生成了。
+
+---
+
+_**User**_
+
+@income.html 修改列顺序：将 实收金额	招生收益	渠道费放到最后
+
+---
+
+_**Assistant**_
+
+我将修改收益情况表格的列顺序，把实收金额、招生收益和渠道费移到最后。
+
+---
+
+```diff
+                          <th>微信名</th>
+                          <th>报名课程</th>
+-                             <th>实收金额</th>
+-                         <th>招生收益</th>
+-                         <th>渠道费</th>
+                          <th>渠道</th>
+                          <th>订单状态</th>
+```
+
+```diff
+                          <th>所属班级</th>
+                          <th>备注</th>
++                         <th>实收金额</th>
++                         <th>招生收益</th>
++                         <th>渠道费</th>
+                      </tr>
+                  </thead>
+```
+
+```diff
+                              <td>${student.wechatName || '-'}</td>
+                              <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
+-                             <td class="amount-cell">¥${amount.toFixed(2)}</td>
+-                             <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
+-                             <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
+                              <td>${student.channel || '-'}</td>
+                              <td><span class="status-badge ${statusClass}">${student.status || '-'}</span></td>
+```
+
+```diff
+                              <td>${student.className || '-'}</td>
+                              <td>${student.remarks || '-'}</td>
++                             <td class="amount-cell">¥${amount.toFixed(2)}</td>
++                             <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
++                             <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
+                          `;
+                          
+```
+
+---
+
 
 
 ---

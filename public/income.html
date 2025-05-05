@@ -245,6 +245,11 @@
             color: #1890ff;
         }
 
+        .status-badge.status-settled {
+            background: #e6f1b8;
+            color: #7cb305;
+        }
+
         .amount-cell {
             font-weight: 500;
             color: #f56c6c;
@@ -499,17 +504,17 @@
                     <tr>
                         <th>微信名</th>
                         <th>报名课程</th>
-                            <th>实收金额</th>
-                        <th>招生收益</th>
-                        <th>渠道费</th>
                         <th>渠道</th>
-                            <th>订单状态</th>
+                        <th>订单状态</th>
                         <th>意向上课时间</th>
                         <th>报名日期</th>
                         <th>退款日期</th>
                         <th>开班日期</th>
-                            <th>所属班级</th>
+                        <th>所属班级</th>
                         <th>备注</th>
+                        <th>实收金额</th>
+                        <th>招生收益</th>
+                        <th>渠道费</th>
                     </tr>
                 </thead>
                 <tbody id="incomeTableBody">
@@ -851,15 +856,14 @@
                             statusClass = 'status-refunded';
                         } else if (student.status === '已开班') {
                             statusClass = 'status-class';
+                        } else if (student.status === '已结算') {
+                            statusClass = 'status-settled';
                         }
 
                         
                         tr.innerHTML = `
                             <td>${student.wechatName || '-'}</td>
                             <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
-                            <td class="amount-cell">¥${amount.toFixed(2)}</td>
-                            <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
-                            <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
                             <td>${student.channel || '-'}</td>
                             <td><span class="status-badge ${statusClass}">${student.status || '-'}</span></td>
                             <td>${student.preferredTime || '-'}</td>
@@ -868,6 +872,9 @@
                             <td>${classStartDate}</td>
                             <td>${student.className || '-'}</td>
                             <td>${student.remarks || '-'}</td>
+                            <td class="amount-cell">¥${amount.toFixed(2)}</td>
+                            <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
+                            <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
                         `;
                         
                         tableBody.appendChild(tr);
@@ -1025,9 +1032,6 @@
                     return {
                         '微信名': student.wechatName || '-',
                         '报名课程': student.courseName ? student.courseName.replace(/【|】/g, '') : '-',
-                        '实收金额': amount.toFixed(2),
-                        '招生收益': recruitmentIncome.toFixed(2),
-                        '渠道费': channelCost.toFixed(2),
                         '渠道': student.channel || '-',
                         '订单状态': student.status || '-',
                         '意向上课时间': student.preferredTime || '-',
@@ -1035,7 +1039,10 @@
                         '退款日期': formatDate(student.refundDate),
                         '开班日期': formatDate(student.classStartDate),
                         '所属班级': student.className || '-',
-                        '备注': student.remarks || '-'
+                        '备注': student.remarks || '-',
+                        '实收金额': amount.toFixed(2),
+                        '招生收益': recruitmentIncome.toFixed(2),
+                        '渠道费': channelCost.toFixed(2)
                     };
                 });
                 
@@ -1049,10 +1056,7 @@
                 // 设置列宽
                 const columnWidths = [
                     { wch: 15 }, // 微信名
-                    { wch: 20 }, // 报名课程 
-                    { wch: 10 }, // 实收金额
-                    { wch: 10 }, // 招生收益
-                    { wch: 10 }, // 渠道费
+                    { wch: 20 }, // 报名课程
                     { wch: 10 }, // 渠道
                     { wch: 10 }, // 订单状态
                     { wch: 15 }, // 意向上课时间
@@ -1060,21 +1064,24 @@
                     { wch: 15 }, // 退款日期
                     { wch: 15 }, // 开班日期
                     { wch: 15 }, // 所属班级
-                    { wch: 25 }  // 备注
+                    { wch: 25 }, // 备注
+                    { wch: 10 }, // 实收金额
+                    { wch: 10 }, // 招生收益
+                    { wch: 10 }  // 渠道费
                 ];
                 
                 worksheet['!cols'] = columnWidths;
                 
                 // 添加统计信息
                 const totalIncome = exportData.reduce((sum, student) => {
-                    if (student.status === '已支付' || student.status === '已开班') {
+                    if (student.status === '已支付' || student.status === '已开班' || student.status === '已结算') {
                         return sum + (parseFloat(student.amount) || 0);
                     }
                     return sum;
                 }, 0);
                 
                 const totalRecruitmentIncome = exportData.reduce((sum, student) => {
-                    if (student.status === '已支付' || student.status === '已开班') {
+                    if (student.status === '已支付' || student.status === '已开班' || student.status === '已结算') {
                         const amount = parseFloat(student.amount) || 0;
                         let recruitmentIncome = 0;
                         
