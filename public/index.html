@@ -1926,6 +1926,10 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
+                    <label>课程名称</label>
+                    <input type="text" id="className" required>
+                </div>
+                <div class="form-group">
                     <label>开课日期</label>
                     <input type="datetime-local" id="startTime" required>
                 </div>
@@ -4420,19 +4424,18 @@
             } else {
                 selectedStudents.add(studentId);
             }
-            updateBatchActions();
+            updateSelectedCount();
+            updateBatchActionsVisibility();
         }
 
-        function updateBatchActions() {
+        function updateSelectedCount() {
+            const count = selectedStudents.size;
+            document.getElementById('selectedCount').textContent = count;
+        }
+
+        function updateBatchActionsVisibility() {
             const batchActions = document.getElementById('batchActions');
-            const selectedCount = document.getElementById('selectedCount');
-            
-            if (selectedStudents.size > 0) {
-                batchActions.style.display = 'flex';
-                selectedCount.textContent = selectedStudents.size;
-            } else {
-                batchActions.style.display = 'none';
-            }
+            batchActions.style.display = selectedStudents.size > 0 ? 'flex' : 'none';
         }
 
         function showCreateClassModal() {
@@ -4464,8 +4467,9 @@
             const startTime = document.getElementById('startTime').value;
             const duration = document.getElementById('duration').value;
             const location = document.getElementById('location').value;
+            const className = document.getElementById('className').value.trim();
             
-            if (!startTime || !duration || !location) {
+            if (!startTime || !duration || !location || !className) {
                 alert('请填写完整信息');
                 return;
             }
@@ -4487,8 +4491,9 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    className,
                     startTime,
-                    duration,
+                    duration: parseInt(duration),
                     location,
                     students
                 })
@@ -4498,7 +4503,12 @@
                 if (result.success) {
                     alert('开班成功！');
                     closeModal('createClassModal');
-                    location.reload(); // 刷新页面
+                    // 清空选中状态
+                    selectedStudents.clear();
+                    updateSelectedCount();
+                    updateBatchActionsVisibility();
+                    // 重新加载数据
+                    fetchTableData(true);
                 } else {
                     alert('开班失败：' + result.message);
                 }

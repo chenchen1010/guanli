@@ -600,7 +600,7 @@
 
     <!-- 引入xlsx库 -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    
+
     <script>
         // 全局变量存储数据
         let allStudents = [];
@@ -862,16 +862,16 @@
                 }
                 
                 console.log(`筛选后的学员数: ${filteredStudents.length}`);
-                
-                // 计算总收益
-                let totalIncome = 0;
-                let totalRecruitmentIncome = 0;
-                let totalChannelCost = 0;
-                
-                // 渲染表格
-                const tableBody = document.getElementById('incomeTableBody');
-                tableBody.innerHTML = '';
-                
+                    
+                    // 计算总收益
+                    let totalIncome = 0;
+                    let totalRecruitmentIncome = 0;
+                    let totalChannelCost = 0;
+
+                    // 渲染表格
+                    const tableBody = document.getElementById('incomeTableBody');
+                    tableBody.innerHTML = '';
+
                 if (filteredStudents.length === 0) {
                     // 显示无数据提示
                     const tr = document.createElement('tr');
@@ -879,8 +879,8 @@
                     tableBody.appendChild(tr);
                 } else {
                     filteredStudents.forEach(student => {
-                        const amount = parseFloat(student.amount) || 0;
-                        
+                            const amount = parseFloat(student.amount) || 0;
+                            
                         // 根据courseId获取招生收益
                         let recruitmentIncome = 0;
                         
@@ -893,22 +893,22 @@
                         }
                         
                         // 渠道费为招生收益的15%
-                        const channelCost = recruitmentIncome * 0.15;
-                        
+                            const channelCost = recruitmentIncome * 0.15;
+
                         // 只有"已支付"、"已开班"和"已结算"状态的订单才计入总收益
                         if (student.status === '已支付' || student.status === '已开班' || student.status === '已结算') {
                             totalIncome += amount;
                             totalRecruitmentIncome += recruitmentIncome;
                             totalChannelCost += channelCost;
                         }
-                        
-                        // 格式化日期
+
+                            // 格式化日期
                         const addedDate = formatDate(student.addedAt);
                         const refundDate = formatDate(student.refundDate);
                         const classStartDate = formatDate(student.classStartDate);
                         
                         // 创建表格行
-                        const tr = document.createElement('tr');
+                            const tr = document.createElement('tr');
                         
                         // 为不同状态添加不同的CSS类
                         let statusClass = '';
@@ -923,34 +923,34 @@
                         }
 
                         
-                        tr.innerHTML = `
-                            <td>${student.wechatName || '-'}</td>
-                            <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
-                            <td>${student.channel || '-'}</td>
+                            tr.innerHTML = `
+                                <td>${student.wechatName || '-'}</td>
+                                <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
+                                <td>${student.channel || '-'}</td>
                             <td><span class="status-badge ${statusClass}">${student.status || '-'}</span></td>
-                            <td>${student.preferredTime || '-'}</td>
-                            <td>${addedDate}</td>
+                                <td>${student.preferredTime || '-'}</td>
+                                <td>${addedDate}</td>
                             <td>${refundDate}</td>
                             <td>${classStartDate}</td>
                             <td>${student.className || '-'}</td>
-                            <td>${student.remarks || '-'}</td>
+                                <td>${student.remarks || '-'}</td>
                             <td class="amount-cell">¥${amount.toFixed(2)}</td>
                             <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
                             <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
-                        `;
+                            `;
                         
-                        tableBody.appendChild(tr);
+                            tableBody.appendChild(tr);
                     });
                 }
-                
-                // 更新收益概览
-                document.getElementById('totalIncome').textContent = `¥${totalIncome.toFixed(2)}`;
-                document.getElementById('recruitmentIncome').textContent = `¥${totalRecruitmentIncome.toFixed(2)}`;
-                document.getElementById('channelCost').textContent = `¥${totalChannelCost.toFixed(2)}`;
+
+                    // 更新收益概览
+                    document.getElementById('totalIncome').textContent = `¥${totalIncome.toFixed(2)}`;
+                    document.getElementById('recruitmentIncome').textContent = `¥${totalRecruitmentIncome.toFixed(2)}`;
+                    document.getElementById('channelCost').textContent = `¥${totalChannelCost.toFixed(2)}`;
                 document.getElementById('netIncome').textContent = `¥${(totalRecruitmentIncome - totalChannelCost).toFixed(2)}`;
-                
+
                 console.log('收益数据渲染完成');
-            } catch (error) {
+                } catch (error) {
                 console.error('渲染收益数据失败:', error);
                 showErrorMessage(`渲染数据失败: ${error.message}`);
             }

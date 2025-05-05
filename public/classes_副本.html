@@ -476,50 +476,61 @@
             background: #fff;
         }
 
-        .students-table {
+        .students-table,
+        .students-details,
+        .students-list table {
             width: 100%;
             border-collapse: collapse;
         }
 
+        /* 所有表格单元格的基础样式 */
+        .students-table td,
         .students-table th,
-        .students-table td {
-            padding: 12px;
+        .students-details td,
+        .students-details th,
+        .students-list td,
+        .students-list th {
+            padding: 6px;
             text-align: left;
             border-bottom: 1px solid #eee;
+            font-size: 12px !important;
+            line-height: 1.4;
+            vertical-align: middle;
         }
 
-        .students-table th {
+        /* 表头样式 */
+        .students-table th,
+        .students-details th,
+        .students-list th {
             background: #f8f9fa;
             font-weight: 500;
             color: #333;
+            font-size: 12px !important;
         }
 
-        .students-table tr:hover {
-            background: #f5f7fa;
+        /* 确保所有表格相关元素的字体大小 */
+        .students-table *,
+        .students-details *,
+        .students-list * {
+            font-size: 12px !important;
         }
 
-        .students-table td {
+        /* 状态标签样式 */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px !important;
+            background: #f0f0f0;
             color: #666;
+            display: inline-block;
         }
 
-        .students-table td:nth-child(2) {
-            color: #f56c6c;
-            font-weight: 500;
-        }
-
-        .students-table td.remarks-cell {
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            cursor: pointer;
-        }
-
-        .students-table td.remarks-cell:hover {
-            background-color: #f0f9eb;
+        .status-badge.status-paid {
+            background: #f0f9eb;
             color: #67c23a;
         }
 
+        /* 编辑按钮样式 */
         .student-edit-btn {
             background: transparent;
             border: none;
@@ -528,6 +539,10 @@
             padding: 4px;
             border-radius: 4px;
             transition: all 0.3s;
+            font-size: 12px !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .student-edit-btn:hover {
@@ -535,7 +550,25 @@
         }
 
         .student-edit-btn .material-icons {
-            font-size: 18px;
+            font-size: 16px !important;
+        }
+
+        /* 备注单元格样式 */
+        .remarks-cell {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            font-size: 12px !important;
+        }
+
+        /* 确保金额列样式 */
+        td[data-amount],
+        td:nth-child(2) {
+            font-size: 12px !important;
+            font-weight: 500;
+            color: #f56c6c;
         }
 
         /* 编辑表单样式 */
@@ -660,20 +693,6 @@
                 transform: translateX(0);
                 opacity: 1;
             }
-        }
-
-        /* 状态标签样式 */
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            background: #f0f0f0;
-            color: #666;
-        }
-
-        .status-badge.status-paid {
-            background: #f0f9eb;
-            color: #67c23a;
         }
     </style>
 </head>
@@ -854,40 +873,20 @@
         let classes = [];
         let currentClassData = null;
 
-        // 页面加载时初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('【初始化】页面加载完成，开始初始化');
-            loadClasses();
-        });
-
-        // 加载班级数据
+        // 页面加载时获取班级数据
         async function loadClasses() {
             console.log('【loadClasses】开始加载所有班级数据');
             try {
                 const response = await fetch('/api/classes');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
                 console.log('【loadClasses】API响应状态:', response.status, response.statusText);
-                const data = await response.json();
-                console.log('【loadClasses】收到数据:', data);
-                
-                if (Array.isArray(data)) {
-                    classes = data;
-                    console.log(`【loadClasses】成功加载${classes.length}个班级`);
-                    classes.forEach((cls, index) => {
-                        console.log(`班级${index+1}:`, cls.id, cls.className);
-                    });
-                } else {
-                    console.error('【loadClasses】收到的数据不是数组:', data);
-                    classes = [];
-                }
-                
+                classes = await response.json();
+                console.log(`【loadClasses】成功加载${classes.length}个班级:`);
+                classes.forEach((cls, index) => {
+                    console.log(`班级${index+1}:`, cls.id, cls.className);
+                });
                 renderCalendar();
             } catch (error) {
                 console.error('【loadClasses】加载班级数据失败:', error);
-                classes = [];
-                renderCalendar();
             }
         }
 
@@ -941,31 +940,28 @@
                 dayElement.appendChild(dayHeader);
 
                 // 查找当天的班级
-                if (Array.isArray(classes)) {
-                    const dayClasses = classes.filter(cls => {
-                        if (!cls || !cls.startTime) return false;
-                        const classDate = new Date(cls.startTime);
-                        return classDate.getDate() === day && 
-                               classDate.getMonth() === month && 
-                               classDate.getFullYear() === year;
-                    });
+                const dayClasses = classes.filter(cls => {
+                    const classDate = new Date(cls.startTime);
+                    return classDate.getDate() === day && 
+                           classDate.getMonth() === month && 
+                           classDate.getFullYear() === year;
+                });
 
-                    // 如果有班级，添加班级信息
-                    if (dayClasses.length > 0) {
-                        dayElement.classList.add('has-classes');
-                        dayClasses.forEach(cls => {
-                            const classItem = document.createElement('div');
-                            classItem.className = 'class-item';
-                            const classTime = new Date(cls.startTime);
-                            classItem.textContent = `${cls.className} ${classTime.getHours()}:${String(classTime.getMinutes()).padStart(2, '0')}`;
-                            classItem.onclick = (e) => {
-                                e.stopPropagation();
-                                console.log('【renderCalendar】点击班级，准备打开编辑模态框:', cls.id, cls.className);
-                                openEditModal(cls);
-                            };
-                            dayElement.appendChild(classItem);
-                        });
-                    }
+                // 如果有班级，添加班级信息
+                if (dayClasses.length > 0) {
+                    dayElement.classList.add('has-classes');
+                    dayClasses.forEach(cls => {
+                        const classItem = document.createElement('div');
+                        classItem.className = 'class-item';
+                        const classTime = new Date(cls.startTime);
+                        classItem.textContent = `${cls.className} ${classTime.getHours()}:${String(classTime.getMinutes()).padStart(2, '0')}`;
+                        classItem.onclick = (e) => {
+                            e.stopPropagation();
+                            console.log('【renderCalendar】点击班级，准备打开编辑模态框:', cls.id, cls.className);
+                            openEditModal(cls);
+                        };
+                        dayElement.appendChild(classItem);
+                    });
                 }
 
                 calendarGrid.appendChild(dayElement);
@@ -1392,6 +1388,9 @@
                 toast.remove();
             }, 3000);
         }
+
+        // 初始化
+        loadClasses();
     </script>
 </body>
 </html> 

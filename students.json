@@ -104,16 +104,18 @@
     "id": "17462820351202cemodcet"
   },
   {
-    "wechatName": "自营学员",
+    "wechatName": "自营学员1",
     "amount": 500,
     "channel": "",
-    "status": "已支付",
+    "status": "已开班",
     "preferredTime": "",
     "courseId": "recuJnc9yGk5ty",
     "courseName": "【八段锦-上城-闸弄口】",
     "addedBy": "admin",
     "addedAt": "2025-05-05T12:00:35.441Z",
-    "id": "1746446435441qi532s2p9"
+    "id": "1746446435441qi532s2p9",
+    "remarks": "",
+    "updatedAt": "2025-05-05T23:12:33.750Z"
   },
   {
     "wechatName": "stu1",
@@ -201,7 +203,7 @@
     "wechatName": "111111",
     "amount": 900,
     "channel": "",
-    "status": "已支付",
+    "status": "已开班",
     "preferredTime": "",
     "courseId": "recuJnc9yGyXOL",
     "courseName": "【Deepseek应用与变现-多地址可选】",
@@ -215,14 +217,26 @@
     "wechatName": "222222",
     "amount": 900,
     "channel": "知喜",
-    "status": "已支付",
-    "preferredTime": "",
+    "status": "已开班",
+    "preferredTime": "的",
     "courseId": "recuJnc9yGyXOL",
     "courseName": "【Deepseek应用与变现-多地址可选】",
     "addedBy": "admin",
     "addedAt": "2025-05-05T14:44:50.043Z",
     "id": "17464562900439m7yufv7u",
-    "remarks": "",
-    "updatedAt": "2025-05-05T14:53:07.684Z"
+    "remarks": "的",
+    "updatedAt": "2025-05-05T15:37:50.153Z"
+  },
+  {
+    "wechatName": "搜索",
+    "amount": 500,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGk5ty",
+    "courseName": "【八段锦-上城-闸弄口】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-05T23:03:10.741Z",
+    "id": "174648619074109qhgehn1"
   }
 ]

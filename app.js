@@ -814,8 +814,10 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         let classes = [];
         try {
             console.log('【读取】正在读取现有课程数据');
-            const classesData = await fs.readFile(classesFilePath, 'utf8');
-            classes = JSON.parse(classesData);
+            if (fs.existsSync(classesFilePath)) {
+                const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
+                classes = JSON.parse(classesData);
+            }
             console.log('成功读取现有课程数据，当前课程数量:', classes.length);
         } catch (error) {
             console.error('【错误】读取课程数据失败:', error);
@@ -825,7 +827,10 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         // 更新学员状态为"已开班"
         try {
             console.log('【更新】正在更新学员状态');
-            const studentsData = await fs.readFile('students.json', 'utf8');
+            if (!fs.existsSync('students.json')) {
+                await fs.promises.writeFile('students.json', '[]', 'utf8');
+            }
+            const studentsData = await fs.promises.readFile('students.json', 'utf8');
             let allStudents = JSON.parse(studentsData);
             
             // 获取要更新的学员ID列表
@@ -840,7 +845,7 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
             });
             
             // 保存更新后的学员数据
-            await fs.writeFile('students.json', JSON.stringify(allStudents, null, 2));
+            await fs.promises.writeFile('students.json', JSON.stringify(allStudents, null, 2));
             console.log('学员状态更新成功');
         } catch (error) {
             console.error('【错误】更新学员状态失败:', error);
@@ -850,11 +855,11 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         // 创建新课程
         const newClass = {
             id: `class_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            startTime,
-            duration,
-            location,
             className,
-            students,
+            startTime,
+            duration: parseInt(duration),
+            location,
+            students: students.map(s => s.id), // 只存储学员ID
             createdBy: req.session.user.username,
             createdAt: new Date().toISOString()
         };
@@ -866,7 +871,7 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
         // 保存更新后的数据
         try {
             console.log('【保存】正在写入更新后的课程数据');
-            await fs.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
+            await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
             console.log('课程数据保存成功');
 
             // 记录操作日志
@@ -891,228 +896,80 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
 // 获取课程列表API
 app.get('/api/classes', requireAuth, async (req, res) => {
     try {
+        console.log('【API】开始获取课程列表');
         // 读取课程数据
-        const classesData = await fs.readFile(classesFilePath, 'utf8');
+        if (!fs.existsSync(classesFilePath)) {
+            console.log('【API】课程文件不存在，返回空数组');
+            return res.json([]);
+        }
+
+        const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
+        console.log('【API】成功读取课程文件');
+        
         const classes = JSON.parse(classesData);
+        console.log(`【API】解析成功，共有 ${classes.length} 个班级`);
+        
         res.json(classes);
     } catch (error) {
-        console.error('获取课程列表失败:', error);
+        console.error('【API】获取课程列表失败:', error);
         res.status(500).json({ success: false, message: '获取课程列表失败' });
     }
 });
 
 // 获取班级学员API
-app.get('/api/classes/:classId/students', requireAuth, async (req, res) => {
+app.get('/api/classes/:classId/students', requireAuth, (req, res) => {
     try {
         const { classId } = req.params;
-        console.log('\n【API - 获取班级学员】开始处理请求');
-        console.log('1. 请求参数:');
-        console.log('   - classId:', classId);
-        console.log('   - 原始URL:', req.originalUrl);
-        console.log('   - 请求参数:', req.params);
+        console.log('【API】开始获取班级学员');
+        console.log('- classId:', classId);
 
         // 读取班级数据
         if (!fs.existsSync('classes.json')) {
-            console.error('2. 错误: classes.json文件不存在');
-            return res.status(404).json({ success: false, message: '找不到班级数据' });
+            console.log('【API】classes.json不存在，返回空数组');
+            return res.json([]);
         }
 
         // 读取并解析班级数据
-        console.log('3. 开始读取classes.json文件');
-        let classesData;
-        try {
-            classesData = await fs.readFile('classes.json', 'utf8');
-            console.log('4. classes.json读取成功，文件大小:', classesData.length, '字节');
-        } catch (readError) {
-            console.error('4. 错误: 读取classes.json失败:', readError);
-            return res.status(500).json({ success: false, message: '读取班级数据失败' });
-        }
+        const classesData = fs.readFileSync('classes.json', 'utf8');
+        const classes = JSON.parse(classesData);
+        console.log('【API】成功读取班级数据');
 
-        let classes;
-        try {
-            classes = JSON.parse(classesData);
-            console.log('5. classes.json解析成功，包含', classes.length, '个班级');
-            console.log('   现有班级ID列表:', classes.map(c => c.id).join(', '));
-        } catch (parseError) {
-            console.error('5. 错误: 解析classes.json失败:', parseError);
-            return res.status(500).json({ success: false, message: '班级数据格式错误' });
-        }
-        
         // 查找指定班级
         const classData = classes.find(c => c.id === classId);
         if (!classData) {
-            console.error('6. 错误: 找不到指定班级:', classId);
-            return res.status(404).json({ 
-                success: false, 
-                message: '找不到指定班级',
-                debug: {
-                    requestedId: classId,
-                    availableIds: classes.map(c => c.id)
-                }
-            });
+            console.log('【API】找不到指定班级:', classId);
+            return res.json([]);
         }
-        console.log('6. 成功找到班级:', classData);
-        
+        console.log('【API】找到班级:', classData);
+
         // 确保学员列表是数组
         if (!Array.isArray(classData.students)) {
-            console.warn('7. 警告: 班级学员列表不是数组，将初始化为空数组');
-            console.log('   学员列表当前值:', classData.students);
+            console.log('【API】学员列表不是数组，初始化为空数组');
             classData.students = [];
         }
-        console.log('7. 班级包含', classData.students.length, '名学员');
 
-        // 读取学员详细信息
+        // 读取学员数据
         if (!fs.existsSync('students.json')) {
-            console.error('8. 错误: students.json文件不存在');
-            return res.status(404).json({ success: false, message: '找不到学员数据' });
+            console.log('【API】students.json不存在，返回空数组');
+            return res.json([]);
         }
 
-        console.log('9. 开始读取students.json文件');
-        let studentsData;
-        try {
-            studentsData = await fs.readFile('students.json', 'utf8');
-            console.log('10. students.json读取成功，文件大小:', studentsData.length, '字节');
-        } catch (readError) {
-            console.error('10. 错误: 读取students.json失败:', readError);
-            return res.status(500).json({ success: false, message: '读取学员数据失败' });
-        }
-
-        let allStudents;
-        try {
-            allStudents = JSON.parse(studentsData);
-            console.log('11. students.json解析成功，包含', allStudents.length, '名学员');
-        } catch (parseError) {
-            console.error('11. 错误: 解析students.json失败:', parseError);
-            return res.status(500).json({ success: false, message: '学员数据格式错误' });
-        }
+        // 读取并解析学员数据
+        const studentsData = fs.readFileSync('students.json', 'utf8');
+        const allStudents = JSON.parse(studentsData);
+        console.log('【API】成功读取学员数据');
 
         // 获取班级中每个学员的完整信息
-        console.log('12. 开始匹配班级学员信息');
-        console.log('    需要查找的学员ID:', classData.students);
-        
         const classStudents = classData.students
-            .map(studentId => {
-                const student = allStudents.find(s => s.id === studentId);
-                if (!student) {
-                    console.warn(`13. 警告: 未找到ID为 ${studentId} 的学员信息`);
-                }
-                return student;
-            })
+            .map(studentId => allStudents.find(s => s.id === studentId))
             .filter(student => student); // 过滤掉未找到的学员
 
-        console.log('14. 最终找到', classStudents.length, '名有效学员');
-        console.log('    找到的学员列表:', classStudents.map(s => ({ id: s.id, name: s.wechatName })));
-        
-        console.log('15. API处理完成，准备返回数据\n');
+        console.log('【API】找到', classStudents.length, '名学员');
         res.json(classStudents);
 
     } catch (error) {
-        console.error('【API - 获取班级学员】处理过程中发生错误:');
-        console.error('错误信息:', error.message);
-        console.error('错误堆栈:', error.stack);
-        res.status(500).json({ 
-            success: false, 
-            message: '获取班级学员失败',
-            error: error.message
-        });
-    }
-});
-
-// 加入已有班级API
-app.post('/api/classes/join', requireAuth, async (req, res) => {
-    try {
-        console.log('【开始】加入已有班级请求');
-        console.log('请求体数据:', JSON.stringify(req.body, null, 2));
-
-        const { classId, students } = req.body;
-        console.log('解构后的数据:');
-        console.log('- classId:', classId);
-        console.log('- students:', JSON.stringify(students, null, 2));
-
-        // 验证必要字段
-        if (!classId || !students || !students.length) {
-            console.log('【错误】缺少必要信息');
-            console.log('验证结果:');
-            console.log('- classId:', !!classId);
-            console.log('- students:', !!students && !!students.length);
-            return res.status(400).json({ success: false, message: '缺少必要信息' });
-        }
-
-        // 读取现有课程数据
-        let classes = [];
-        try {
-            console.log('【读取】正在读取现有课程数据');
-            const classesData = await fs.readFile(classesFilePath, 'utf8');
-            classes = JSON.parse(classesData);
-            console.log('成功读取现有课程数据，当前课程数量:', classes.length);
-        } catch (error) {
-            console.error('【错误】读取课程数据失败:', error);
-            return res.status(500).json({ success: false, message: '读取课程数据失败' });
-        }
-
-        // 查找指定的班级
-        const classIndex = classes.findIndex(c => c.id === classId);
-        if (classIndex === -1) {
-            console.error('【错误】找不到指定班级:', classId);
-            return res.status(404).json({ success: false, message: '找不到指定班级' });
-        }
-        console.log('找到班级:', classes[classIndex].className);
-
-        // 确保班级有students数组
-        if (!Array.isArray(classes[classIndex].students)) {
-            classes[classIndex].students = [];
-        }
-
-        // 更新学员状态为"已开班"
-        try {
-            console.log('【更新】正在更新学员状态');
-            const studentsData = await fs.readFile('students.json', 'utf8');
-            let allStudents = JSON.parse(studentsData);
-            
-            // 获取要更新的学员ID列表
-            const studentIds = students.map(s => s.id);
-            
-            // 更新学员状态
-            allStudents = allStudents.map(student => {
-                if (studentIds.includes(student.id)) {
-                    return { ...student, status: '已开班' };
-                }
-                return student;
-            });
-            
-            // 添加选中的学员到班级
-            studentIds.forEach(id => {
-                if (!classes[classIndex].students.includes(id)) {
-                    classes[classIndex].students.push(id);
-                }
-            });
-            
-            // 保存更新后的学员数据
-            await fs.writeFile('students.json', JSON.stringify(allStudents, null, 2));
-            console.log('学员状态更新成功');
-            
-            // 保存更新后的班级数据
-            await fs.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
-            console.log('班级数据更新成功');
-
-            // 记录操作日志
-            await logOperation(
-                '加入班级',
-                `将${students.length}名学员加入班级：${classes[classIndex].className}`,
-                req.session.user.username
-            );
-
-            console.log('【完成】学员成功加入班级');
-            res.json({ success: true, message: '学员成功加入班级' });
-        } catch (error) {
-            console.error('【错误】更新数据失败:', error);
-            console.error('错误堆栈:', error.stack);
-            res.status(500).json({ success: false, message: '更新数据失败' });
-        }
-    } catch (error) {
-        console.error('【错误】加入班级失败:', error);
-        console.error('错误堆栈:', error.stack);
-        res.status(500).json({ success: false, message: '加入班级失败' });
+        console.error('【API】获取班级学员失败:', error);
+        res.status(500).json({ success: false, message: '获取班级学员失败' });
     }
 });
 

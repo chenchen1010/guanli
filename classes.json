@@ -24,5 +24,41 @@
     ],
     "createdBy": "admin",
     "createdAt": "2025-05-04T00:49:11.007Z"
+  },
+  {
+    "id": "class_1746460997694_domlnkwhs",
+    "className": "【Deepseek应用与变现-多地址可选】",
+    "startTime": "2025-05-05T17:00",
+    "duration": 12,
+    "location": "dsas",
+    "students": [
+      "1746456290043rmymq7rn7"
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-05T16:03:17.694Z"
+  },
+  {
+    "id": "class_1746461061448_e0kjrtlt1",
+    "className": "222【Deepseek应用与变现-多地址可选】",
+    "startTime": "2025-05-05T17:00",
+    "duration": 12,
+    "location": "222",
+    "students": [
+      "17464562900439m7yufv7u"
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-05T16:04:21.448Z"
+  },
+  {
+    "id": "class_1746486177885_qjjph2uz8",
+    "className": "事实上【八段锦-上城-闸弄口】",
+    "startTime": "2025-05-06T00:00",
+    "duration": 12,
+    "location": "的",
+    "students": [
+      "1746446435441qi532s2p9"
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-05T23:02:57.886Z"
   }
 ]
