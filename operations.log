@@ -166,5 +166,23 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "学员: 1, 变更: "
+  },
+  {
+    "timestamp": "2025/5/6 13:09:40",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: "
+  },
+  {
+    "timestamp": "2025/5/6 13:10:23",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: "
+  },
+  {
+    "timestamp": "2025/5/6 13:48:47",
+    "username": "admin",
+    "operation": "收益AI分析",
+    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"滑板-多区域可选\",\"startDate\":\"\",\"endDate\":\"\"}"
   }
 ]
