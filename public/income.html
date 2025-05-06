@@ -438,6 +438,48 @@
             margin: 10px 0;
             border-radius: 0 4px 4px 0;
         }
+
+        /* 可编辑单元格样式 */
+        .editable-cell {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .editable-cell:hover::after {
+            content: '✎';
+            position: absolute;
+            right: 5px;
+            color: #4CAF50;
+        }
+
+        .editable-cell.editing {
+            padding: 0 !important;
+        }
+
+        .editable-cell.editing input {
+            width: 100%;
+            height: 100%;
+            padding: 12px;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* 保存按钮样式 */
+        .save-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 12px;
+        }
+
+        .save-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -943,8 +985,8 @@
                                 <td>${student.remarks || '-'}</td>
                             <td>${institutionName}</td>
                             <td class="amount-cell">¥${amount.toFixed(2)}</td>
-                            <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
-                            <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
+                            <td class="amount-cell editable-cell" onclick="makeEditable(this, '${student.id}', 'recruitmentIncome')" data-original="${student.recruitmentIncome || recruitmentIncome.toFixed(2)}">¥${student.recruitmentIncome || recruitmentIncome.toFixed(2)}</td>
+                            <td class="amount-cell editable-cell" onclick="makeEditable(this, '${student.id}', 'channelCost')" data-original="${student.channelCost || channelCost.toFixed(2)}">¥${student.channelCost || channelCost.toFixed(2)}</td>
                             `;
                         
                             tableBody.appendChild(tr);
@@ -1333,6 +1375,105 @@
             setTimeout(() => {
                 successDiv.remove();
             }, 3000);
+        }
+
+        function makeEditable(cell, studentId, field) {
+            if (cell.classList.contains('editing')) return;
+            
+            const originalValue = parseFloat(cell.dataset.original);
+            cell.classList.add('editing');
+            
+            const originalContent = cell.innerHTML;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.step = '0.01';
+            input.value = originalValue;
+            
+            const saveButton = document.createElement('button');
+            saveButton.textContent = '保存';
+            saveButton.className = 'save-button';
+            
+            const saveChanges = async () => {
+                const newValue = parseFloat(input.value);
+                if (isNaN(newValue) || newValue < 0) {
+                    alert('请输入有效的金额');
+                    return;
+                }
+                
+                try {
+                    // 构建更新数据对象
+                    const updateData = {
+                        wechatName: cell.closest('tr').querySelector('td:first-child').textContent,
+                        [field]: newValue
+                    };
+                    
+                    const response = await fetch(`/api/students/${studentId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || '更新失败');
+                    }
+                    
+                    const result = await response.json();
+                    if (!result.success) {
+                        throw new Error(result.message || '更新失败');
+                    }
+                    
+                    cell.innerHTML = `¥${newValue.toFixed(2)}`;
+                    cell.dataset.original = newValue.toFixed(2);
+                    cell.classList.remove('editing');
+            
+                    // 更新总计
+                    renderIncomeData();
+            
+                    showSuccessMessage('更新成功');
+                } catch (error) {
+                    console.error('更新失败:', error);
+                    cell.innerHTML = originalContent;
+                    cell.classList.remove('editing');
+                    showErrorMessage(`更新失败: ${error.message}`);
+                }
+            };
+            
+            const cancelEdit = () => {
+                cell.innerHTML = originalContent;
+                cell.classList.remove('editing');
+            };
+            
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveChanges();
+                }
+                if (e.key === 'Escape') {
+                    cancelEdit();
+                }
+            });
+            
+            saveButton.addEventListener('click', saveChanges);
+            
+            cell.innerHTML = '';
+            cell.appendChild(input);
+            cell.appendChild(saveButton);
+            input.focus();
+            
+            // 点击其他地方取消编辑
+            const clickOutsideHandler = (e) => {
+                if (!cell.contains(e.target)) {
+                    cancelEdit();
+                    document.removeEventListener('click', clickOutsideHandler);
+                }
+            };
+            
+            // 延迟添加事件监听，避免立即触发
+            setTimeout(() => {
+                document.addEventListener('click', clickOutsideHandler);
+            }, 0);
         }
     </script>
 </body>

@@ -4,5 +4,53 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "学员: test5, 变更: "
+  },
+  {
+    "timestamp": "2025/5/6 08:35:28",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【咖啡-多地区可选】(recuJnc9yGzNrI), 添加1名学员: rere(¥458/已支付)"
+  },
+  {
+    "timestamp": "2025/5/6 08:35:36",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【咖啡-多地区可选】(recuJnc9yGzNrI), 添加1名学员: dd(¥458/已支付)"
+  },
+  {
+    "timestamp": "2025/5/6 08:35:41",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【咖啡-多地区可选】(recuJnc9yGzNrI), 添加1名学员: eee(¥458/已支付)"
+  },
+  {
+    "timestamp": "2025/5/6 08:35:53",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: rere, 变更: 状态: 已支付 -> 已开班, 备注: 无 -> 无"
+  },
+  {
+    "timestamp": "2025/5/6 08:55:24",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: "
+  },
+  {
+    "timestamp": "2025/5/6 08:55:38",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: "
+  },
+  {
+    "timestamp": "2025/5/6 08:55:54",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: "
+  },
+  {
+    "timestamp": "2025/5/6 09:00:46",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 1, 变更: 金额: 600 -> 244"
   }
 ]

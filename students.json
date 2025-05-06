@@ -1,7 +1,7 @@
 [
   {
     "wechatName": "1",
-    "amount": 600,
+    "amount": 244,
     "channel": "新趣",
     "status": "已退款",
     "preferredTime": "发",
@@ -11,7 +11,9 @@
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120fj1cw5wxf",
     "remarks": "已退款\n",
-    "updatedAt": "2025-05-05T17:09:20.567+08:00"
+    "updatedAt": "2025-05-06T01:00:46.477Z",
+    "recruitmentIncome": 200.03,
+    "channelCost": 27
   },
   {
     "wechatName": "2",
@@ -352,5 +354,44 @@
     "addedBy": "admin",
     "addedAt": "2025-05-06T00:09:49.767Z",
     "id": "1746490189767zd3pt4c06"
+  },
+  {
+    "wechatName": "rere",
+    "amount": 458,
+    "channel": "",
+    "status": "已开班",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGzNrI",
+    "courseName": "【咖啡-多地区可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-06T00:35:28.065Z",
+    "id": "1746491728065hczyw1rs9",
+    "remarks": "",
+    "classStartDate": "2000-01-01T00:00:00+08:00",
+    "updatedAt": "2025-05-06T00:35:53.500Z"
+  },
+  {
+    "wechatName": "dd",
+    "amount": 458,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGzNrI",
+    "courseName": "【咖啡-多地区可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-06T00:35:36.383Z",
+    "id": "17464917363832mzqo0cuz"
+  },
+  {
+    "wechatName": "eee",
+    "amount": 458,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGzNrI",
+    "courseName": "【咖啡-多地区可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-06T00:35:41.613Z",
+    "id": "1746491741613s58fedh8c"
   }
 ]
