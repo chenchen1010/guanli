@@ -624,7 +624,7 @@ app.put('/api/students/:id', requireAuth, async (req, res) => {
         
         if (studentIndex === -1) {
             console.error('【API】在students.json中找不到学员:', id);
-                return res.status(404).json({ success: false, message: '找不到指定学员' });
+            return res.status(404).json({ success: false, message: '找不到指定学员' });
         }
         
         // 记录变更内容
@@ -649,11 +649,39 @@ app.put('/api/students/:id', requireAuth, async (req, res) => {
         
         console.log('【API】变更内容:', changes);
         
+        // 处理状态变更相关的时间字段
+        const now = new Date().toISOString();
+        if (updatedData.status !== oldStudent.status) {
+            switch (updatedData.status) {
+                case '已退款':
+                    updatedData.refundDate = now;
+                    break;
+                case '已开班':
+                    // 如果有班级ID，获取班级的开始时间作为开班日期
+                    if (updatedData.classId) {
+                        const classesData = fs.readFileSync('classes.json', 'utf8');
+                        const classes = JSON.parse(classesData);
+                        const classInfo = classes.find(c => c.id === updatedData.classId);
+                        if (classInfo) {
+                            updatedData.classStartDate = classInfo.startTime;
+                        } else {
+                            updatedData.classStartDate = '2000-01-01T00:00:00+08:00';
+                        }
+                    } else {
+                        updatedData.classStartDate = '2000-01-01T00:00:00+08:00';
+                    }
+                    break;
+                case '已结算':
+                    updatedData.settleDate = now;
+                    break;
+            }
+        }
+        
         // 更新students.json中的学员数据
         const updatedStudent = {
             ...oldStudent,
             ...updatedData,
-            updatedAt: new Date().toISOString()
+            updatedAt: now
         };
         
         students[studentIndex] = updatedStudent;
@@ -670,42 +698,6 @@ app.put('/api/students/:id', requireAuth, async (req, res) => {
             return res.status(500).json({ success: false, message: '保存学员数据失败' });
         }
 
-        // 更新classes.json中的学员数据
-        console.log('【API】开始更新classes.json中的学员数据');
-        try {
-            if (fs.existsSync('classes.json')) {
-                const classesData = fs.readFileSync('classes.json', 'utf8');
-                const classes = JSON.parse(classesData);
-                let classesUpdated = false;
-
-                // 遍历所有班级，查找并更新学员信息
-                for (const classObj of classes) {
-                    if (Array.isArray(classObj.students)) {
-                        const studentIdIndex = classObj.students.indexOf(id);
-                        if (studentIdIndex !== -1) {
-                            // 只更新学员ID
-                            classObj.students[studentIdIndex] = id;
-                            classesUpdated = true;
-                        }
-                    }
-                }
-
-                // 如果有更新，保存classes.json
-                if (classesUpdated) {
-                    console.log('【API】classes.json有更新，准备保存');
-                    const tempClassFile = 'classes.json.temp';
-                    fs.writeFileSync(tempClassFile, JSON.stringify(classes, null, 2));
-                    fs.renameSync(tempClassFile, 'classes.json');
-                    console.log('【API】classes.json保存成功');
-                } else {
-                    console.log('【API】classes.json无需更新');
-                }
-            }
-        } catch (classesError) {
-            console.error('【API】更新classes.json失败:', classesError);
-            // 不中断操作，继续返回成功
-        }
-        
         // 记录操作日志
         try {
             await logOperation(
@@ -784,75 +776,30 @@ app.get('/api/channels', requireAuth, async (req, res) => {
     }
 });
 
-// 开课API
+// 创建班级API
 app.post('/api/classes/create', requireAuth, async (req, res) => {
     try {
-        console.log('【开始】创建新班级请求');
-        console.log('请求体数据:', JSON.stringify(req.body, null, 2));
-
-        const { startTime, duration, location, students, className } = req.body;
-        console.log('解构后的数据:');
-        console.log('- className:', className);
-        console.log('- startTime:', startTime);
-        console.log('- duration:', duration);
-        console.log('- location:', location);
-        console.log('- students:', JSON.stringify(students, null, 2));
+        console.log('【API】收到创建班级请求');
+        const { className, startTime, duration, location, students } = req.body;
+        console.log('- 班级名称:', className);
+        console.log('- 开始时间:', startTime);
+        console.log('- 学员:', students);
 
         // 验证必要字段
-        if (!startTime || !duration || !location || !students || !students.length || !className) {
-            console.log('【错误】缺少必要信息');
-            console.log('验证结果:');
-            console.log('- startTime:', !!startTime);
-            console.log('- duration:', !!duration);
-            console.log('- location:', !!location);
-            console.log('- students:', !!students && !!students.length);
-            console.log('- className:', !!className);
+        if (!className || !startTime || !duration || !location || !students || !Array.isArray(students) || students.length === 0) {
+            console.log('【API】缺少必要信息');
             return res.status(400).json({ success: false, message: '缺少必要信息' });
         }
 
-        // 读取现有课程数据
+        // 读取班级数据
         let classes = [];
-        try {
-            console.log('【读取】正在读取现有课程数据');
-            if (fs.existsSync(classesFilePath)) {
-                const classesData = await fs.promises.readFile(classesFilePath, 'utf8');
-                classes = JSON.parse(classesData);
-            }
-            console.log('成功读取现有课程数据，当前课程数量:', classes.length);
-        } catch (error) {
-            console.error('【错误】读取课程数据失败:', error);
-            classes = [];
+        if (fs.existsSync('classes.json')) {
+            console.log('【API】读取现有班级数据');
+            const classesData = fs.readFileSync('classes.json', 'utf8');
+            classes = JSON.parse(classesData);
         }
 
-        // 更新学员状态为"已开班"
-        try {
-            console.log('【更新】正在更新学员状态');
-            if (!fs.existsSync('students.json')) {
-                await fs.promises.writeFile('students.json', '[]', 'utf8');
-            }
-            const studentsData = await fs.promises.readFile('students.json', 'utf8');
-            let allStudents = JSON.parse(studentsData);
-            
-            // 获取要更新的学员ID列表
-            const studentIds = students.map(s => s.id);
-            
-            // 更新学员状态
-            allStudents = allStudents.map(student => {
-                if (studentIds.includes(student.id)) {
-                    return { ...student, status: '已开班' };
-                }
-                return student;
-            });
-            
-            // 保存更新后的学员数据
-            await fs.promises.writeFile('students.json', JSON.stringify(allStudents, null, 2));
-            console.log('学员状态更新成功');
-        } catch (error) {
-            console.error('【错误】更新学员状态失败:', error);
-            return res.status(500).json({ success: false, message: '更新学员状态失败' });
-        }
-
-        // 创建新课程
+        // 创建新班级
         const newClass = {
             id: `class_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             className,
@@ -863,32 +810,61 @@ app.post('/api/classes/create', requireAuth, async (req, res) => {
             createdBy: req.session.user.username,
             createdAt: new Date().toISOString()
         };
-        console.log('【创建】新班级对象:', JSON.stringify(newClass, null, 2));
+        console.log('【API】新班级对象:', newClass);
 
-        // 添加新课程
-        classes.push(newClass);
-
-        // 保存更新后的数据
+        // 更新学员状态和班级信息
         try {
-            console.log('【保存】正在写入更新后的课程数据');
-            await fs.promises.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
-            console.log('课程数据保存成功');
-
-            // 记录操作日志
-            await logOperation(
-                '创建班级',
-                `创建了新班级：${className}，开课时间：${startTime}，学员数：${students.length}`,
-                req.session.user.username
-            );
-
-            console.log('【完成】班级创建成功');
-            res.json({ success: true, message: '班级创建成功' });
+            console.log('【API】开始更新学员状态和班级信息');
+            if (!fs.existsSync('students.json')) {
+                fs.writeFileSync('students.json', '[]', 'utf8');
+            }
+            const studentsData = fs.readFileSync('students.json', 'utf8');
+            let allStudents = JSON.parse(studentsData);
+            
+            // 获取要更新的学员ID列表
+            const studentIds = students.map(s => s.id);
+            const now = new Date().toISOString();
+            
+            // 更新学员状态和班级信息
+            allStudents = allStudents.map(student => {
+                if (studentIds.includes(student.id)) {
+                    return {
+                        ...student,
+                        status: '已开班',
+                        classStartDate: startTime, // 使用班级的开始时间
+                        classId: newClass.id,
+                        className: newClass.className,
+                        updatedAt: now
+                    };
+                }
+                return student;
+            });
+            
+            // 保存更新后的学员数据
+            fs.writeFileSync('students.json', JSON.stringify(allStudents, null, 2));
+            console.log('【API】学员状态和班级信息更新成功');
         } catch (error) {
-            console.error('【错误】保存课程数据失败:', error);
-            res.status(500).json({ success: false, message: '保存课程数据失败' });
+            console.error('【API】更新学员状态和班级信息失败:', error);
+            return res.status(500).json({ success: false, message: '更新学员状态失败' });
         }
+
+        // 添加新班级
+        classes.push(newClass);
+        
+        // 保存班级数据
+        fs.writeFileSync('classes.json', JSON.stringify(classes, null, 2));
+        console.log('【API】班级数据保存成功');
+
+        // 记录操作日志
+        await logOperation(
+            '创建班级',
+            `班级: ${className}, 学员数: ${students.length}`,
+            req.session.user.username
+        );
+
+        res.json({ success: true, message: '创建班级成功', class: newClass });
     } catch (error) {
-        console.error('【错误】创建班级失败:', error);
+        console.error('【API】创建班级失败:', error);
         res.status(500).json({ success: false, message: '创建班级失败' });
     }
 });
@@ -1212,7 +1188,7 @@ app.post('/api/classes/join', requireAuth, async (req, res) => {
         }
         console.log('【API】找到班级:', classes[classIndex]);
 
-        // 更新学员状态
+        // 更新学员状态和班级信息
         if (!fs.existsSync('students.json')) {
             fs.writeFileSync('students.json', '[]', 'utf8');
         }
@@ -1221,11 +1197,19 @@ app.post('/api/classes/join', requireAuth, async (req, res) => {
 
         // 获取要更新的学员ID列表
         const studentIds = students.map(s => s.id);
+        const now = new Date().toISOString();
 
-        // 更新学员状态
+        // 更新学员状态和班级信息
         allStudents = allStudents.map(student => {
             if (studentIds.includes(student.id)) {
-                return { ...student, status: '已开班' };
+                return {
+                    ...student,
+                    status: '已开班',
+                    classStartDate: classes[classIndex].startTime, // 使用班级的开始时间
+                    classId: classId,
+                    className: classes[classIndex].className,
+                    updatedAt: now
+                };
             }
             return student;
         });

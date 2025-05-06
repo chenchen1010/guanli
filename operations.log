@@ -1,56 +1,8 @@
 [
   {
-    "timestamp": "2025/5/6 00:03:17",
-    "username": "admin",
-    "operation": "创建班级",
-    "details": "创建了新班级：【Deepseek应用与变现-多地址可选】，开课时间：2025-05-05T17:00，学员数：1"
-  },
-  {
-    "timestamp": "2025/5/6 00:04:21",
-    "username": "admin",
-    "operation": "创建班级",
-    "details": "创建了新班级：222【Deepseek应用与变现-多地址可选】，开课时间：2025-05-05T17:00，学员数：1"
-  },
-  {
-    "timestamp": "2025/5/6 07:02:57",
-    "username": "admin",
-    "operation": "创建班级",
-    "details": "创建了新班级：事实上【八段锦-上城-闸弄口】，开课时间：2025-05-06T00:00，学员数：1"
-  },
-  {
-    "timestamp": "2025/5/6 07:03:10",
-    "username": "admin",
-    "operation": "添加学员",
-    "details": "课程: 【八段锦-上城-闸弄口】(recuJnc9yGk5ty), 添加1名学员: 搜索(¥500/已支付)"
-  },
-  {
-    "timestamp": "2025/5/6 07:12:33",
+    "timestamp": "2025/5/6 08:30:58",
     "username": "admin",
     "operation": "更新学员信息",
-    "details": "学员: 自营学员1, 变更: 微信名: 自营学员 -> 自营学员1, 备注: 无 -> 无"
-  },
-  {
-    "timestamp": "2025/5/6 07:21:41",
-    "username": "admin",
-    "operation": "加入班级",
-    "details": "将1名学员加入班级事实上【八段锦-上城-闸弄口】"
-  },
-  {
-    "timestamp": "2025/5/6 07:21:57",
-    "username": "admin",
-    "operation": "添加学员",
-    "details": "课程: 【八段锦-上城-闸弄口】(recuJnc9yGk5ty), 添加1名学员: 张三李四(¥500/已支付)"
-  },
-  {
-    "timestamp": "2025/5/6 07:22:08",
-    "username": "admin",
-    "operation": "加入班级",
-    "details": "将1名学员加入班级事实上【八段锦-上城-闸弄口】"
-  },
-  {
-    "timestamp": "2025/5/6 07:24:19",
-    "username": "admin",
-    "operation": "添加学员",
-    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 9(¥500/已支付)"
+    "details": "学员: test5, 变更: "
   }
 ]

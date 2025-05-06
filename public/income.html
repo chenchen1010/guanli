@@ -930,22 +930,22 @@
                             institutionName = bdData[student.courseId].institution || '-';
                         }
                         
-                        tr.innerHTML = `
-                            <td>${student.wechatName || '-'}</td>
-                            <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
-                            <td>${student.channel || '-'}</td>
+                            tr.innerHTML = `
+                                <td>${student.wechatName || '-'}</td>
+                                <td>${student.courseName ? student.courseName.replace(/【|】/g, '') : '-'}</td>
+                                <td>${student.channel || '-'}</td>
                             <td><span class="status-badge ${statusClass}">${student.status || '-'}</span></td>
-                            <td>${student.preferredTime || '-'}</td>
-                            <td>${addedDate}</td>
+                                <td>${student.preferredTime || '-'}</td>
+                                <td>${addedDate}</td>
                             <td>${refundDate}</td>
                             <td>${classStartDate}</td>
                             <td>${student.className || '-'}</td>
-                            <td>${student.remarks || '-'}</td>
+                                <td>${student.remarks || '-'}</td>
                             <td>${institutionName}</td>
                             <td class="amount-cell">¥${amount.toFixed(2)}</td>
                             <td class="amount-cell">¥${recruitmentIncome.toFixed(2)}</td>
                             <td class="amount-cell">¥${channelCost.toFixed(2)}</td>
-                        `;
+                            `;
                         
                             tableBody.appendChild(tr);
                     });

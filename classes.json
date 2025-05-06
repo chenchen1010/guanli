@@ -62,5 +62,29 @@
     ],
     "createdBy": "admin",
     "createdAt": "2025-05-05T23:02:57.886Z"
+  },
+  {
+    "id": "class_1746490251406_amyxlvfqx",
+    "className": "已开班状态【陆冲-上城区】",
+    "startTime": "2025-05-06T01:00",
+    "duration": 12,
+    "location": "的",
+    "students": [
+      "17464901897662y4jx0yjt"
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-06T00:10:51.406Z"
+  },
+  {
+    "id": "class_1746491424705_h227q3tln",
+    "className": "【陆冲-上城区】",
+    "startTime": "2025-05-08T01:00",
+    "duration": 12,
+    "location": "dds",
+    "students": [
+      "174649018976650olzcnve"
+    ],
+    "createdBy": "admin",
+    "createdAt": "2025-05-06T00:30:24.706Z"
   }
 ]
