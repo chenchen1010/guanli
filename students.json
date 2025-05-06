@@ -11,9 +11,9 @@
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120fj1cw5wxf",
     "remarks": "已退款\n",
-    "updatedAt": "2025-05-06T01:00:46.477Z",
-    "recruitmentIncome": 200.03,
-    "channelCost": 27
+    "updatedAt": "2025-05-06T02:24:58.972Z",
+    "recruitmentIncome": 200,
+    "channelCost": 200
   },
   {
     "wechatName": "2",
@@ -27,7 +27,8 @@
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120c0kci39wi",
     "remarks": "发",
-    "updatedAt": "2025-05-03T14:21:04.985Z"
+    "updatedAt": "2025-05-06T02:18:47.104Z",
+    "channelCost": 100
   },
   {
     "wechatName": "3",
@@ -79,7 +80,9 @@
     "addedAt": "2025-05-03T14:20:35.120Z",
     "id": "1746282035120smjwyo0in",
     "remarks": "11",
-    "updatedAt": "2025-05-05T11:56:57.583Z"
+    "updatedAt": "2025-05-06T02:19:52.648Z",
+    "channelCost": 100,
+    "recruitmentIncome": 300
   },
   {
     "wechatName": "7",
