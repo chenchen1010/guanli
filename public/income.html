@@ -685,6 +685,10 @@
                     <input type="text" id="courseFilter" placeholder="输入课程名称搜索" style="min-width: 200px;">
                 </div>
                 <div class="filter-item">
+                    <label for="classFilter">班级:</label>
+                    <input type="text" id="classFilter" placeholder="输入班级名称搜索" style="min-width: 200px;">
+                </div>
+                <div class="filter-item">
                     <label for="startDate">报名开始日期:</label>
                     <input type="date" id="startDate">
                 </div>
@@ -974,6 +978,7 @@
             document.getElementById('selectAllStatus').checked = false;
             document.querySelectorAll('.status-checkbox').forEach(cb => cb.checked = false);
             document.getElementById('courseFilter').value = '';
+            document.getElementById('classFilter').value = '';
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
             renderIncomeData();
@@ -987,6 +992,7 @@
                 // 获取筛选条件
                 const selectedStatuses = Array.from(document.querySelectorAll('.status-checkbox:checked')).map(cb => cb.value);
                 const courseSearchTerm = document.getElementById('courseFilter').value.toLowerCase().trim();
+                const classSearchTerm = document.getElementById('classFilter').value.toLowerCase().trim();
                 const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
                 const endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value + 'T23:59:59') : null;
                 
@@ -1001,6 +1007,13 @@
                     filteredStudents = filteredStudents.filter(student => 
                         student.courseName && 
                         student.courseName.toLowerCase().replace(/【|】/g, '').includes(courseSearchTerm)
+                    );
+                }
+
+                if (classSearchTerm) {
+                    filteredStudents = filteredStudents.filter(student => 
+                        student.className && 
+                        student.className.toLowerCase().includes(classSearchTerm)
                     );
                 }
                 
