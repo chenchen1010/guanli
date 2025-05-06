@@ -347,7 +347,7 @@
         .filter-button:hover {
             background-color: #45a049;
         }
-
+        
         /* 状态选择器样式 */
         .status-selector {
             position: relative;
@@ -682,9 +682,7 @@
                 </div>
                 <div class="filter-item">
                     <label for="courseFilter">课程:</label>
-                    <select id="courseFilter">
-                        <option value="">全部</option>
-                    </select>
+                    <input type="text" id="courseFilter" placeholder="输入课程名称搜索" style="min-width: 200px;">
                 </div>
                 <div class="filter-item">
                     <label for="startDate">报名开始日期:</label>
@@ -974,6 +972,7 @@
         function resetFilters() {
             document.getElementById('statusSelector').classList.remove('open');
             document.getElementById('selectAllStatus').checked = false;
+            document.querySelectorAll('.status-checkbox').forEach(cb => cb.checked = false);
             document.getElementById('courseFilter').value = '';
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
@@ -987,7 +986,7 @@
                 
                 // 获取筛选条件
                 const selectedStatuses = Array.from(document.querySelectorAll('.status-checkbox:checked')).map(cb => cb.value);
-                const courseFilter = document.getElementById('courseFilter').value;
+                const courseSearchTerm = document.getElementById('courseFilter').value.toLowerCase().trim();
                 const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
                 const endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value + 'T23:59:59') : null;
                 
@@ -998,9 +997,10 @@
                     filteredStudents = filteredStudents.filter(student => selectedStatuses.includes(student.status));
                 }
                 
-                if (courseFilter) {
+                if (courseSearchTerm) {
                     filteredStudents = filteredStudents.filter(student => 
-                        student.courseName && student.courseName.replace(/【|】/g, '') === courseFilter
+                        student.courseName && 
+                        student.courseName.toLowerCase().replace(/【|】/g, '').includes(courseSearchTerm)
                     );
                 }
                 
@@ -1223,7 +1223,6 @@
                 statusCheckboxes.forEach(cb => {
                     cb.checked = selectAllCheckbox.checked;
                 });
-                renderIncomeData();
             });
 
             // 单个状态选择变化时更新全选状态
@@ -1231,7 +1230,6 @@
                 cb.addEventListener('change', () => {
                     const allChecked = Array.from(statusCheckboxes).every(cb => cb.checked);
                     selectAllCheckbox.checked = allChecked;
-                    renderIncomeData();
                 });
             });
 
@@ -1249,6 +1247,9 @@
             document.getElementById('closeAnalysisBtn').addEventListener('click', () => {
                 document.getElementById('aiAnalysisSection').style.display = 'none';
             });
+
+            // 添加筛选按钮事件监听
+            document.getElementById('applyFilter').addEventListener('click', renderIncomeData);
         });
         
         // AI分析功能
