@@ -1705,7 +1705,7 @@
             <!-- 添加AI营销按钮到筛选区域 -->
             <button class="memo-button" onclick="showAIMarketingModal()" style="background: #9c27b0; margin-left: 10px;">
                 <i class="material-icons" style="font-size: 18px; margin-right: 4px;">share</i>
-                AI营销小红书
+                AI营销
             </button>
         </div>
         
@@ -5847,22 +5847,179 @@
 只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`
         };
 
+        // 从localStorage加载用户保存的模板
+        function loadUserTemplates() {
+            try {
+                const savedTemplates = localStorage.getItem('marketingTemplates');
+                if (savedTemplates) {
+                    const parsed = JSON.parse(savedTemplates);
+                    Object.keys(parsed).forEach(key => {
+                        MARKETING_TEMPLATES[key] = parsed[key];
+                    });
+                    console.log('已从本地加载自定义模板');
+                }
+            } catch (e) {
+                console.error('加载本地模板出错:', e);
+            }
+        }
+
+        // 保存模板到localStorage
+        function saveTemplateToLocal(type, template) {
+            try {
+                // 获取当前存储的所有模板
+                const savedTemplates = localStorage.getItem('marketingTemplates');
+                const templates = savedTemplates ? JSON.parse(savedTemplates) : {};
+                
+                // 更新当前类型的模板
+                templates[type] = template;
+                
+                // 保存回localStorage
+                localStorage.setItem('marketingTemplates', JSON.stringify(templates));
+                
+                // 更新内存中的模板
+                MARKETING_TEMPLATES[type] = template;
+                
+                return true;
+            } catch (e) {
+                console.error('保存模板出错:', e);
+                return false;
+            }
+        }
+
         // 默认使用小红书模板
         const DEFAULT_PROMPT_TEMPLATE = MARKETING_TEMPLATES['xiaohongshu'];
 
-        // 修改重置提示词模板函数，考虑当前选择的营销类型
-        function resetPromptTemplate() {
-            if (confirm('确定要重置提示词模板为默认值吗？')) {
-                const marketingType = document.getElementById('marketingType').value;
-                document.getElementById('promptTemplate').value = MARKETING_TEMPLATES[marketingType];
+        // 页面加载时加载保存的模板
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载用户保存的模板
+            loadUserTemplates();
+            
+            // 设置文本框的初始值
+            const marketingType = document.getElementById('marketingType');
+            const templateTextarea = document.getElementById('promptTemplate');
+            
+            if (marketingType && templateTextarea) {
+                templateTextarea.value = MARKETING_TEMPLATES[marketingType.value];
+                
+                // 记录当前类型，方便切换时使用
+                marketingType.setAttribute('data-current-type', marketingType.value);
             }
+            
+            // 添加保存状态提示元素
+            const templateLabel = document.querySelector('label[for="promptTemplate"]');
+            if (templateLabel) {
+                const saveStatus = document.createElement('span');
+                saveStatus.id = 'saveStatus';
+                saveStatus.style.cssText = 'display: none; color: #4CAF50; font-size: 12px; margin-left: 10px;';
+                templateLabel.appendChild(saveStatus);
+            }
+            
+            // 添加输入监听，自动保存
+            if (templateTextarea) {
+                let saveTimer;
+                templateTextarea.addEventListener('input', function() {
+                    clearTimeout(saveTimer);
+                    saveTimer = setTimeout(function() {
+                        const currentType = marketingType.value;
+                        const result = saveTemplateToLocal(currentType, templateTextarea.value);
+                        
+                        // 显示保存状态
+                        const saveStatus = document.getElementById('saveStatus');
+                        if (saveStatus) {
+                            saveStatus.textContent = result ? '已自动保存' : '保存失败';
+                            saveStatus.style.display = 'inline';
+                            
+                            setTimeout(function() {
+                                saveStatus.style.display = 'none';
+                            }, 2000);
+                        }
+                    }, 500); // 输入停止500ms后保存
+                });
+            }
+        });
+
+        // 修改重置提示词模板函数
+        function resetPromptTemplate() {
+            if (confirm('确定要重置提示词模板为默认值吗？您的自定义内容将被删除。')) {
+                const marketingType = document.getElementById('marketingType').value;
+                // 恢复为原始模板
+                const originalTemplate = getOriginalTemplate(marketingType);
+                document.getElementById('promptTemplate').value = originalTemplate;
+                
+                // 更新localStorage和内存中的模板
+                saveTemplateToLocal(marketingType, originalTemplate);
+            }
+        }
+
+        // 获取原始模板
+        function getOriginalTemplate(type) {
+            // 这里定义各类型的原始模板
+            const originalTemplates = {
+                'xiaohongshu': `请为以下夜校课程创建一篇小红书风格的宣传文章。
+
+课程详情:{courses}
+风格要求: {style}
+目标受众: {audience}
+
+注意事项:
+1. 创建一个吸引人的标题，字数在15-25字之间。
+2. 正文内容需要符合小红书的风格，包括:
+   - 使用轻松活泼的语言
+   - 使用表情符号增加亲和力
+   - 包含个人感受和真实体验
+   - 强调课程的特色和优势
+   - 添加一些悬念或引人好奇的表述
+3. 文章结构应包括:
+   - 吸引人的开场白
+   - 课程介绍和特色描述
+   - 适合人群
+   - 价格和优惠信息
+   - 体验感受或预期收获
+   - 号召行动
+4. 生成5-8个适合该课程的小红书标签，每个标签不超过6个字。
+5. 总字数控制在600字以内。
+
+请以JSON格式返回结果，包含以下字段:
+{
+    "title": "小红书标题",
+    "content": "正文内容",
+    "tags": ["标签1", "标签2", "标签3", "标签4", "标签5"]
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`,
+                // 可以添加其他类型的原始模板
+                'wechat-moments': MARKETING_TEMPLATES['wechat-moments'],
+                'wechat-class-stats': MARKETING_TEMPLATES['wechat-class-stats'],
+                'wechat-upcoming-class': MARKETING_TEMPLATES['wechat-upcoming-class'],
+                'wechat-single-class': MARKETING_TEMPLATES['wechat-single-class'],
+                'wechat-zhuanchang-class': MARKETING_TEMPLATES['wechat-zhuanchang-class'],
+                'wechat-new-class': MARKETING_TEMPLATES['wechat-new-class']
+            };
+            
+            return originalTemplates[type] || DEFAULT_PROMPT_TEMPLATE;
         }
 
         // 添加营销类型切换函数
         function changeMarketingType() {
-            const marketingType = document.getElementById('marketingType').value;
-            if (confirm('切换营销类型会重置当前编辑的提示词模板，确定要继续吗？')) {
-                document.getElementById('promptTemplate').value = MARKETING_TEMPLATES[marketingType];
+            const marketingTypeSelect = document.getElementById('marketingType');
+            const currentType = marketingTypeSelect.getAttribute('data-current-type');
+            const newType = marketingTypeSelect.value;
+            
+            if (currentType !== newType) {
+                if (confirm('切换营销类型会加载对应类型的模板，当前编辑内容会自动保存。确定要继续吗？')) {
+                    // 先保存当前模板
+                    if (currentType) {
+                        const currentTemplate = document.getElementById('promptTemplate').value;
+                        saveTemplateToLocal(currentType, currentTemplate);
+                    }
+                    
+                    // 加载新类型的模板
+                    document.getElementById('promptTemplate').value = MARKETING_TEMPLATES[newType];
+                    marketingTypeSelect.setAttribute('data-current-type', newType);
+                } else {
+                    // 用户取消，恢复之前的选择
+                    marketingTypeSelect.value = currentType || 'xiaohongshu';
+                }
             }
         }
     </script>

@@ -508,5 +508,11 @@
     "username": "admin",
     "operation": "生成营销内容",
     "details": "用户admin使用AI生成了小红书营销内容，风格: 轻松生活, 目标人群: 上班族"
+  },
+  {
+    "timestamp": "2025/5/7 15:56:07",
+    "username": "admin",
+    "operation": "生成营销内容",
+    "details": "用户admin使用AI生成了小红书营销内容，风格: 轻松生活, 目标人群: 上班族"
   }
 ]
