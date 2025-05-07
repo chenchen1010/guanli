@@ -5475,7 +5475,10 @@
                                 max_students: courseItem.fields['最大上课人数'] || '',
                                 institution: courseItem.fields['机构'] || '',
                                 area: courseItem.fields['杭州分区'] || '',
-                                students: students
+                                students: students,
+                                details: courseItem.fields['商品详情'] || '', // 添加商品详情字段
+                                // purchase_notice: courseItem.fields['购买须知'] || '', // 添加购买须知字段，可能也有用
+                                category: courseItem.fields['二级分类'] || '' // 添加课程分类，有助于AI理解课程类型
                             });
                         }
                     } catch (error) {

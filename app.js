@@ -1204,7 +1204,9 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
         上课地点: ${course.location || '杭州市内'}
         所在区域: ${course.area || '多区域可选'}
         开课人数: ${course.min_students || '无限制'}-${course.max_students || '无限制'}人
-        机构: ${course.institution || '杭州新青年夜校'}
+        课程详情: ${course.details || '暂无详情'}
+        课程分类: ${course.category || '未分类'}
+        
         已报名学员: ${course.students ? course.students.length : 0}人
         `).join('\n')}
         
