@@ -514,5 +514,23 @@
     "username": "admin",
     "operation": "生成营销内容",
     "details": "用户admin使用AI生成了小红书营销内容，风格: 轻松生活, 目标人群: 上班族"
+  },
+  {
+    "timestamp": "2025/5/7 18:01:53",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: (recuJnc9yG4kBm), 添加1名学员: 王五(¥1500/已支付)"
+  },
+  {
+    "timestamp": "2025/5/7 18:03:05",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: (recuJnc9yGGBQZ), 添加4名学员: 李四(¥2000/已支付)、李1(¥2000/已支付)、李2(¥500/已支付)、李3(¥2000/已支付)"
+  },
+  {
+    "timestamp": "2025/5/7 18:03:25",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: (recuJnc9yGZSkC), 添加1名学员: 张三(¥11/已支付/周六上午)"
   }
 ]

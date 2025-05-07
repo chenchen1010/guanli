@@ -1752,9 +1752,12 @@
                 </div>
                 <div class="modal-body">
                     <div style="margin-bottom: 20px;">
-                        <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
+                        <p style="margin-bottom: 10px; color: #666;">每行一个学员，支持以下格式：</p>
+                        <p style="margin-bottom: 10px; color: #666;">1. 标准格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
+                        <p style="margin-bottom: 10px; color: #666;">2. 特殊格式：- 商品ID 微信名 渠道 实付金额</p>
                         <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款、已开班、已结算</p>
-                        <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
+                        <p style="margin-bottom: 10px; color: #666;">示例1：张三 3000 朋友介绍 已支付 周六上午</p>
+                        <p style="margin-bottom: 10px; color: #666;">示例2：- 751 李四 小红书 2000</p>
                         <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
                     </div>
                     <textarea id="studentsInput" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="请输入学员信息，每行一个"></textarea>
@@ -2994,9 +2997,12 @@
             
             // 更新学员输入提示说明
             document.querySelector('#addStudentModal .modal-body div:first-child').innerHTML = `
-                <p style="margin-bottom: 10px; color: #666;">每行一个学员，格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
+                <p style="margin-bottom: 10px; color: #666;">每行一个学员，支持以下格式：</p>
+                <p style="margin-bottom: 10px; color: #666;">1. 标准格式：微信名 实付金额 招生渠道(可选) 订单状态 意向上课时间(可选)</p>
+                <p style="margin-bottom: 10px; color: #666;">2. 特殊格式：- 商品ID 微信名 渠道 实付金额</p>
                 <p style="margin-bottom: 10px; color: #666;">订单状态：已支付、意向中、已退款、已开班、已结算</p>
-                <p style="margin-bottom: 10px; color: #666;">示例：张三 3000 朋友介绍 已支付 周六上午</p>
+                <p style="margin-bottom: 10px; color: #666;">示例1：张三 3000 朋友介绍 已支付 周六上午</p>
+                <p style="margin-bottom: 10px; color: #666;">示例2：- 751 李四 小红书 2000</p>
                 <p style="margin-bottom: 10px; color: #666;">提示：如果渠道含有空格，请用英文引号括起来，如：张三 3000 "小红书广告" 已支付</p>
             `;
         }
@@ -3060,6 +3066,47 @@
                 }
                 
                 console.log(`【调试】第${index+1}行分割结果:`, parts);
+
+                // 处理以"-"开头的特殊格式
+                if (parts[0] === '-') {
+                    // 格式：- 商品ID 微信名 渠道 实付金额
+                    if (parts.length < 5) {
+                        errors.push(`第 ${index + 1} 行格式错误，特殊格式需要包含：- 商品ID 微信名 渠道 实付金额`);
+                        return;
+                    }
+                    const [_, productId, wechatName, channel, amount] = parts;
+                    if (isNaN(amount)) {
+                        errors.push(`第 ${index + 1} 行金额格式错误`);
+                        return;
+                    }
+                    // 查找对应的课程信息
+                    const course = allDataCache.items.find(item => item.fields['商品ID'] === productId);
+                    if (!course) {
+                        errors.push(`第 ${index + 1} 行商品ID不存在: ${productId}`);
+                        return;
+                    }
+                    const status = '已支付';
+                    const preferredTime = '';
+                    students.push({
+                        wechatName, 
+                        amount: parseFloat(amount), 
+                        channel, 
+                        status, 
+                        preferredTime,
+                        productId, // 添加商品ID字段
+                        targetCourseId: course.record_id // 添加目标课程ID字段
+                    });
+                    console.log(`【调试】第${index+1}行特殊格式解析结果:`, {
+                        wechatName, 
+                        amount: parseFloat(amount), 
+                        channel, 
+                        status, 
+                        preferredTime,
+                        productId,
+                        targetCourseId: course.record_id
+                    });
+                    return;
+                }
 
                 // 只填微信名
                 if (parts.length === 1) {
@@ -3174,69 +3221,70 @@
                 errorElement.style.display = 'block';
                 return;
             }
-            
+
             try {
-                console.log('准备提交数据:', {
-                    courseId: currentCourseId,
-                    courseName: document.getElementById('selectedCourseName').textContent,
-                    students
+                // 将学员按课程分组
+                const studentsByTarget = {};
+                students.forEach(student => {
+                    const targetId = student.targetCourseId || currentCourseId;
+                    if (!studentsByTarget[targetId]) {
+                        studentsByTarget[targetId] = [];
+                    }
+                    studentsByTarget[targetId].push(student);
                 });
-                
-                const response = await fetch('/api/students/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // 添加防止缓存的头部
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    },
-                    credentials: 'same-origin', // 确保发送cookies
-                    body: JSON.stringify({
-                        courseId: currentCourseId,
-                        courseName: document.getElementById('selectedCourseName').textContent,
-                        students
+
+                console.log('【调试】按课程分组的学员:', studentsByTarget);
+
+                // 为每个目标课程发送一个请求
+                const results = await Promise.all(
+                    Object.entries(studentsByTarget).map(async ([courseId, courseStudents]) => {
+                        const courseName = allDataCache.items.find(item => item.record_id === courseId)?.fields['课程名称'] || '';
+                        console.log(`准备提交数据到课程 ${courseName}(${courseId}):`, courseStudents);
+                        
+                        const response = await fetch('/api/students/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Cache-Control': 'no-cache',
+                                'Pragma': 'no-cache'
+                            },
+                            credentials: 'same-origin',
+                            body: JSON.stringify({
+                                courseId,
+                                courseName,
+                                students: courseStudents
+                            })
+                        });
+
+                        console.log(`课程 ${courseName} 服务器响应状态:`, response.status);
+                        
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('text/html')) {
+                            throw new Error('服务器返回了HTML页面，可能是会话已过期');
+                        }
+                        
+                        return await response.json();
                     })
-                });
+                );
+
+                console.log('所有请求完成，结果:', results);
                 
-                console.log('服务器响应状态:', response.status);
-                console.log('响应头:', Object.fromEntries(response.headers.entries()));
+                // 计算总添加人数
+                const totalAdded = results.reduce((sum, result) => sum + (result.count || 0), 0);
                 
-                // 检查响应的Content-Type
-                const contentType = response.headers.get('content-type');
-                console.log('响应Content-Type:', contentType);
+                // 显示成功消息
+                alert(`成功添加 ${totalAdded} 名学员`);
                 
-                if (contentType && contentType.includes('text/html')) {
-                    console.error('收到HTML响应而不是JSON');
-                    throw new Error('服务器返回了HTML页面，可能是会话已过期');
-                }
+                // 关闭模态框
+                closeAddStudentModal();
                 
-                const result = await response.json();
-                console.log('服务器响应数据:', result);
+                // 刷新表格数据
+                fetchTableData(true);
                 
-                if (response.ok) {
-                    // 关闭添加学员弹窗
-                    closeAddStudentModal();
-                    // 自动刷新当前课程的学员列表（如果弹窗还开着）
-                    if (typeof loadStudentList === 'function') {
-                        loadStudentList(currentCourseId);
-                    }
-                    // 自动刷新主表格数据，保证报名学员列人数和明细实时更新
-                    if (typeof fetchTableData === 'function') {
-                        fetchTableData(false);
-                    }
-                } else {
-                    throw new Error(result.message || '添加失败');
-                }
             } catch (error) {
-                console.error('添加学员错误:', error);
-                errorElement.textContent = error.message || '添加失败，请稍后重试';
+                console.error('添加学员失败:', error);
+                errorElement.textContent = error.message || '添加失败，请重试';
                 errorElement.style.display = 'block';
-                
-                // 如果是会话过期，重定向到登录页面
-                if (error.message.includes('会话已过期')) {
-                    alert('登录已过期，请重新登录');
-                    window.location.href = '/login';
-                }
             }
         }
 
