@@ -1701,6 +1701,12 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- 添加AI营销按钮到筛选区域 -->
+            <button class="memo-button" onclick="showAIMarketingModal()" style="background: #9c27b0; margin-left: 10px;">
+                <i class="material-icons" style="font-size: 18px; margin-right: 4px;">share</i>
+                AI营销小红书
+            </button>
         </div>
         
         <div id="loading" class="loading">正在加载数据...</div>
@@ -1915,6 +1921,11 @@
         <button class="join-class-btn" onclick="showJoinClassModal()">
             <i class="material-icons">group_add</i>
             加入现有班级
+        </button>
+        <!-- 添加AI营销按钮 -->
+        <button class="join-class-btn" onclick="showAIMarketingModal()" style="background: #9c27b0;">
+            <i class="material-icons">share</i>
+            AI营销小红书
         </button>
     </div>
 
@@ -3564,86 +3575,156 @@
         // 修改表格生成代码
         async function createTable(items, fields) {
             const table = document.createElement('table');
-            const thead = document.createElement('thead');
-            const tbody = document.createElement('tbody');
             
             // 创建表头
+            const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            for (const [key, config] of Object.entries(defaultColumnConfig)) {
+            
+            // 添加课程选择列
+            const checkboxHeader = document.createElement('th');
+            checkboxHeader.style.width = '40px';
+            checkboxHeader.style.textAlign = 'center';
+            const allCheckbox = document.createElement('input');
+            allCheckbox.type = 'checkbox';
+            allCheckbox.style.width = '18px';
+            allCheckbox.style.height = '18px';
+            allCheckbox.id = 'selectAllCourses';
+            allCheckbox.addEventListener('change', function() {
+                const courseCheckboxes = document.querySelectorAll('.course-checkbox');
+                courseCheckboxes.forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateCourseSelectionCount();
+            });
+            checkboxHeader.appendChild(allCheckbox);
+            headerRow.appendChild(checkboxHeader);
+            
+            // 添加其他列
+            const orderedColumns = Object.entries(defaultColumnConfig)
+                .sort((a, b) => a[1].order - b[1].order);
+            
+            for (const [columnName, config] of orderedColumns) {
                 const th = document.createElement('th');
-                th.textContent = key;
-                th.style.width = config.width;
+                th.textContent = columnName;
+                
+                // 如果定义了宽度，设置样式
+                if (config.width) {
+                    th.style.width = config.width;
+                }
+                
+                // 添加排序功能
+                if (columnName === '会员价格' || columnName === '杭州分区') {
+                    th.classList.add('sortable');
+                    if (currentSort.column === columnName) {
+                        th.classList.add(currentSort.direction);
+                    }
+                    th.addEventListener('click', () => handleSort(columnName));
+                }
+                
                 headerRow.appendChild(th);
             }
+            
             thead.appendChild(headerRow);
             table.appendChild(thead);
             
-            // 创建表格内容
-            for (let i = 0; i < items.length; i++) {
-                const record = items[i];
+            // 创建表体
+            const tbody = document.createElement('tbody');
+            
+            // 加载部分数据
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, items.length);
+            const visibleItems = items.slice(start, end);
+            
+            for (let i = 0; i < visibleItems.length; i++) {
+                const item = visibleItems[i];
                 const row = document.createElement('tr');
-                row.ondblclick = (e) => {
-                    // 获取点击的单元格索引
-                    const cellIndex = e.target.cellIndex;
-                    // 如果点击的是报名学员列（最后一列），不触发添加学员
-                    if (cellIndex === Object.keys(defaultColumnConfig).length - 1) {
-                        return;
-                    }
-                    showAddStudentModal(record.record_id, record.fields['商品名称']);
-                };
                 
-                // 处理每一列
-                const columnEntries = Object.entries(defaultColumnConfig);
-                for (const [key, config] of columnEntries) {
-                    const td = document.createElement('td');
+                // 添加复选框列
+                const checkboxCell = document.createElement('td');
+                checkboxCell.style.textAlign = 'center';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'course-checkbox';
+                checkbox.style.width = '18px';
+                checkbox.style.height = '18px';
+                checkbox.setAttribute('data-record-id', item.record_id);
+                checkbox.setAttribute('data-course-name', item.fields['商品名称'] || '未命名课程');
+                checkbox.addEventListener('change', updateCourseSelectionCount);
+                checkboxCell.appendChild(checkbox);
+                checkboxCell.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 防止触发行点击事件
+                });
+                row.appendChild(checkboxCell);
+                
+                // 填充其他列
+                for (const [columnName, config] of orderedColumns) {
+                    const cell = document.createElement('td');
                     
                     if (config.isIndex) {
-                        td.textContent = i + 1;
-                        td.style.textAlign = 'center';
+                        // 序号列，使用当前行数+开始偏移
+                        cell.textContent = start + i + 1;
                     } else if (config.async) {
-                        // 异步加载数据的列
-                        td.innerHTML = '<span class="loading-cell">加载中...</span>';
-                        // 使用立即执行的函数处理异步加载
-                        (async function() {
+                        // 异步加载内容
+                        cell.innerHTML = '<div style="text-align: center; padding: 8px;"><span style="color: #999;">加载中...</span></div>';
+                        
+                        // 创建一个闭包来捕获当前单元格和项目
+                        (async function(cell, item, config) {
                             try {
-                                const content = await config.loadData(record);
-                                td.innerHTML = content;
+                                const content = await config.loadData(item);
+                                cell.innerHTML = content;
                             } catch (error) {
-                                console.error(`加载${key}失败:`, error);
-                                td.innerHTML = '<span style="color:red;">加载失败</span>';
+                                console.error('加载单元格数据失败:', error);
+                                cell.innerHTML = '<span style="color: red;">加载失败</span>';
                             }
-                        })();
-                    } else if (config.isStudents) {
-                        td.innerHTML = '<span class="loading-cell">加载中...</span>';
-                        // 使用立即执行的函数处理异步加载
-                        (async function() {
-                            try {
-                                const content = await config.format(null, record);
-                                td.innerHTML = content;
-                            } catch (error) {
-                                console.error(`加载${key}失败:`, error);
-                                td.innerHTML = '<span style="color:red;">加载失败</span>';
-                            }
-                        })();
+                        })(cell, item, config);
                     } else {
-                        // 普通列使用同步处理
-                        const value = record.fields[key];
-                        try {
-                            const content = config.format ? config.format(value, record) : (value || '-');
-                            td.innerHTML = content;
-                        } catch (error) {
-                            console.error(`格式化${key}失败:`, error);
-                            td.innerHTML = value || '-';
-                        }
+                        // 普通列，根据配置格式化内容
+                        const value = item.fields[columnName];
+                        cell.innerHTML = config.format ? config.format(value, item) : (value || '-');
                     }
                     
-                    row.appendChild(td);
+                    row.appendChild(cell);
                 }
+                
+                // 添加行点击事件，但不包括复选框点击
+                row.addEventListener('click', (e) => {
+                    // 如果是点击了复选框，不执行行点击事件
+                    if (e.target.type === 'checkbox' || e.target.closest('td:first-child')) {
+                        return;
+                    }
+                    
+                    // 找到商品链接并触发点击
+                    const productLink = row.querySelector('.product-link');
+                    if (productLink) {
+                        const recordId = item.record_id;
+                        showProductDetail(recordId);
+                    }
+                });
+                
                 tbody.appendChild(row);
             }
             
             table.appendChild(tbody);
-            return table;
+            
+            // 添加分页控制
+            const paginationContainer = createPagination(items.length);
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(table);
+            wrapper.appendChild(paginationContainer);
+            
+            // 添加课程选择统计
+            const selectionInfo = document.createElement('div');
+            selectionInfo.id = 'courseSelectionInfo';
+            selectionInfo.style.display = 'none';
+            selectionInfo.style.margin = '20px 0';
+            selectionInfo.style.padding = '10px 15px';
+            selectionInfo.style.backgroundColor = '#f0e6ff';
+            selectionInfo.style.borderRadius = '4px';
+            selectionInfo.style.color = '#9c27b0';
+            
+            wrapper.insertBefore(selectionInfo, paginationContainer);
+            
+            return wrapper;
         }
 
         // 添加展开/收起功能
@@ -5316,6 +5397,215 @@
             // 在页面初始化后检查API
             setTimeout(checkApi, 2000);
         });
+
+        // 3. 添加AI营销相关JavaScript函数
+
+        // 修改AI营销模态框显示函数
+        function showAIMarketingModal() {
+            // 检查是否有选中的课程
+            const selectedCheckboxes = document.querySelectorAll('.course-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('请至少选择一个课程进行营销宣传');
+                return;
+            }
+            
+            // 重置模态框状态
+            document.getElementById('marketingResult').style.display = 'none';
+            document.getElementById('loadingMarketing').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'none';
+            document.getElementById('generateBtn').style.display = 'inline-block';
+            
+            // 显示模态框
+            document.getElementById('aiMarketingModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭AI营销模态框
+        function closeAIMarketingModal() {
+            document.getElementById('aiMarketingModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // 修改生成营销内容函数，使用选中的课程
+        async function generateMarketing() {
+            try {
+                // 获取勾选的课程
+                const selectedCheckboxes = document.querySelectorAll('.course-checkbox:checked');
+                const marketingStyle = document.getElementById('marketingStyle').value;
+                const targetAudience = document.getElementById('targetAudience').value;
+                
+                if (selectedCheckboxes.length === 0) {
+                    alert('请至少选择一个课程进行营销宣传');
+                    return;
+                }
+                
+                // 显示加载中状态
+                document.getElementById('loadingMarketing').style.display = 'block';
+                document.getElementById('marketingResult').style.display = 'none';
+                document.getElementById('generateBtn').disabled = true;
+                
+                // 获取选中课程的数据
+                const selectedCourseIds = Array.from(selectedCheckboxes).map(cb => cb.getAttribute('data-record-id'));
+                const selectedCourses = [];
+                
+                for (const courseId of selectedCourseIds) {
+                    try {
+                        // 获取课程信息
+                        const courseItem = allDataCache.items.find(item => item.record_id === courseId);
+                        if (courseItem) {
+                            // 获取课程相关的学员
+                            const studentsResponse = await fetch(`/api/students/${courseId}`);
+                            const students = await studentsResponse.json();
+                            
+                            selectedCourses.push({
+                                courseId,
+                                courseName: courseItem.fields['商品名称'] || '',
+                                price: courseItem.fields['会员价格'] || '',
+                                class_time: courseItem.fields['上课时间'] || '',
+                                location: courseItem.fields['机构地址'] || '',
+                                min_students: courseItem.fields['最少上课人数'] || '',
+                                max_students: courseItem.fields['最大上课人数'] || '',
+                                institution: courseItem.fields['机构'] || '',
+                                area: courseItem.fields['杭州分区'] || '',
+                                students: students
+                            });
+                        }
+                    } catch (error) {
+                        console.error('获取课程数据失败:', error);
+                    }
+                }
+                
+                // 准备发送到服务器的数据
+                const requestData = {
+                    courses: selectedCourses,
+                    style: marketingStyle,
+                    audience: targetAudience
+                };
+                
+                // 发送请求到服务器
+                const response = await fetch('/api/generate-marketing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`营销内容生成失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || '生成失败');
+                }
+                
+                // 隐藏加载中状态，显示结果
+                document.getElementById('loadingMarketing').style.display = 'none';
+                document.getElementById('marketingResult').style.display = 'block';
+                
+                // 填充结果
+                document.getElementById('marketingTitle').textContent = result.title || '';
+                document.getElementById('marketingContent').textContent = result.content || '';
+                
+                // 处理标签
+                const tagsContainer = document.getElementById('marketingTags');
+                tagsContainer.innerHTML = '';
+                
+                if (result.tags && result.tags.length > 0) {
+                    result.tags.forEach(tag => {
+                        const tagElement = document.createElement('span');
+                        tagElement.textContent = `#${tag}`;
+                        tagElement.style.cssText = `
+                            background-color: #f0e6ff;
+                            color: #9c27b0;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 13px;
+                        `;
+                        tagsContainer.appendChild(tagElement);
+                    });
+                }
+                
+                // 显示复制按钮
+                document.getElementById('copyBtn').style.display = 'inline-block';
+                
+            } catch (error) {
+                console.error('生成营销内容失败:', error);
+                document.getElementById('loadingMarketing').style.display = 'none';
+                alert(`生成失败: ${error.message}`);
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        // 复制营销内容
+        function copyMarketingContent() {
+            try {
+                const title = document.getElementById('marketingTitle').textContent;
+                const content = document.getElementById('marketingContent').textContent;
+                
+                // 获取所有标签
+                const tagElements = document.getElementById('marketingTags').querySelectorAll('span');
+                const tags = Array.from(tagElements).map(el => el.textContent).join(' ');
+                
+                // 组合完整内容
+                const fullContent = `${title}\n\n${content}\n\n${tags}`;
+                
+                // 复制到剪贴板
+                navigator.clipboard.writeText(fullContent)
+                    .then(() => {
+                        // 显示成功提示
+                        const copyBtn = document.getElementById('copyBtn');
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="material-icons" style="font-size: 16px; margin-right: 4px; vertical-align: middle;">check</i>复制成功';
+                        copyBtn.style.backgroundColor = '#4CAF50';
+                        
+                        // 3秒后恢复按钮原样
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                            copyBtn.style.backgroundColor = '#9c27b0';
+                        }, 3000);
+                    })
+                    .catch(err => {
+                        console.error('复制失败:', err);
+                        alert('复制失败，请手动复制');
+                    });
+            } catch (error) {
+                console.error('复制营销内容失败:', error);
+                alert('复制失败，请手动复制');
+            }
+        }
+
+        // 3. 添加课程选择统计功能
+        function updateCourseSelectionCount() {
+            const courseCheckboxes = document.querySelectorAll('.course-checkbox:checked');
+            const count = courseCheckboxes.length;
+            const selectionInfo = document.getElementById('courseSelectionInfo');
+            
+            if (count > 0) {
+                selectionInfo.style.display = 'block';
+                selectionInfo.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>已选择 <strong>${count}</strong> 个课程</span>
+                        <button class="memo-button" onclick="showAIMarketingModal()" style="background: #9c27b0; margin: 0;">
+                            <i class="material-icons" style="font-size: 16px; margin-right: 4px;">share</i>
+                            生成小红书营销内容
+                        </button>
+                    </div>
+                `;
+            } else {
+                selectionInfo.style.display = 'none';
+            }
+            
+            // 更新全选框状态
+            const allCheckbox = document.getElementById('selectAllCourses');
+            if (allCheckbox) {
+                const allCourseCheckboxes = document.querySelectorAll('.course-checkbox');
+                allCheckbox.checked = count > 0 && count === allCourseCheckboxes.length;
+            }
+        }
     </script>
     
     <!-- 备忘录侧边栏 -->
@@ -5428,6 +5718,72 @@
             <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
                 <button onclick="closeJoinClassFromSelectionModal()" style="padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 4px; cursor: pointer;">取消</button>
                 <button onclick="joinClassFromSelection()" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">确认加入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加AI营销模态框 -->
+    <div id="aiMarketingModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>AI营销 - 生成小红书推广贴</h3>
+                <button onclick="closeAIMarketingModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <p>基于选中的学员数据，生成小红书推广贴文，帮助课程宣传。</p>
+                    <div style="margin-top: 10px;">
+                        <label>营销风格：</label>
+                        <select id="marketingStyle" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-left: 10px;">
+                            <option value="轻松生活">轻松生活</option>
+                            <option value="专业知识">专业知识</option>
+                            <option value="亲子互动">亲子互动</option>
+                            <option value="青少年成长">青少年成长</option>
+                            <option value="职场技能">职场技能</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label>目标人群：</label>
+                        <select id="targetAudience" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-left: 10px;">
+                            <option value="上班族">上班族</option>
+                            <option value="学生">学生</option>
+                            <option value="家长">家长</option>
+                            <option value="教育工作者">教育工作者</option>
+                            <option value="通用人群">通用人群</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="loadingMarketing" style="display: none; text-align: center; padding: 20px;">
+                    <i class="material-icons" style="font-size: 48px; color: #9c27b0; animation: rotate 2s linear infinite;">autorenew</i>
+                    <p>AI正在创作中，请稍候...</p>
+                </div>
+                
+                <div id="marketingResult" style="display: none;">
+                    <div style="margin-bottom: 15px; background-color: #f9f0ff; padding: 15px; border-radius: 8px; border-left: 4px solid #9c27b0;">
+                        <h3 style="margin-top: 0; color: #333;">小红书标题</h3>
+                        <div id="marketingTitle" style="font-weight: bold; font-size: 18px; color: #9c27b0;"></div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="margin-top: 0; color: #333;">正文内容</h3>
+                        <div id="marketingContent" style="white-space: pre-wrap; line-height: 1.6;"></div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="margin-top: 0; color: #333;">推荐标签</h3>
+                        <div id="marketingTags" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeAIMarketingModal()" style="padding: 8px 16px; background: #f5f5f5; border: none; border-radius: 4px; cursor: pointer;">关闭</button>
+                <button onclick="copyMarketingContent()" id="copyBtn" style="padding: 8px 16px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; display: none;">
+                    <i class="material-icons" style="font-size: 16px; margin-right: 4px; vertical-align: middle;">content_copy</i>复制内容
+                </button>
+                <button onclick="generateMarketing()" id="generateBtn" style="padding: 8px 16px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    生成内容
+                </button>
             </div>
         </div>
     </div>

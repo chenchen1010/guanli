@@ -1075,7 +1075,7 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
         ${filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : '无筛选条件'}
         
         注意：
-        忽略订单状态为“已退款”和“意向中”的学员。
+        忽略订单状态为"已退款"和"意向中"的学员。
         一个单位可以即是机构，又是渠道。
         渠道为招生端，收取了学员学费为实收金额，招生收益是招生端的实际收益。
         实收金额减去招生收益是机构收益，是机构交付服务的收益。
@@ -1084,12 +1084,12 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
         请提供以下分析:
         1. 计算机构收益，应转给不同机构的金额，附录不同机构涉及的报名学员详情；先分析完一个机构，再分析下一个机构。
         2. 计算渠道费，只涉及新青年和机构之间的资金流转，正数是机构应付给新青年的费用，负数是新青年付给机构的费用；附录不同机构涉及的报名学员详情；先分析完一个机构，再分析下一个机构。
-        3. 新青年的收益，分为三部分，一部分是招生收益，渠道为”新青年“或“-”，没有这两种渠道，就为0。一部分是渠道费，就是涉及学员渠道费的加和。一部分是机构为“麦兜自营”的课程的机构收益，最后进行汇总。
+        3. 新青年的收益，分为三部分，一部分是招生收益，渠道为"新青年"或"-"，没有这两种渠道，就为0。一部分是渠道费，就是涉及学员渠道费的加和。一部分是机构为"麦兜自营"的课程的机构收益，最后进行汇总。
         
         机构收益示例：
         - 机构：新趣
         - 机构收益计算：
-        - 实收金额总和：对于状态不为“已退款”和“意向中”的学员，实收金额分别为600（学员2）、600（学员4）、600（学员5）、600（学员7）、600（学员8）、500（学员9），总和为 \(600\times5 + 500=3500\)。
+        - 实收金额总和：对于状态不为"已退款"和"意向中"的学员，实收金额分别为600（学员2）、600（学员4）、600（学员5）、600（学员7）、600（学员8）、500（学员9），总和为 \(600\times5 + 500=3500\)。
         - 招生收益总和：每个学员招生收益都是240，共6个学员（学员2、4、5、7、8、9），总和为 \(240\times6 = 1440\)。
         机构收益 = 实收金额总和 - 招生收益总和 = \(3500 - 1440=2060\)。
         - 涉及报名学员详情：
@@ -1101,12 +1101,12 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
         - 学员9：微信名9，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额500，招生收益240。
         
         渠道费示例：
-        - 渠道“本地宝”：
+        - 渠道"本地宝"：
         - 学员2：渠道成本36
         - 学员3：渠道成本36
         - 学员6：渠道成本36
         - 学员9：渠道成本36
-        渠道“本地宝”总金额 = 36×4 = 144
+        渠道"本地宝"总金额 = 36×4 = 144
         - 涉及报名学员详情：
         - 学员2：微信名2，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额600，招生收益240。
         - 学员3：微信名3，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额600，招生收益240。
@@ -1176,6 +1176,167 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
         res.status(500).json({
             success: false,
             error: '分析失败: ' + error.message
+        });
+    }
+});
+
+// AI营销内容生成接口
+app.post('/api/generate-marketing', requireAuth, async (req, res) => {
+    try {
+        // 从请求中获取课程数据
+        const { courses, style, audience } = req.body;
+        
+        console.log('收到AI营销请求，请求数据大小:', JSON.stringify(req.body).length);
+        
+        if (!courses || !Array.isArray(courses) || courses.length === 0) {
+            return res.status(400).json({ success: false, error: '课程数据不能为空' });
+        }
+        
+        // 准备提交给AI模型的提示词
+        const prompt = `
+        请为以下夜校课程创建一篇小红书风格的宣传文章。
+        
+        课程详情:
+        ${courses.map(course => `
+        课程名称: ${course.courseName}
+        价格: ${course.price}元
+        上课时间: ${course.class_time || '可咨询客服'}
+        上课地点: ${course.location || '杭州市内'}
+        所在区域: ${course.area || '多区域可选'}
+        开课人数: ${course.min_students || '无限制'}-${course.max_students || '无限制'}人
+        机构: ${course.institution || '杭州新青年夜校'}
+        已报名学员: ${course.students ? course.students.length : 0}人
+        `).join('\n')}
+        
+        风格要求: ${style || '轻松生活'}
+        目标受众: ${audience || '通用人群'}
+        
+        注意事项:
+        1. 创建一个吸引人的标题，字数在15-25字之间。
+        2. 正文内容需要符合小红书的风格，包括:
+           - 使用轻松活泼的语言
+           - 使用表情符号增加亲和力
+           - 包含个人感受和真实体验
+           - 强调课程的特色和优势
+           - 添加一些悬念或引人好奇的表述
+        3. 文章结构应包括:
+           - 吸引人的开场白
+           - 课程介绍和特色描述
+           - 适合人群
+           - 价格和优惠信息
+           - 体验感受或预期收获
+           - 号召行动
+        4. 生成5-8个适合该课程的小红书标签，每个标签不超过6个字。
+        5. 总字数控制在600字以内。
+        
+        请以JSON格式返回结果，包含以下字段:
+        {
+            "title": "小红书标题",
+            "content": "正文内容",
+            "tags": ["标签1", "标签2", "标签3", "标签4", "标签5"]
+        }
+        
+        只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。
+        `;
+        
+        console.log('AI营销请求提示词:', prompt);
+        
+        const modelId = process.env.ARK_ENDPOINT_ID || 'doubao-1.5-thinking-pro';
+        console.log('使用的AI模型:', modelId);
+        
+        // 调用火山方舟AI模型
+        try {
+            console.log('开始调用AI模型...');
+            const response = await openai.chat.completions.create({
+                messages: [
+                    { 
+                        role: 'system', 
+                        content: '你是一位擅长内容创作的社交媒体营销专家。擅长使用表情符号增加内容亲和力，文风活泼吸引人。' 
+                    },
+                    { 
+                        role: 'user', 
+                        content: [
+                            {
+                                type: 'text',
+                                text: prompt
+                            }
+                        ]
+                    }
+                ],
+                model: modelId,
+                temperature: 0.8,
+                max_tokens: 2000,
+                response_format: { type: "json_object" }
+            });
+            
+            console.log('AI模型调用成功，获得响应');
+            
+            // 处理AI响应
+            let aiResponse;
+            try {
+                // 尝试解析JSON响应
+                const responseContent = response.choices[0].message.content;
+                aiResponse = JSON.parse(responseContent);
+                
+                // 验证返回格式
+                if (!aiResponse.title || !aiResponse.content || !aiResponse.tags) {
+                    throw new Error('返回数据格式不完整');
+                }
+            } catch (parseError) {
+                console.error('解析AI响应失败:', parseError);
+                // 如果JSON解析失败，尝试从原始文本中提取内容
+                const rawContent = response.choices[0].message.content;
+                
+                // 提取标题
+                const titleMatch = rawContent.match(/["']title["']\s*:\s*["'](.+?)["']/);
+                const title = titleMatch ? titleMatch[1] : '杭州夜校课程推荐';
+                
+                // 提取内容
+                const contentMatch = rawContent.match(/["']content["']\s*:\s*["'](.+?)["']/s);
+                const content = contentMatch 
+                    ? contentMatch[1].replace(/\\n/g, '\n').replace(/\\\"/g, '"') 
+                    : '请联系我们了解更多课程信息！';
+                
+                // 提取标签
+                const tagsText = rawContent.match(/["']tags["']\s*:\s*\[(.*?)\]/s);
+                const tags = tagsText 
+                    ? tagsText[1].split(',').map(tag => tag.trim().replace(/["']/g, '')) 
+                    : ['杭州夜校', '兴趣培训', '成人教育', '技能提升', '课程推荐'];
+                
+                aiResponse = { title, content, tags };
+            }
+            
+            // 记录操作
+            await logOperation(
+                '生成营销内容', 
+                `用户${req.session.user.username}使用AI生成了小红书营销内容，风格: ${style}, 目标人群: ${audience}`, 
+                req.session.user.username
+            );
+            
+            // 返回AI生成结果
+            res.json({
+                success: true,
+                title: aiResponse.title,
+                content: aiResponse.content,
+                tags: aiResponse.tags
+            });
+        } catch (apiError) {
+            console.error('调用AI API失败:', apiError);
+            console.error('错误详情:', JSON.stringify(apiError, null, 2));
+            
+            if (apiError.response) {
+                console.error('API响应状态:', apiError.response.status);
+                console.error('API响应数据:', apiError.response.data);
+            }
+            
+            throw new Error(`AI API调用失败: ${apiError.message}`);
+        }
+    } catch (error) {
+        console.error('AI营销内容生成失败:', error);
+        console.error('错误堆栈:', error.stack);
+        res.status(500).json({
+            success: false,
+            error: '生成失败: ' + error.message
         });
     }
 });
