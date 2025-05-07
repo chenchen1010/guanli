@@ -1184,7 +1184,7 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
 app.post('/api/generate-marketing', requireAuth, async (req, res) => {
     try {
         // 从请求中获取课程数据
-        const { courses, style, audience } = req.body;
+        const { courses, style, audience, model } = req.body;
         
         console.log('收到AI营销请求，请求数据大小:', JSON.stringify(req.body).length);
         
@@ -1241,7 +1241,8 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
         
         console.log('AI营销请求提示词:', prompt);
         
-        const modelId = process.env.ARK_ENDPOINT_ID || 'doubao-1.5-thinking-pro';
+        // 使用传入的模型ID，如果未提供则使用默认模型
+        const modelId = model || 'deepseek-r1-250120';
         console.log('使用的AI模型:', modelId);
         
         // 调用火山方舟AI模型
@@ -1268,7 +1269,7 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
                 max_tokens: 2000,
                 response_format: { type: "json_object" }
             });
-            
+            console.log(response);
             console.log('AI模型调用成功，获得响应');
             
             // 处理AI响应

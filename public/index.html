@@ -1923,10 +1923,10 @@
             加入现有班级
         </button>
         <!-- 添加AI营销按钮 -->
-        <button class="join-class-btn" onclick="showAIMarketingModal()" style="background: #9c27b0;">
+        <!-- <button class="join-class-btn" onclick="showAIMarketingModal()" style="background: #9c27b0;">
             <i class="material-icons">share</i>
             AI营销小红书
-        </button>
+        </button> -->
     </div>
 
     <!-- 创建新班级模态框 -->
@@ -5433,6 +5433,7 @@
                 const selectedCheckboxes = document.querySelectorAll('.course-checkbox:checked');
                 const marketingStyle = document.getElementById('marketingStyle').value;
                 const targetAudience = document.getElementById('targetAudience').value;
+                const aiModel = document.getElementById('aiModel').value; // 获取选择的AI模型
                 
                 if (selectedCheckboxes.length === 0) {
                     alert('请至少选择一个课程进行营销宣传');
@@ -5479,9 +5480,11 @@
                 const requestData = {
                     courses: selectedCourses,
                     style: marketingStyle,
-                    audience: targetAudience
+                    audience: targetAudience,
+                    model: aiModel // 添加模型参数
                 };
                 
+                console.log(requestData);            
                 // 发送请求到服务器
                 const response = await fetch('/api/generate-marketing', {
                     method: 'POST',
@@ -5490,6 +5493,7 @@
                     },
                     body: JSON.stringify(requestData)
                 });
+                console.log(response);
                 
                 if (!response.ok) {
                     throw new Error(`营销内容生成失败: ${response.status} ${response.statusText}`);
@@ -5750,6 +5754,16 @@
                             <option value="家长">家长</option>
                             <option value="教育工作者">教育工作者</option>
                             <option value="通用人群">通用人群</option>
+                        </select>
+                    </div>
+                    <!-- 新增AI模型选择 -->
+                    <div style="margin-top: 10px;">
+                        <label>AI模型：</label>
+                        <select id="aiModel" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-left: 10px;">
+                            <option value="doubao-1.5-vision-pro-250328" selected>豆包AI-视觉专业版</option>
+                            <option value="doubao-1-5-thinking-pro-250415">豆包AI-思考专业版</option>
+                            <option value="deepseek-r1-250120">DeepSeek-R1</option>
+                            <option value="deepseek-v3-250324">DeepSeek-V3</option>
                         </select>
                     </div>
                 </div>
