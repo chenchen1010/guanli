@@ -574,6 +574,38 @@
         .income-table tr:has(.student-checkbox:checked) {
             background-color: #f0f9eb;
         }
+
+        /* 列宽拖拽相关样式 */
+        .income-table th {
+            position: relative;
+            user-select: none;
+        }
+
+        .income-table th .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: rgba(0, 0, 0, 0.1);
+            cursor: col-resize;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .income-table th:hover .resizer {
+            opacity: 1;
+        }
+
+        .income-table.resizing {
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        .income-table.resizing th,
+        .income-table.resizing td {
+            border-right: 2px solid #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -706,22 +738,22 @@
             <table class="income-table">
                 <thead>
                     <tr>
-                        <th style="width: 40px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
-                        <th style="width: 80px;">微信名</th>
-                        <th style="width: 180px;">报名课程</th>
-                        <th style="width: 100px;">渠道</th>
-                        <th style="width: 120px;">订单状态</th>
-                        <th style="width: 120px;">意向上课时间</th>
-                        <th style="width: 100px;">报名日期</th>
-                        <th style="width: 100px;">退款日期</th>
-                        <th style="width: 100px;">开班日期</th>
-                        <th style="width: 120px;">所属班级</th>
-                        <th style="width: 100px;">备注</th>
-                        <th style="width: 120px;">机构</th>
-                        <th style="width: 80px;">实收金额</th>
-                        <th style="width: 80px;">招生收益</th>
-                        <th style="width: 80px;">渠道费</th>
-                        <th style="width: 80px;">新青年收益</th>
+                        <th style="width: 40px;" data-col="checkbox"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"><div class="resizer"></div></th>
+                        <th style="width: 80px;" data-col="wechatName">微信名<div class="resizer"></div></th>
+                        <th style="width: 180px;" data-col="courseName">报名课程<div class="resizer"></div></th>
+                        <th style="width: 100px;" data-col="channel">渠道<div class="resizer"></div></th>
+                        <th style="width: 120px;" data-col="status">订单状态<div class="resizer"></div></th>
+                        <th style="width: 120px;" data-col="preferredTime">意向上课时间<div class="resizer"></div></th>
+                        <th style="width: 100px;" data-col="addedDate">报名日期<div class="resizer"></div></th>
+                        <th style="width: 100px;" data-col="refundDate">退款日期<div class="resizer"></div></th>
+                        <th style="width: 100px;" data-col="classStartDate">开班日期<div class="resizer"></div></th>
+                        <th style="width: 120px;" data-col="className">所属班级<div class="resizer"></div></th>
+                        <th style="width: 100px;" data-col="remarks">备注<div class="resizer"></div></th>
+                        <th style="width: 120px;" data-col="institution">机构<div class="resizer"></div></th>
+                        <th style="width: 80px;" data-col="amount">实收金额<div class="resizer"></div></th>
+                        <th style="width: 80px;" data-col="recruitmentIncome">招生收益<div class="resizer"></div></th>
+                        <th style="width: 80px;" data-col="channelCost">渠道费<div class="resizer"></div></th>
+                        <th style="width: 80px;" data-col="newYouthIncome">新青年收益<div class="resizer"></div></th>
                     </tr>
                 </thead>
                 <tbody id="incomeTableBody">
@@ -1224,6 +1256,12 @@
                 mainContent.classList.add('expanded');
             }
 
+            // 初始化列宽拖拽功能
+            initColumnResize();
+
+            // 恢复保存的列宽
+            restoreColumnWidths();
+
             // 初始化状态选择器
             const statusSelector = document.getElementById('statusSelector');
             const statusHeader = statusSelector.querySelector('.status-selector-header');
@@ -1705,6 +1743,76 @@
         function toggleAllCheckboxes(checkbox) {
             const checkboxes = document.querySelectorAll('.student-checkbox');
             checkboxes.forEach(cb => cb.checked = checkbox.checked);
+        }
+
+        // 列宽拖拽相关函数
+        function initColumnResize() {
+            const table = document.querySelector('.income-table');
+            const cols = table.querySelectorAll('th');
+            let isResizing = false;
+            let currentCol;
+            let startX;
+            let startWidth;
+
+            cols.forEach(col => {
+                const resizer = col.querySelector('.resizer');
+                if (!resizer) return;
+
+                resizer.addEventListener('mousedown', e => {
+                    isResizing = true;
+                    currentCol = col;
+                    startX = e.pageX;
+                    startWidth = col.offsetWidth;
+                    table.classList.add('resizing');
+
+                    // 阻止事件冒泡和默认行为
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
+            });
+
+            document.addEventListener('mousemove', e => {
+                if (!isResizing) return;
+
+                const width = startWidth + (e.pageX - startX);
+                if (width >= 40) { // 最小宽度限制
+                    currentCol.style.width = `${width}px`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (!isResizing) return;
+
+                isResizing = false;
+                table.classList.remove('resizing');
+
+                // 保存列宽到localStorage
+                if (currentCol) {
+                    const colName = currentCol.getAttribute('data-col');
+                    const width = currentCol.offsetWidth;
+                    saveColumnWidth(colName, width);
+                }
+            });
+        }
+
+        // 保存列宽到localStorage
+        function saveColumnWidth(colName, width) {
+            const columnWidths = JSON.parse(localStorage.getItem('incomeTableColumnWidths') || '{}');
+            columnWidths[colName] = width;
+            localStorage.setItem('incomeTableColumnWidths', JSON.stringify(columnWidths));
+        }
+
+        // 恢复保存的列宽
+        function restoreColumnWidths() {
+            const columnWidths = JSON.parse(localStorage.getItem('incomeTableColumnWidths') || '{}');
+            const cols = document.querySelectorAll('.income-table th');
+
+            cols.forEach(col => {
+                const colName = col.getAttribute('data-col');
+                if (colName && columnWidths[colName]) {
+                    col.style.width = `${columnWidths[colName]}px`;
+                }
+            });
         }
     </script>
 </body>
