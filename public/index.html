@@ -5433,14 +5433,24 @@
             document.body.style.overflow = 'auto';
         }
 
-        // 修改生成营销内容函数，使用选中的课程
+        // 添加营销类型切换函数
+        function changeMarketingType() {
+            const marketingType = document.getElementById('marketingType').value;
+            if (confirm('切换营销类型会重置当前编辑的提示词模板，确定要继续吗？')) {
+                document.getElementById('promptTemplate').value = MARKETING_TEMPLATES[marketingType];
+            }
+        }
+
+        // 修改generateMarketing函数，使用自定义提示词
         async function generateMarketing() {
             try {
                 // 获取勾选的课程
                 const selectedCheckboxes = document.querySelectorAll('.course-checkbox:checked');
                 const marketingStyle = document.getElementById('marketingStyle').value;
                 const targetAudience = document.getElementById('targetAudience').value;
-                const aiModel = document.getElementById('aiModel').value; // 获取选择的AI模型
+                const aiModel = document.getElementById('aiModel').value;
+                const promptTemplate = document.getElementById('promptTemplate').value;
+                const marketingType = document.getElementById('marketingType').value; // 获取营销类型
                 
                 if (selectedCheckboxes.length === 0) {
                     alert('请至少选择一个课程进行营销宣传');
@@ -5458,10 +5468,8 @@
                 
                 for (const courseId of selectedCourseIds) {
                     try {
-                        // 获取课程信息
                         const courseItem = allDataCache.items.find(item => item.record_id === courseId);
                         if (courseItem) {
-                            // 获取课程相关的学员
                             const studentsResponse = await fetch(`/api/students/${courseId}`);
                             const students = await studentsResponse.json();
                             
@@ -5476,9 +5484,8 @@
                                 institution: courseItem.fields['机构'] || '',
                                 area: courseItem.fields['杭州分区'] || '',
                                 students: students,
-                                details: courseItem.fields['商品详情'] || '', // 添加商品详情字段
-                                // purchase_notice: courseItem.fields['购买须知'] || '', // 添加购买须知字段，可能也有用
-                                category: courseItem.fields['二级分类'] || '' // 添加课程分类，有助于AI理解课程类型
+                                details: courseItem.fields['商品详情'] || '',
+                                category: courseItem.fields['二级分类'] || ''
                             });
                         }
                     } catch (error) {
@@ -5491,7 +5498,9 @@
                     courses: selectedCourses,
                     style: marketingStyle,
                     audience: targetAudience,
-                    model: aiModel // 添加模型参数
+                    model: aiModel,
+                    promptTemplate: promptTemplate, // 添加提示词模板
+                    marketingType: marketingType // 添加营销类型
                 };
                 
                 console.log(requestData);            
@@ -5515,31 +5524,63 @@
                     throw new Error(result.error || '生成失败');
                 }
                 
-                // 隐藏加载中状态，显示结果
+                // 显示结果
                 document.getElementById('loadingMarketing').style.display = 'none';
                 document.getElementById('marketingResult').style.display = 'block';
                 
-                // 填充结果
-                document.getElementById('marketingTitle').textContent = result.title || '';
-                document.getElementById('marketingContent').textContent = result.content || '';
-                
-                // 处理标签
-                const tagsContainer = document.getElementById('marketingTags');
-                tagsContainer.innerHTML = '';
-                
-                if (result.tags && result.tags.length > 0) {
-                    result.tags.forEach(tag => {
-                        const tagElement = document.createElement('span');
-                        tagElement.textContent = `#${tag}`;
-                        tagElement.style.cssText = `
-                            background-color: #f0e6ff;
-                            color: #9c27b0;
-                            padding: 4px 8px;
-                            border-radius: 4px;
-                            font-size: 13px;
-                        `;
-                        tagsContainer.appendChild(tagElement);
-                    });
+                // 根据营销类型展示结果
+                if (marketingType === 'xiaohongshu') {
+                    // 小红书格式：标题、内容、标签
+                    document.getElementById('marketingTitle').textContent = result.title || '';
+                    document.getElementById('marketingContent').textContent = result.content || '';
+                    
+                    // 处理标签
+                    const tagsContainer = document.getElementById('marketingTags');
+                    tagsContainer.innerHTML = '';
+                    
+                    if (result.tags && result.tags.length > 0) {
+                        result.tags.forEach(tag => {
+                            const tagElement = document.createElement('span');
+                            tagElement.textContent = `#${tag}`;
+                            tagElement.style.cssText = `
+                                background-color: #f0e6ff;
+                                color: #9c27b0;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                font-size: 13px;
+                                margin-right: 8px;
+                                margin-bottom: 8px;
+                                display: inline-block;
+                            `;
+                            tagsContainer.appendChild(tagElement);
+                        });
+                    }
+                } else {
+                    // 其他格式：只有内容，没有标题
+                    document.getElementById('marketingTitle').textContent = '';
+                    document.getElementById('marketingContent').textContent = result.content || '';
+                    
+                    // 如果有标签，展示标签
+                    const tagsContainer = document.getElementById('marketingTags');
+                    tagsContainer.innerHTML = '';
+                    
+                    if (result.tags && result.tags.length > 0) {
+                        result.tags.forEach(tag => {
+                            const tagElement = document.createElement('span');
+                            tagElement.textContent = `#${tag}`;
+                            tagElement.style.cssText = `
+                                background-color: #f0e6ff;
+                                color: #9c27b0;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                font-size: 13px;
+                                margin-right: 8px;
+                                margin-bottom: 8px;
+                                display: inline-block;
+                            `;
+                            tagsContainer.appendChild(tagElement);
+                        });
+                    }
                 }
                 
                 // 显示复制按钮
@@ -5621,9 +5662,10 @@
             }
         }
 
-        // 默认提示词模板
-        const DEFAULT_PROMPT_TEMPLATE =
- `请为以下夜校课程创建一篇小红书风格的宣传文章。
+        // 定义各种类型的模板
+        const MARKETING_TEMPLATES = {
+            // 小红书模板
+            'xiaohongshu': `请为以下夜校课程创建一篇小红书风格的宣传文章。
 
 课程详情:{courses}
 风格要求: {style}
@@ -5654,130 +5696,173 @@
     "tags": ["标签1", "标签2", "标签3", "标签4", "标签5"]
 }
 
-只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`;
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`,
 
-        // 重置提示词模板
+            // 朋友圈文案模板
+            'wechat-moments': `请为以下夜校课程创建一篇朋友圈风格的简洁宣传文案。
+
+课程详情:{courses}
+风格要求: {style}
+目标受众: {audience}
+
+注意事项:
+1. 创建简短有力的开头，吸引读者注意。
+2. 正文内容特点:
+   - 简洁明了，篇幅短小
+   - 使用适量表情符号增加亲和力
+   - 强调课程的独特卖点和优势
+3. 包含以下要素:
+   - 课程名称和简介
+   - 价格和优惠信息
+   - 适合人群
+   - 简短号召性用语
+4. 总字数控制在200字以内。
+5. 末尾添加最多3个适合的标签。
+
+请以JSON格式返回结果，包含以下字段:
+{
+    "content": "朋友圈文案内容",
+    "tags": ["标签1", "标签2", "标签3"]
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`,
+
+            // 微信群-待上课统计(整体)模板
+            'wechat-class-stats': `请为以下夜校课程生成一个微信群消息，统计所有待上课程的总体情况。
+
+课程详情:{courses}
+
+注意事项:
+1. 使用简洁明了的格式统计待上课程数量。
+2. 内容包括:
+   - 总体统计数字(总课程数、总学员数等)
+   - 按区域分类的课程数量
+   - 按类型分类的课程数量
+   - 近期即将开班的课程提醒
+3. 风格正式、清晰，使用清单或表格形式。
+4. 在开头和结尾加上简短的鼓励性话语。
+5. 适当添加表情符号增加亲切感。
+
+请以JSON格式返回结果:
+{
+    "content": "微信群消息内容"
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`,
+
+            // 微信群-即将开班名额模板
+            'wechat-upcoming-class': `请为以下即将开班的夜校课程生成微信群通知，突出剩余名额情况。
+
+课程详情:{courses}
+
+注意事项:
+1. 创建一个紧迫感强的通知。
+2. 内容包括:
+   - 课程名称和特色
+   - 开课时间和地点
+   - 已报名人数和剩余名额
+   - 报名截止日期
+3. 突出"即将满额"或"仅剩少量名额"等紧迫感表述。
+4. 包含报名方式和咨询方式。
+5. 适当使用表情符号增加吸引力。
+6. 总体风格紧凑有力，激发行动。
+
+请以JSON格式返回结果:
+{
+    "content": "微信群通知内容"
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`,
+
+            // 微信群-单课组班模板
+            'wechat-single-class': `请为以下单个夜校课程生成微信群组班通知。
+
+课程详情:{courses}
+
+注意事项:
+1. 通知应包含:
+   - 课程名称和简介
+   - 课程内容要点(3-5点)
+   - 上课时间、地点、课时安排
+   - 已报名人数和开班所需人数
+   - 价格和优惠信息
+2. 突出显示"正在组班中"和当前进度。
+3. 鼓励已报名的学员邀请朋友一起参加。
+4. 明确说明报名方式和咨询渠道。
+5. 整体风格积极友好，不要过于销售。
+6. 适当使用表情符号增加亲和力。
+
+请以JSON格式返回结果:
+{
+    "content": "微信群组班通知内容"
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`,
+
+            // 微信群-课程专场组班模板
+            'wechat-zhuanchang-class': `请为以下多个同一类型的夜校课程生成微信群组班推广。
+
+课程详情:{courses}
+
+注意事项:
+1. 通知应包含:
+   - 课程痛点
+   - 课程亮点，内容要点(如何解决痛点)
+   - 预计开班时间（如果有这部分数据）+课程名+上课时间+地点+剩余几个名额
+   示例：【5.12开课 化妆-上城九堡】 周一19:00-20:30 剩3个名额
+   - 课程名+上课时间+地点+差几人（如果有这部分数据）
+   示例：【化妆-萧山区】周三19:00-21:00 差3人成团
+
+请以JSON格式返回结果:
+{
+    "content": "微信群组班通知内容"
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`,
+
+            // 微信群-新课上新通知模板
+            'wechat-new-class': `请为以下新上线的夜校课程生成微信群新课通知。
+
+课程详情:{courses}
+
+注意事项:
+1. 用醒目的方式标明"新课上新"。
+2. 内容包括:
+   - 课程名称和吸引人的简介
+   - 课程亮点和独特之处(3-5点)
+   - 针对目标人群的收益说明
+   - 开课时间、地点、课时安排
+   - 特别优惠(首发价、早鸟价等)
+3. 强调课程的创新性或市场稀缺性。
+4. 明确报名方式和咨询渠道。
+5. 可以适当提及名额有限，激发紧迫感。
+6. 风格热情洋溢，激发兴趣。
+7. 适当使用表情符号增加吸引力。
+
+请以JSON格式返回结果:
+{
+    "content": "新课上新通知内容"
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`
+        };
+
+        // 默认使用小红书模板
+        const DEFAULT_PROMPT_TEMPLATE = MARKETING_TEMPLATES['xiaohongshu'];
+
+        // 修改重置提示词模板函数，考虑当前选择的营销类型
         function resetPromptTemplate() {
             if (confirm('确定要重置提示词模板为默认值吗？')) {
-                document.getElementById('promptTemplate').value = DEFAULT_PROMPT_TEMPLATE;
+                const marketingType = document.getElementById('marketingType').value;
+                document.getElementById('promptTemplate').value = MARKETING_TEMPLATES[marketingType];
             }
         }
 
-        // 修改generateMarketing函数，使用自定义提示词
-        async function generateMarketing() {
-            try {
-                // 获取勾选的课程
-                const selectedCheckboxes = document.querySelectorAll('.course-checkbox:checked');
-                const marketingStyle = document.getElementById('marketingStyle').value;
-                const targetAudience = document.getElementById('targetAudience').value;
-                const aiModel = document.getElementById('aiModel').value;
-                const promptTemplate = document.getElementById('promptTemplate').value;
-                
-                if (selectedCheckboxes.length === 0) {
-                    alert('请至少选择一个课程进行营销宣传');
-                    return;
-                }
-                
-                // 显示加载中状态
-                document.getElementById('loadingMarketing').style.display = 'block';
-                document.getElementById('marketingResult').style.display = 'none';
-                document.getElementById('generateBtn').disabled = true;
-                
-                // 获取选中课程的数据
-                const selectedCourseIds = Array.from(selectedCheckboxes).map(cb => cb.getAttribute('data-record-id'));
-                const selectedCourses = [];
-                
-                for (const courseId of selectedCourseIds) {
-                    try {
-                        const courseItem = allDataCache.items.find(item => item.record_id === courseId);
-                        if (courseItem) {
-                            const studentsResponse = await fetch(`/api/students/${courseId}`);
-                            const students = await studentsResponse.json();
-                            
-                            selectedCourses.push({
-                                courseId,
-                                courseName: courseItem.fields['商品名称'] || '',
-                                price: courseItem.fields['会员价格'] || '',
-                                class_time: courseItem.fields['上课时间'] || '',
-                                location: courseItem.fields['机构地址'] || '',
-                                min_students: courseItem.fields['最少上课人数'] || '',
-                                max_students: courseItem.fields['最大上课人数'] || '',
-                                institution: courseItem.fields['机构'] || '',
-                                area: courseItem.fields['杭州分区'] || '',
-                                students: students,
-                                details: courseItem.fields['商品详情'] || '',
-                                category: courseItem.fields['二级分类'] || ''
-                            });
-                        }
-                    } catch (error) {
-                        console.error('获取课程数据失败:', error);
-                    }
-                }
-                
-                // 准备发送到服务器的数据
-                const requestData = {
-                    courses: selectedCourses,
-                    style: marketingStyle,
-                    audience: targetAudience,
-                    model: aiModel,
-                    promptTemplate: promptTemplate // 添加提示词模板
-                };
-                
-                console.log(requestData);            
-                // 发送请求到服务器
-                const response = await fetch('/api/generate-marketing', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
-                });
-                console.log(response);
-                
-                if (!response.ok) {
-                    throw new Error(`营销内容生成失败: ${response.status} ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error(result.error || '生成失败');
-                }
-                
-                // 显示结果
-                document.getElementById('loadingMarketing').style.display = 'none';
-                document.getElementById('marketingResult').style.display = 'block';
-                document.getElementById('marketingTitle').textContent = result.title || '';
-                document.getElementById('marketingContent').textContent = result.content || '';
-                
-                // 处理标签
-                const tagsContainer = document.getElementById('marketingTags');
-                tagsContainer.innerHTML = '';
-                
-                if (result.tags && result.tags.length > 0) {
-                    result.tags.forEach(tag => {
-                        const tagElement = document.createElement('span');
-                        tagElement.textContent = `#${tag}`;
-                        tagElement.style.cssText = `
-                            background-color: #f0e6ff;
-                            color: #9c27b0;
-                            padding: 4px 8px;
-                            border-radius: 4px;
-                            font-size: 13px;
-                        `;
-                        tagsContainer.appendChild(tagElement);
-                    });
-                }
-                
-                // 显示复制按钮
-                document.getElementById('copyBtn').style.display = 'inline-block';
-                
-            } catch (error) {
-                console.error('生成营销内容失败:', error);
-                document.getElementById('loadingMarketing').style.display = 'none';
-                alert(`生成失败: ${error.message}`);
-            } finally {
-                document.getElementById('generateBtn').disabled = false;
+        // 添加营销类型切换函数
+        function changeMarketingType() {
+            const marketingType = document.getElementById('marketingType').value;
+            if (confirm('切换营销类型会重置当前编辑的提示词模板，确定要继续吗？')) {
+                document.getElementById('promptTemplate').value = MARKETING_TEMPLATES[marketingType];
             }
         }
     </script>
@@ -5936,6 +6021,19 @@
                             <option value="deepseek-v3-250324">DeepSeek-V3</option>
                         </select>
                     </div>
+                    <!-- 在AI模型选择后添加营销类型下拉列表 -->
+                    <div style="margin-top: 10px;">
+                        <label>营销类型：</label>
+                        <select id="marketingType" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-left: 10px;" onchange="changeMarketingType()">
+                            <option value="xiaohongshu">小红书文案</option>
+                            <option value="wechat-moments">朋友圈文案</option>
+                            <option value="wechat-class-stats">微信群-待上课统计(整体)</option>
+                            <option value="wechat-upcoming-class">微信群-即将开班名额</option>
+                            <option value="wechat-single-class">微信群-单课组班</option>
+                            <option value="wechat-zhuanchang-class">微信群-课程专场</option>
+                            <option value="wechat-new-class">微信群-新课上新通知</option>
+                        </select>
+                    </div>
                     <!-- 添加提示词编辑区域 -->
                     <div style="margin-top: 20px;">
                         <label style="display: block; margin-bottom: 10px;">
@@ -5986,7 +6084,7 @@
                 
                 <div id="marketingResult" style="display: none;">
                     <div style="margin-bottom: 15px; background-color: #f9f0ff; padding: 15px; border-radius: 8px; border-left: 4px solid #9c27b0;">
-                        <h3 style="margin-top: 0; color: #333;">小红书标题</h3>
+                        <h3 style="margin-top: 0; color: #333;">标题</h3>
                         <div id="marketingTitle" style="font-weight: bold; font-size: 18px; color: #9c27b0;"></div>
                     </div>
                     

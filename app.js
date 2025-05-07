@@ -1184,9 +1184,10 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
 app.post('/api/generate-marketing', requireAuth, async (req, res) => {
     try {
         // 从请求中获取课程数据
-        const { courses, style, audience, model, promptTemplate } = req.body;
+        const { courses, style, audience, model, promptTemplate, marketingType } = req.body;
         
         console.log('收到AI营销请求，请求数据大小:', JSON.stringify(req.body).length);
+        console.log('营销类型:', marketingType);
         
         if (!courses || !Array.isArray(courses) || courses.length === 0) {
             return res.status(400).json({ success: false, error: '课程数据不能为空' });
@@ -1210,6 +1211,7 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
         请为以下夜校课程创建一篇小红书风格的宣传文章。
         
         课程详情:{courses}
+        
         风格要求: {style}
         目标受众: {audience}
         
@@ -1284,58 +1286,71 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
                 const responseContent = response.choices[0].message.content;
                 aiResponse = JSON.parse(responseContent);
                 
-                // 验证返回格式
-                if (!aiResponse.title || !aiResponse.content || !aiResponse.tags) {
-                    throw new Error('返回数据格式不完整');
+                // 根据营销类型处理结果
+                if (marketingType === 'xiaohongshu') {
+                    // 小红书格式需要验证标题、内容和标签
+                    if (!aiResponse.title || !aiResponse.content || !aiResponse.tags) {
+                        throw new Error('返回数据格式不完整');
+                    }
+                } else {
+                    // 其他格式至少需要content字段
+                    if (!aiResponse.content) {
+                        throw new Error('返回数据格式不完整');
+                    }
+                    // 如果没有tags字段，添加空数组
+                    if (!aiResponse.tags) {
+                        aiResponse.tags = [];
+                    }
                 }
             } catch (parseError) {
                 console.error('解析AI响应失败:', parseError);
                 // 如果JSON解析失败，尝试从原始文本中提取内容
                 const rawContent = response.choices[0].message.content;
                 
-                // 提取标题
-                const titleMatch = rawContent.match(/["']title["']\s*:\s*["'](.+?)["']/);
-                const title = titleMatch ? titleMatch[1] : '杭州夜校课程推荐';
-                
-                // 提取内容
-                const contentMatch = rawContent.match(/["']content["']\s*:\s*["'](.+?)["']/s);
-                const content = contentMatch 
-                    ? contentMatch[1].replace(/\\n/g, '\n').replace(/\\\"/g, '"') 
-                    : '请联系我们了解更多课程信息！';
-                
-                // 提取标签
-                const tagsText = rawContent.match(/["']tags["']\s*:\s*\[(.*?)\]/s);
-                const tags = tagsText 
-                    ? tagsText[1].split(',').map(tag => tag.trim().replace(/["']/g, '')) 
-                    : ['杭州夜校', '兴趣培训', '成人教育', '技能提升', '课程推荐'];
-                
-                aiResponse = { title, content, tags };
+                if (marketingType === 'xiaohongshu') {
+                    // 提取标题
+                    const titleMatch = rawContent.match(/["']title["']\s*:\s*["'](.+?)["']/);
+                    const title = titleMatch ? titleMatch[1] : '杭州夜校课程推荐';
+                    
+                    // 提取内容
+                    const contentMatch = rawContent.match(/["']content["']\s*:\s*["'](.+?)["']/s);
+                    const content = contentMatch 
+                        ? contentMatch[1].replace(/\\n/g, '\n').replace(/\\\"/g, '"') 
+                        : '请联系我们了解更多课程信息！';
+                    
+                    // 提取标签
+                    const tagsText = rawContent.match(/["']tags["']\s*:\s*\[(.*?)\]/s);
+                    const tags = tagsText 
+                        ? tagsText[1].split(',').map(tag => tag.trim().replace(/["']/g, '')) 
+                        : ['杭州夜校', '兴趣培训', '成人教育', '技能提升', '课程推荐'];
+                    
+                    aiResponse = { title, content, tags };
+                } else {
+                    // 对于其他类型，只提取内容
+                    const contentMatch = rawContent.match(/["']content["']\s*:\s*["'](.+?)["']/s);
+                    const content = contentMatch 
+                        ? contentMatch[1].replace(/\\n/g, '\n').replace(/\\\"/g, '"') 
+                        : '请联系我们了解更多课程信息！';
+                    
+                    // 尝试提取标签，如果有
+                    const tagsText = rawContent.match(/["']tags["']\s*:\s*\[(.*?)\]/s);
+                    const tags = tagsText 
+                        ? tagsText[1].split(',').map(tag => tag.trim().replace(/["']/g, '')) 
+                        : [];
+                    
+                    aiResponse = { content, tags };
+                }
             }
             
-            // 记录操作
-            await logOperation(
-                '生成营销内容', 
-                `用户${req.session.user.username}使用AI生成了小红书营销内容，风格: ${style}, 目标人群: ${audience}`, 
-                req.session.user.username
-            );
-            
-            // 返回AI生成结果
-            res.json({
+            // 返回结果
+            return res.json({
                 success: true,
-                title: aiResponse.title,
-                content: aiResponse.content,
-                tags: aiResponse.tags
+                ...aiResponse
             });
-        } catch (apiError) {
-            console.error('调用AI API失败:', apiError);
-            console.error('错误详情:', JSON.stringify(apiError, null, 2));
             
-            if (apiError.response) {
-                console.error('API响应状态:', apiError.response.status);
-                console.error('API响应数据:', apiError.response.data);
-            }
-            
-            throw new Error(`AI API调用失败: ${apiError.message}`);
+        } catch (aiError) {
+            console.error('调用AI模型失败:', aiError);
+            return res.status(500).json({ success: false, error: aiError.message || '生成AI内容失败' });
         }
     } catch (error) {
         console.error('AI营销内容生成失败:', error);
