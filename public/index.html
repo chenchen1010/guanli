@@ -5620,6 +5620,166 @@
                 allCheckbox.checked = count > 0 && count === allCourseCheckboxes.length;
             }
         }
+
+        // 默认提示词模板
+        const DEFAULT_PROMPT_TEMPLATE =
+ `请为以下夜校课程创建一篇小红书风格的宣传文章。
+
+课程详情:{courses}
+风格要求: {style}
+目标受众: {audience}
+
+注意事项:
+1. 创建一个吸引人的标题，字数在15-25字之间。
+2. 正文内容需要符合小红书的风格，包括:
+   - 使用轻松活泼的语言
+   - 使用表情符号增加亲和力
+   - 包含个人感受和真实体验
+   - 强调课程的特色和优势
+   - 添加一些悬念或引人好奇的表述
+3. 文章结构应包括:
+   - 吸引人的开场白
+   - 课程介绍和特色描述
+   - 适合人群
+   - 价格和优惠信息
+   - 体验感受或预期收获
+   - 号召行动
+4. 生成5-8个适合该课程的小红书标签，每个标签不超过6个字。
+5. 总字数控制在600字以内。
+
+请以JSON格式返回结果，包含以下字段:
+{
+    "title": "小红书标题",
+    "content": "正文内容",
+    "tags": ["标签1", "标签2", "标签3", "标签4", "标签5"]
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。`;
+
+        // 重置提示词模板
+        function resetPromptTemplate() {
+            if (confirm('确定要重置提示词模板为默认值吗？')) {
+                document.getElementById('promptTemplate').value = DEFAULT_PROMPT_TEMPLATE;
+            }
+        }
+
+        // 修改generateMarketing函数，使用自定义提示词
+        async function generateMarketing() {
+            try {
+                // 获取勾选的课程
+                const selectedCheckboxes = document.querySelectorAll('.course-checkbox:checked');
+                const marketingStyle = document.getElementById('marketingStyle').value;
+                const targetAudience = document.getElementById('targetAudience').value;
+                const aiModel = document.getElementById('aiModel').value;
+                const promptTemplate = document.getElementById('promptTemplate').value;
+                
+                if (selectedCheckboxes.length === 0) {
+                    alert('请至少选择一个课程进行营销宣传');
+                    return;
+                }
+                
+                // 显示加载中状态
+                document.getElementById('loadingMarketing').style.display = 'block';
+                document.getElementById('marketingResult').style.display = 'none';
+                document.getElementById('generateBtn').disabled = true;
+                
+                // 获取选中课程的数据
+                const selectedCourseIds = Array.from(selectedCheckboxes).map(cb => cb.getAttribute('data-record-id'));
+                const selectedCourses = [];
+                
+                for (const courseId of selectedCourseIds) {
+                    try {
+                        const courseItem = allDataCache.items.find(item => item.record_id === courseId);
+                        if (courseItem) {
+                            const studentsResponse = await fetch(`/api/students/${courseId}`);
+                            const students = await studentsResponse.json();
+                            
+                            selectedCourses.push({
+                                courseId,
+                                courseName: courseItem.fields['商品名称'] || '',
+                                price: courseItem.fields['会员价格'] || '',
+                                class_time: courseItem.fields['上课时间'] || '',
+                                location: courseItem.fields['机构地址'] || '',
+                                min_students: courseItem.fields['最少上课人数'] || '',
+                                max_students: courseItem.fields['最大上课人数'] || '',
+                                institution: courseItem.fields['机构'] || '',
+                                area: courseItem.fields['杭州分区'] || '',
+                                students: students,
+                                details: courseItem.fields['商品详情'] || '',
+                                category: courseItem.fields['二级分类'] || ''
+                            });
+                        }
+                    } catch (error) {
+                        console.error('获取课程数据失败:', error);
+                    }
+                }
+                
+                // 准备发送到服务器的数据
+                const requestData = {
+                    courses: selectedCourses,
+                    style: marketingStyle,
+                    audience: targetAudience,
+                    model: aiModel,
+                    promptTemplate: promptTemplate // 添加提示词模板
+                };
+                
+                console.log(requestData);            
+                // 发送请求到服务器
+                const response = await fetch('/api/generate-marketing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                console.log(response);
+                
+                if (!response.ok) {
+                    throw new Error(`营销内容生成失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || '生成失败');
+                }
+                
+                // 显示结果
+                document.getElementById('loadingMarketing').style.display = 'none';
+                document.getElementById('marketingResult').style.display = 'block';
+                document.getElementById('marketingTitle').textContent = result.title || '';
+                document.getElementById('marketingContent').textContent = result.content || '';
+                
+                // 处理标签
+                const tagsContainer = document.getElementById('marketingTags');
+                tagsContainer.innerHTML = '';
+                
+                if (result.tags && result.tags.length > 0) {
+                    result.tags.forEach(tag => {
+                        const tagElement = document.createElement('span');
+                        tagElement.textContent = `#${tag}`;
+                        tagElement.style.cssText = `
+                            background-color: #f0e6ff;
+                            color: #9c27b0;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 13px;
+                        `;
+                        tagsContainer.appendChild(tagElement);
+                    });
+                }
+                
+                // 显示复制按钮
+                document.getElementById('copyBtn').style.display = 'inline-block';
+                
+            } catch (error) {
+                console.error('生成营销内容失败:', error);
+                document.getElementById('loadingMarketing').style.display = 'none';
+                alert(`生成失败: ${error.message}`);
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
     </script>
     
     <!-- 备忘录侧边栏 -->
@@ -5775,6 +5935,47 @@
                             <option value="deepseek-r1-250120">DeepSeek-R1</option>
                             <option value="deepseek-v3-250324">DeepSeek-V3</option>
                         </select>
+                    </div>
+                    <!-- 添加提示词编辑区域 -->
+                    <div style="margin-top: 20px;">
+                        <label style="display: block; margin-bottom: 10px;">
+                            提示词模板：
+                            <button onclick="resetPromptTemplate()" style="float: right; padding: 4px 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                                重置为默认
+                            </button>
+                        </label>
+                        <textarea id="promptTemplate" style="width: 100%; height: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 14px; line-height: 1.5; resize: vertical;">请为以下夜校课程创建一篇小红书风格的宣传文章。
+
+课程详情:{courses}
+风格要求: {style}
+目标受众: {audience}
+
+注意事项:
+1. 创建一个吸引人的标题，字数在15-25字之间。
+2. 正文内容需要符合小红书的风格，包括:
+   - 使用轻松活泼的语言
+   - 使用表情符号增加亲和力
+   - 包含个人感受和真实体验
+   - 强调课程的特色和优势
+   - 添加一些悬念或引人好奇的表述
+3. 文章结构应包括:
+   - 吸引人的开场白
+   - 课程介绍和特色描述
+   - 适合人群
+   - 价格和优惠信息
+   - 体验感受或预期收获
+   - 号召行动
+4. 生成5-8个适合该课程的小红书标签，每个标签不超过6个字。
+5. 总字数控制在600字以内。
+
+请以JSON格式返回结果，包含以下字段:
+{
+    "title": "小红书标题",
+    "content": "正文内容",
+    "tags": ["标签1", "标签2", "标签3", "标签4", "标签5"]
+}
+
+只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。</textarea>
                     </div>
                 </div>
                 

@@ -1184,7 +1184,7 @@ app.post('/api/analyze-income', requireAuth, async (req, res) => {
 app.post('/api/generate-marketing', requireAuth, async (req, res) => {
     try {
         // 从请求中获取课程数据
-        const { courses, style, audience, model } = req.body;
+        const { courses, style, audience, model, promptTemplate } = req.body;
         
         console.log('收到AI营销请求，请求数据大小:', JSON.stringify(req.body).length);
         
@@ -1192,12 +1192,8 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
             return res.status(400).json({ success: false, error: '课程数据不能为空' });
         }
         
-        // 准备提交给AI模型的提示词
-        const prompt = `
-        请为以下夜校课程创建一篇小红书风格的宣传文章。
-        
-        课程详情:
-        ${courses.map(course => `
+        // 构建课程详情字符串
+        const coursesDetail = courses.map(course => `
         课程名称: ${course.courseName}
         价格: ${course.price}元
         上课时间: ${course.class_time || '可咨询客服'}
@@ -1206,12 +1202,16 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
         开课人数: ${course.min_students || '无限制'}-${course.max_students || '无限制'}人
         课程详情: ${course.details || '暂无详情'}
         课程分类: ${course.category || '未分类'}
-        
         已报名学员: ${course.students ? course.students.length : 0}人
-        `).join('\n')}
+        `).join('\n');
         
-        风格要求: ${style || '轻松生活'}
-        目标受众: ${audience || '通用人群'}
+        // 使用自定义提示词模板，如果没有则使用默认模板
+        const prompt = (promptTemplate || `
+        请为以下夜校课程创建一篇小红书风格的宣传文章。
+        
+        课程详情:{courses}
+        风格要求: {style}
+        目标受众: {audience}
         
         注意事项:
         1. 创建一个吸引人的标题，字数在15-25字之间。
@@ -1239,7 +1239,10 @@ app.post('/api/generate-marketing', requireAuth, async (req, res) => {
         }
         
         只输出JSON内容，不要有其他任何内容。确保JSON格式正确有效。
-        `;
+        `)
+            .replace('{courses}', coursesDetail)
+            .replace('{style}', style || '轻松生活')
+            .replace('{audience}', audience || '通用人群');
         
         console.log('AI营销请求提示词:', prompt);
         
