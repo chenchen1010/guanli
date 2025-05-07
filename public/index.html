@@ -2031,7 +2031,7 @@
             '临安区'
         ];
 
-        // 修改列配置以优化宽度分配
+        // 修改列配置以优化宽度分配 列宽调整
         const defaultColumnConfig = {
             '序号': {
                 width: '2%',
@@ -2082,7 +2082,7 @@
                 format: (value) => `<span class="price" style="font-size: 13px;">¥${value || '-'}</span>`
             },
             '开课状态': {
-                width: '8%',
+                width: '10%',
                 order: 9,
                 async: true,
                 loadData: async (record) => {
@@ -2155,7 +2155,7 @@
                 }
             },
             '报名学员': {
-                width: '28%',
+                width: '40%',
                 order: 10,
                 isStudents: true,
                 format: async (_, record) => {
@@ -3238,7 +3238,7 @@
                 // 为每个目标课程发送一个请求
                 const results = await Promise.all(
                     Object.entries(studentsByTarget).map(async ([courseId, courseStudents]) => {
-                        const courseName = allDataCache.items.find(item => item.record_id === courseId)?.fields['课程名称'] || '';
+                        const courseName = allDataCache.items.find(item => item.record_id === courseId)?.fields['商品名称'] || '';
                         console.log(`准备提交数据到课程 ${courseName}(${courseId}):`, courseStudents);
                         
                         const response = await fetch('/api/students/add', {

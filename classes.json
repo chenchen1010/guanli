@@ -1,90 +1,16 @@
 [
   {
-    "id": "class_1746282125985_c1pejcdvz",
-    "startTime": "2025-05-03T15:00",
-    "duration": "12",
-    "location": "大",
-    "className": "1 2 新版",
+    "id": "class_1746619723659_cge079h3d",
+    "className": "test1【滑板-多区域可选】",
+    "startTime": "2025-05-07T19:00",
+    "duration": 5,
+    "location": "上城区",
     "students": [
-      "1746282035120fj1cw5wxf",
-      "1746282035120c0kci39wi"
+      "1746619681179q1y5jw38a",
+      "17466196811786aerqm84j",
+      "1746619681179vst036qi1"
     ],
     "createdBy": "admin",
-    "createdAt": "2025-05-03T14:22:05.985Z"
-  },
-  {
-    "id": "class_1746319751007_52uw8q824",
-    "startTime": "2025-05-04T01:00",
-    "duration": "12",
-    "location": "23",
-    "className": "2323",
-    "students": [
-      "1746282035120ld0p164ti",
-      "1746282035120el5uz2tf7"
-    ],
-    "createdBy": "admin",
-    "createdAt": "2025-05-04T00:49:11.007Z"
-  },
-  {
-    "id": "class_1746460997694_domlnkwhs",
-    "className": "【Deepseek应用与变现-多地址可选】",
-    "startTime": "2025-05-05T17:00",
-    "duration": 12,
-    "location": "dsas",
-    "students": [
-      "1746456290043rmymq7rn7"
-    ],
-    "createdBy": "admin",
-    "createdAt": "2025-05-05T16:03:17.694Z"
-  },
-  {
-    "id": "class_1746461061448_e0kjrtlt1",
-    "className": "222【Deepseek应用与变现-多地址可选】",
-    "startTime": "2025-05-05T17:00",
-    "duration": 12,
-    "location": "222",
-    "students": [
-      "17464562900439m7yufv7u"
-    ],
-    "createdBy": "admin",
-    "createdAt": "2025-05-05T16:04:21.448Z"
-  },
-  {
-    "id": "class_1746486177885_qjjph2uz8",
-    "className": "事实上【八段锦-上城-闸弄口】",
-    "startTime": "2025-05-06T00:00",
-    "duration": 12,
-    "location": "的",
-    "students": [
-      "1746446435441qi532s2p9",
-      "174648619074109qhgehn1",
-      "17464873172488fp4uquvc"
-    ],
-    "createdBy": "admin",
-    "createdAt": "2025-05-05T23:02:57.886Z"
-  },
-  {
-    "id": "class_1746490251406_amyxlvfqx",
-    "className": "已开班状态【陆冲-上城区】",
-    "startTime": "2025-05-06T01:00",
-    "duration": 12,
-    "location": "的",
-    "students": [
-      "17464901897662y4jx0yjt"
-    ],
-    "createdBy": "admin",
-    "createdAt": "2025-05-06T00:10:51.406Z"
-  },
-  {
-    "id": "class_1746491424705_h227q3tln",
-    "className": "【陆冲-上城区】",
-    "startTime": "2025-05-08T01:00",
-    "duration": 12,
-    "location": "dds",
-    "students": [
-      "174649018976650olzcnve"
-    ],
-    "createdBy": "admin",
-    "createdAt": "2025-05-06T00:30:24.706Z"
+    "createdAt": "2025-05-07T12:08:43.660Z"
   }
 ]
