@@ -706,21 +706,22 @@
             <table class="income-table">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
-                        <th>微信名</th>
-                        <th>报名课程</th>
-                        <th>渠道</th>
-                        <th>订单状态</th>
-                        <th>意向上课时间</th>
-                        <th>报名日期</th>
-                        <th>退款日期</th>
-                        <th>开班日期</th>
-                        <th>所属班级</th>
-                        <th>备注</th>
-                        <th>机构</th>
-                        <th>实收金额</th>
-                        <th>招生收益</th>
-                        <th>渠道费</th>
+                        <th style="width: 40px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"></th>
+                        <th style="width: 80px;">微信名</th>
+                        <th style="width: 180px;">报名课程</th>
+                        <th style="width: 100px;">渠道</th>
+                        <th style="width: 120px;">订单状态</th>
+                        <th style="width: 120px;">意向上课时间</th>
+                        <th style="width: 100px;">报名日期</th>
+                        <th style="width: 100px;">退款日期</th>
+                        <th style="width: 100px;">开班日期</th>
+                        <th style="width: 120px;">所属班级</th>
+                        <th style="width: 100px;">备注</th>
+                        <th style="width: 120px;">机构</th>
+                        <th style="width: 80px;">实收金额</th>
+                        <th style="width: 80px;">招生收益</th>
+                        <th style="width: 80px;">渠道费</th>
+                        <th style="width: 80px;">新青年收益</th>
                     </tr>
                 </thead>
                 <tbody id="incomeTableBody">
@@ -1069,6 +1070,12 @@
                             channelCost = recruitmentIncome * 0.15;
                         }
 
+                        // 获取新青年收益，优先使用手动设置的值
+                        let newYouthIncome = 0;
+                        if (student.newYouthIncome !== undefined) {
+                            newYouthIncome = parseFloat(student.newYouthIncome);
+                        }
+
                         // 只有"已支付"、"已开班"和"已结算"状态的订单才计入总收益
                         if (student.status === '已支付' || student.status === '已开班' || student.status === '已结算') {
                             totalIncome += amount;
@@ -1118,6 +1125,7 @@
                             <td class="amount-cell">¥${amount.toFixed(2)}</td>
                             <td class="amount-cell editable-cell" onclick="makeEditable(this, '${student.id}', 'recruitmentIncome')" data-original="${recruitmentIncome.toFixed(2)}">¥${recruitmentIncome.toFixed(2)}</td>
                             <td class="amount-cell editable-cell" onclick="makeEditable(this, '${student.id}', 'channelCost')" data-original="${channelCost.toFixed(2)}">¥${channelCost.toFixed(2)}</td>
+                            <td class="amount-cell editable-cell" onclick="makeEditable(this, '${student.id}', 'newYouthIncome')" data-original="${newYouthIncome.toFixed(2)}">¥${newYouthIncome.toFixed(2)}</td>
                         `;
                         
                         tableBody.appendChild(tr);
@@ -1473,7 +1481,8 @@
                         '机构': bdData[student.courseId] ? bdData[student.courseId].institution || '-' : '-',
                         '实收金额': amount.toFixed(2),
                         '招生收益': recruitmentIncome.toFixed(2),
-                        '渠道费': channelCost.toFixed(2)
+                        '渠道费': channelCost.toFixed(2),
+                        '新青年收益': (student.newYouthIncome || 0).toFixed(2)
                     };
                 });
                 
@@ -1499,7 +1508,8 @@
                     { wch: 10 }, // 机构
                     { wch: 10 }, // 实收金额
                     { wch: 10 }, // 招生收益
-                    { wch: 10 }  // 渠道费
+                    { wch: 10 }, // 渠道费
+                    { wch: 10 }  // 新青年收益
                 ];
                 
                 worksheet['!cols'] = columnWidths;

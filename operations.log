@@ -16,5 +16,53 @@
     "username": "admin",
     "operation": "加入班级",
     "details": "将1名学员加入班级test1【滑板-多区域可选】"
+  },
+  {
+    "timestamp": "2025/5/7 20:33:55",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 云实, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:37:16",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 云实, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:37:20",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 云实, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:37:37",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 轻舟, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:37:41",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 轻舟, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:38:15",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 何曾放弃过, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:38:30",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 何曾放弃过, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:39:08",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 轻舟, 变更: "
   }
 ]
