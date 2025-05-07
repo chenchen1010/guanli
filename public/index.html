@@ -3682,25 +3682,20 @@
                         const value = item.fields[columnName];
                         cell.innerHTML = config.format ? config.format(value, item) : (value || '-');
                     }
-                    
+                    // 只给"商品名称"列绑定点击事件，弹出详情
+                    if (columnName === '商品名称') {
+                        cell.style.cursor = 'pointer';
+                        cell.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showProductDetail(item.record_id);
+                        });
+                    }
                     row.appendChild(cell);
                 }
-                
-                // 添加行点击事件，但不包括复选框点击
-                row.addEventListener('click', (e) => {
-                    // 如果是点击了复选框，不执行行点击事件
-                    if (e.target.type === 'checkbox' || e.target.closest('td:first-child')) {
-                        return;
-                    }
-                    
-                    // 找到商品链接并触发点击
-                    const productLink = row.querySelector('.product-link');
-                    if (productLink) {
-                        const recordId = item.record_id;
-                        showProductDetail(recordId);
-                    }
-                });
-                
+                // 行双击添加学员
+                row.ondblclick = (e) => {
+                    showAddStudentModal(item.record_id, item.fields['商品名称']);
+                };
                 tbody.appendChild(row);
             }
             

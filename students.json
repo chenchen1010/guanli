@@ -396,5 +396,53 @@
     "addedBy": "admin",
     "addedAt": "2025-05-06T00:35:41.613Z",
     "id": "1746491741613s58fedh8c"
+  },
+  {
+    "wechatName": "111",
+    "amount": 900,
+    "channel": "",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGyXOL",
+    "courseName": "【Deepseek应用与变现-多地址可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-07T02:27:35.968Z",
+    "id": "1746584855968h3kcjmi8w"
+  },
+  {
+    "wechatName": "张三",
+    "amount": 3000,
+    "channel": "朋友介绍",
+    "status": "已支付",
+    "preferredTime": "周六上午",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-07T03:02:01.030Z",
+    "id": "1746586921030cx6hmkv9s"
+  },
+  {
+    "wechatName": "张三1",
+    "amount": 3000,
+    "channel": "朋友介绍",
+    "status": "已支付",
+    "preferredTime": "周六上午",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-07T03:02:01.030Z",
+    "id": "1746586921030us3ucfin6"
+  },
+  {
+    "wechatName": "张3",
+    "amount": 3000,
+    "channel": "朋友介绍",
+    "status": "已支付",
+    "preferredTime": "周六上午",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-07T03:02:01.030Z",
+    "id": "1746586921030i0tjeerxg"
   }
 ]
