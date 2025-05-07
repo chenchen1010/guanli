@@ -3664,7 +3664,8 @@
     "classStartDate": "2025-05-07T19:00",
     "classId": "class_1746619723659_cge079h3d",
     "className": "test1【滑板-多区域可选】",
-    "updatedAt": "2025-05-07T12:08:43.665Z"
+    "updatedAt": "2025-05-07T12:57:45.536Z",
+    "channelCost": 0
   },
   {
     "wechatName": "3",
@@ -3704,6 +3705,9 @@
     "courseName": "【滑板-多区域可选】",
     "addedBy": "admin",
     "addedAt": "2025-05-07T12:46:46.913Z",
-    "id": "1746622006913u35s1unb3"
+    "id": "1746622006913u35s1unb3",
+    "newYouthIncome": 10,
+    "updatedAt": "2025-05-07T13:23:10.652Z",
+    "recruitmentIncome": 200
   }
 ]

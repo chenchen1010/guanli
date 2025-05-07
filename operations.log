@@ -70,5 +70,23 @@
     "username": "admin",
     "operation": "添加学员",
     "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 5(¥500/已支付)"
+  },
+  {
+    "timestamp": "2025/5/7 20:57:45",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 2, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 21:22:58",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 5, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 21:23:10",
+    "username": "admin",
+    "operation": "更新学员信息",
+    "details": "学员: 5, 变更: "
   }
 ]

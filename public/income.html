@@ -1077,6 +1077,7 @@
                 let totalIncome = 0;
                 let totalRecruitmentIncome = 0;
                 let totalChannelCost = 0;
+                let totalNewYouthIncome = 0;
 
                 // 渲染表格
                 const tableBody = document.getElementById('incomeTableBody');
@@ -1109,7 +1110,7 @@
                             channelCost = recruitmentIncome * 0.15;
                         }
 
-                        // 获取新青年收益，优先使用手动设置的值
+                        // 计算新青年收益，优先使用手动设置的值
                         let newYouthIncome = 0;
                         if (student.newYouthIncome !== undefined) {
                             newYouthIncome = parseFloat(student.newYouthIncome);
@@ -1120,6 +1121,7 @@
                             totalIncome += amount;
                             totalRecruitmentIncome += recruitmentIncome;
                             totalChannelCost += channelCost;
+                            totalNewYouthIncome += newYouthIncome;
                         }
 
                         // 格式化日期
@@ -1175,7 +1177,7 @@
                 document.getElementById('totalIncome').textContent = `¥${totalIncome.toFixed(2)}`;
                 document.getElementById('recruitmentIncome').textContent = `¥${totalRecruitmentIncome.toFixed(2)}`;
                 document.getElementById('channelCost').textContent = `¥${totalChannelCost.toFixed(2)}`;
-                document.getElementById('netIncome').textContent = `¥${(totalRecruitmentIncome - totalChannelCost).toFixed(2)}`;
+                document.getElementById('netIncome').textContent = `¥${(totalNewYouthIncome).toFixed(2)}`;
 
                 console.log('收益数据渲染完成');
             } catch (error) {
