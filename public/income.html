@@ -728,6 +728,11 @@
                     <label for="endDate">报名结束日期:</label>
                     <input type="date" id="endDate">
                 </div>
+                <div class="filter-item" style="display: flex; gap: 5px;">
+                    <button class="filter-button" onclick="setDateRange('today')" style="background-color: #1976d2;">今天</button>
+                    <button class="filter-button" onclick="setDateRange('lastWeek')" style="background-color: #1976d2;">上周</button>
+                    <button class="filter-button" onclick="setDateRange('lastMonth')" style="background-color: #1976d2;">上月</button>
+                </div>
                 <button class="filter-button" id="applyFilter">应用筛选</button>
                 <button class="filter-button" id="resetFilter">重置</button>
             </div>
@@ -1815,6 +1820,44 @@
                     col.style.width = `${columnWidths[colName]}px`;
                 }
             });
+        }
+
+        // 添加日期范围设置函数
+        function setDateRange(range) {
+            const today = new Date();
+            let startDate = new Date();
+            let endDate = new Date();
+            
+            switch(range) {
+                case 'today':
+                    // 设置为今天的开始和结束
+                    startDate.setHours(0, 0, 0, 0);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                    
+                case 'lastWeek':
+                    // 设置为上周一到上周日
+                    const dayOfWeek = today.getDay() || 7;
+                    startDate = new Date(today.setDate(today.getDate() - dayOfWeek - 6));
+                    startDate.setHours(0, 0, 0, 0);
+                    endDate = new Date(today.setDate(today.getDate() + 6));
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                    
+                case 'lastMonth':
+                    // 设置为上个月的第一天到最后一天
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+            }
+            
+            // 格式化日期为YYYY-MM-DD格式
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+            
+            // 自动触发筛选
+            document.getElementById('applyFilter').click();
         }
     </script>
 </body>
