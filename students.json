@@ -3693,5 +3693,17 @@
     "addedBy": "admin",
     "addedAt": "2025-05-07T12:08:01.179Z",
     "id": "1746619681179dae0h8zdj"
+  },
+  {
+    "wechatName": "5",
+    "amount": 500,
+    "channel": "新青年",
+    "status": "已支付",
+    "preferredTime": "",
+    "courseId": "recuJnc9yGkAIf",
+    "courseName": "【滑板-多区域可选】",
+    "addedBy": "admin",
+    "addedAt": "2025-05-07T12:46:46.913Z",
+    "id": "1746622006913u35s1unb3"
   }
 ]

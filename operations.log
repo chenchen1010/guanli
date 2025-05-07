@@ -64,5 +64,11 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "学员: 轻舟, 变更: "
+  },
+  {
+    "timestamp": "2025/5/7 20:46:46",
+    "username": "admin",
+    "operation": "添加学员",
+    "details": "课程: 【滑板-多区域可选】(recuJnc9yGkAIf), 添加1名学员: 5(¥500/已支付)"
   }
 ]
