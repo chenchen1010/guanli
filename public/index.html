@@ -3677,6 +3677,18 @@
                                 cell.innerHTML = '<span style="color: red;">加载失败</span>';
                             }
                         })(cell, item, config);
+                    } else if (config.isStudents) {
+                        // 报名学员列异步渲染
+                        cell.innerHTML = '<div style="text-align: center; padding: 8px;"><span style="color: #999;">加载中...</span></div>';
+                        (async function(cell, item, config) {
+                            try {
+                                const content = await config.format(null, item);
+                                cell.innerHTML = content;
+                            } catch (error) {
+                                console.error('加载报名学员失败:', error);
+                                cell.innerHTML = '<span style="color: red;">加载失败</span>';
+                            }
+                        })(cell, item, config);
                     } else {
                         // 普通列，根据配置格式化内容
                         const value = item.fields[columnName];
