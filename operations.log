@@ -88,5 +88,11 @@
     "username": "admin",
     "operation": "更新学员信息",
     "details": "学员: 5, 变更: "
+  },
+  {
+    "timestamp": "2025/5/8 10:49:35",
+    "username": "admin",
+    "operation": "收益AI分析",
+    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
   }
 ]

@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/modal-fix.css">
+    <!-- 添加 ECharts 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         /* 复用classes.html的基础样式 */
         body {
@@ -606,6 +608,16 @@
         .income-table.resizing td {
             border-right: 2px solid #4CAF50;
         }
+
+        /* 添加图表容器样式 */
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            height: 400px;
+        }
     </style>
 </head>
 <body>
@@ -767,6 +779,9 @@
             </table>
             </div>
             
+            <!-- 在AI分析结果区域前添加图表容器 -->
+            <div class="chart-container" id="incomeChart"></div>
+            
             <!-- AI分析结果区域 -->
             <div id="aiAnalysisSection" style="display: none; margin-top: 30px; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -802,6 +817,9 @@
         let bdData = {};
         let allCourses = new Set();
         
+        // 初始化图表
+        let myChart = null;
+
         // 检查登录状态
         async function checkLoginStatus() {
             try {
@@ -1069,15 +1087,21 @@
                     });
                 }
 
-                // 按添加时间倒序排序
-                filteredStudents.sort((a, b) => {
-                    const dateA = a.addedAt ? new Date(a.addedAt) : new Date(0);
-                    const dateB = b.addedAt ? new Date(b.addedAt) : new Date(0);
-                    return dateB - dateA;
+                // 处理图表数据
+                const chartData = [];
+                filteredStudents.forEach(student => {
+                    if (student.addedAt) {
+                        chartData.push({
+                            date: student.addedAt,
+                            channelFee: student.channelCost || 0,
+                            netIncome: student.newYouthIncome || 0
+                        });
+                    }
                 });
                 
-                console.log(`筛选后的学员数: ${filteredStudents.length}`);
-                
+                // 绘制图表
+                processAndDrawChart(chartData);
+
                 // 计算总收益
                 let totalIncome = 0;
                 let totalRecruitmentIncome = 0;
@@ -1306,10 +1330,25 @@
                 });
             });
 
+            // 确保图表容器存在
+            const chartContainer = document.getElementById('incomeChart');
+            if (!chartContainer) {
+                console.error('找不到图表容器');
+                return;
+            }
+
             // 加载收益数据
             console.log('页面加载时初始化...');
             initializeData();
-            
+
+            // 监听窗口大小变化
+            window.addEventListener('resize', function() {
+                if (myChart) {
+                    console.log('调整图表大小');
+                    myChart.resize();
+                }
+            });
+
             // 添加导出Excel事件监听
             document.getElementById('exportExcel').addEventListener('click', exportToExcel);
             
@@ -1858,6 +1897,120 @@
             
             // 自动触发筛选
             document.getElementById('applyFilter').click();
+        }
+
+        // 处理数据并绘制图表
+        function processAndDrawChart(data) {
+            try {
+                console.log('开始处理图表数据...');
+                
+                // 按日期分组数据
+                const dailyData = {};
+                data.forEach(item => {
+                    const date = new Date(item.date).toISOString().split('T')[0];
+                    if (!dailyData[date]) {
+                        dailyData[date] = {
+                            channelFee: 0,
+                            netIncome: 0
+                        };
+                    }
+                    dailyData[date].channelFee += parseFloat(item.channelFee || 0);
+                    dailyData[date].netIncome += parseFloat(item.netIncome || 0);
+                });
+
+                // 过滤5月8日之后的数据
+                const targetDate = '2024-05-08';
+                const dates = Object.keys(dailyData)
+                    .filter(date => date >= targetDate)
+                    .sort();
+                
+                const channelFees = dates.map(date => dailyData[date].channelFee.toFixed(2));
+                const netIncomes = dates.map(date => dailyData[date].netIncome.toFixed(2));
+
+                console.log('处理后的数据:', { dates, channelFees, netIncomes });
+
+                // 初始化或更新图表
+                if (!myChart) {
+                    const chartDom = document.getElementById('incomeChart');
+                    if (!chartDom) {
+                        console.error('找不到图表容器元素');
+                        return;
+                    }
+                    console.log('初始化图表...');
+                    myChart = echarts.init(chartDom);
+                }
+
+                // 图表配置
+                const option = {
+                    title: {
+                        text: '每日渠道费和净收益趋势',
+                        left: 'center',
+                        top: '20px'
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function(params) {
+                            let result = params[0].axisValue + '<br/>';
+                            params.forEach(param => {
+                                result += param.seriesName + ': ¥' + param.value + '<br/>';
+                            });
+                            return result;
+                        }
+                    },
+                    legend: {
+                        data: ['渠道费', '净收益'],
+                        bottom: '10px'
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '60px',
+                        top: '60px',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: dates,
+                        axisLabel: {
+                            rotate: 45,
+                            interval: 0
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '¥{value}'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '渠道费',
+                            type: 'line',
+                            data: channelFees,
+                            itemStyle: {
+                                color: '#FF6B6B'
+                            },
+                            smooth: true
+                        },
+                        {
+                            name: '净收益',
+                            type: 'line',
+                            data: netIncomes,
+                            itemStyle: {
+                                color: '#4CAF50'
+                            },
+                            smooth: true
+                        }
+                    ]
+                };
+
+                console.log('设置图表配置...');
+                myChart.setOption(option);
+                console.log('图表绘制完成');
+            } catch (error) {
+                console.error('处理和绘制图表失败:', error);
+                showErrorMessage(`图表处理失败: ${error.message}`);
+            }
         }
     </script>
 </body>
