@@ -665,7 +665,7 @@
             <i class="material-icons">monetization_on</i>
             <span>收益情况</span>
         </a>
-        <a href="#" class="nav-item" onclick="alert('功能开发中'); return false;">
+        <a href="#" class="nav-item" onclick="checkPermissionAndRedirect(event)">
             <i class="material-icons">security</i>
             <span>权限管理</span>
         </a>
@@ -894,6 +894,16 @@ ${filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : '无�
                 if (!loginStatus.isLoggedIn) {
                     console.log('未登录，重定向到登录页面');
                     window.location.href = '/login';
+                    return false;
+                }
+
+                // 检查是否是管理员
+                const permissionResponse = await fetch('/api/check-permission');
+                const permissionData = await permissionResponse.json();
+                
+                if (!permissionData.isAdmin) {
+                    alert('当前角色没有权限查看，请联系管理员');
+                    window.location.href = '/index.html';
                     return false;
                 }
                 
@@ -2261,6 +2271,24 @@ ${filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : '无�
             
             document.getElementById('savePromptBtn').parentNode.appendChild(resetButton);
         });
+
+        // 检查权限并跳转
+        async function checkPermissionAndRedirect(event) {
+            event.preventDefault();
+            try {
+                const response = await fetch('/api/check-permission');
+                const data = await response.json();
+                
+                if (!data.isAdmin) {
+                    alert('当前角色没有权限查看，请联系管理员');
+                    return;
+                }
+                window.location.href = 'permissions.html';
+            } catch (error) {
+                console.error('权限检查失败:', error);
+                alert('权限检查失败，请重试');
+            }
+        }
     </script>
 </body>
 </html> 

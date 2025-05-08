@@ -698,7 +698,7 @@
             <i class="material-icons">monetization_on</i>
             <span>收益情况</span>
         </a>
-        <a href="#" class="nav-item" onclick="alert('功能开发中'); return false;">
+        <a href="permissions.html" class="nav-item">
             <i class="material-icons">security</i>
             <span>权限管理</span>
         </a>
@@ -858,6 +858,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('【初始化】页面加载完成，开始初始化');
             loadClasses();
+            checkPermissionAndUpdateUI();
         });
 
         // 加载班级数据
@@ -1391,6 +1392,23 @@
             setTimeout(() => {
                 toast.remove();
             }, 3000);
+        }
+
+        // 检查用户权限并显示/隐藏权限管理链接
+        async function checkPermissionAndUpdateUI() {
+            try {
+                const response = await fetch('/api/check-permission');
+                const data = await response.json();
+                
+                const permissionsLink = document.getElementById('permissionsLink');
+                if (data.isAdmin) {
+                    permissionsLink.style.display = 'flex';
+                } else {
+                    permissionsLink.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('检查权限失败:', error);
+            }
         }
     </script>
 </body>

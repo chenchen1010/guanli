@@ -1606,7 +1606,7 @@
             <i class="material-icons">monetization_on</i>
             <span>收益情况</span>
         </a>
-        <a href="#" class="nav-item" onclick="alert('功能开发中'); return false;">
+        <a href="permissions.html" class="nav-item">
             <i class="material-icons">security</i>
             <span>权限管理</span>
         </a>
@@ -5763,7 +5763,7 @@
    - 适合人群
    - 简短号召性用语
 4. 总字数控制在200字以内。
-5. 末尾添加最多3个适合的标签，其中一个是“新青年夜校”。
+5. 末尾添加最多3个适合的标签，其中一个是"新青年夜校"。
 
 请以JSON格式返回结果，包含以下字段:
 {
@@ -5961,6 +5961,29 @@
                 }
             }
         }
+
+        // 检查用户权限并显示/隐藏权限管理链接
+        async function checkPermissionAndUpdateUI() {
+            try {
+                const response = await fetch('/api/check-permission');
+                const data = await response.json();
+                
+                const permissionsLink = document.getElementById('permissionsLink');
+                if (data.isAdmin) {
+                    permissionsLink.style.display = 'flex';
+                } else {
+                    permissionsLink.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('检查权限失败:', error);
+            }
+        }
+
+        // 页面加载时检查权限
+        document.addEventListener('DOMContentLoaded', function() {
+            checkPermissionAndUpdateUI();
+            // ... 其他现有的DOMContentLoaded事件处理程序 ...
+        });
     </script>
     
     <!-- 备忘录侧边栏 -->

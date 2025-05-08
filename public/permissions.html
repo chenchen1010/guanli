@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>权限管理 - 飞书夜校后台管理系统</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 复用基础样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f7;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 左侧导航栏样式 */
+        .sidebar {
+            width: 180px;
+            height: 100vh;
+            background: #4CAF50;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-160px);
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 60px;
+            background: #4CAF50;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1001;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        /* 主内容区域样式 */
+        .main-content {
+            margin-left: 180px;
+            padding: 20px;
+            flex: 1;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            width: calc(100% - 180px);
+        }
+
+        .main-content.expanded {
+            margin-left: 20px;
+            width: calc(100% - 20px);
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 500;
+        }
+
+        .data-table tr:hover {
+            background: #f5f5f7;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* 权限配置样式 */
+        .permission-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .role-badge.admin {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+
+        .role-badge.user {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="material-icons">chevron_left</i>
+        </div>
+        <div class="sidebar-header">
+            <span>夜校管理系统</span>
+        </div>
+        <a href="index.html" class="nav-item">
+            <i class="material-icons">people</i>
+            <span>报名情况</span>
+        </a>
+        <a href="classes.html" class="nav-item">
+            <i class="material-icons">class</i>
+            <span>开班情况</span>
+        </a>
+        <a href="income.html" class="nav-item">
+            <i class="material-icons">monetization_on</i>
+            <span>收益情况</span>
+        </a>
+        <a href="permissions.html" class="nav-item active">
+            <i class="material-icons">security</i>
+            <span>权限管理</span>
+        </a>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content" id="mainContent">
+        <!-- 用户管理卡片 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">用户管理</h2>
+                <button class="btn btn-primary" onclick="showAddUserModal()">
+                    <i class="material-icons">person_add</i>
+                    添加用户
+                </button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>手机号</th>
+                        <th>密码</th>
+                        <th>角色</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <!-- 用户数据将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 角色管理卡片 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">角色管理</h2>
+                <button class="btn btn-primary" onclick="showAddRoleModal()">
+                    <i class="material-icons">add_circle</i>
+                    添加角色
+                </button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>角色名称</th>
+                        <th>权限描述</th>
+                        <th>用户数量</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="roleTableBody">
+                    <!-- 角色数据将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 添加用户模态框 -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">添加新用户</h3>
+                <button class="modal-close" onclick="closeModal('addUserModal')">&times;</button>
+            </div>
+            <form id="addUserForm" onsubmit="handleAddUser(event)">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">手机号</label>
+                    <input type="tel" id="phone" class="form-control" pattern="[0-9]{11}" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="role">角色</label>
+                    <select id="role" class="form-control" required>
+                        <option value="admin">管理员</option>
+                        <option value="user" selected>普通用户</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">确认添加</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加角色模态框 -->
+    <div class="modal" id="addRoleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">添加新角色</h3>
+                <button class="modal-close" onclick="closeModal('addRoleModal')">&times;</button>
+            </div>
+            <form id="addRoleForm" onsubmit="handleAddRole(event)">
+                <div class="form-group">
+                    <label for="roleName">角色名称</label>
+                    <input type="text" id="roleName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>权限配置</label>
+                    <div class="permission-list">
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_users" value="users">
+                            <label for="perm_users">用户管理</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_classes" value="classes">
+                            <label for="perm_classes">班级管理</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_income" value="income">
+                            <label for="perm_income">收益管理</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_reports" value="reports">
+                            <label for="perm_reports">报表导出</label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_ai" value="ai">
+                            <label for="perm_ai">AI分析</label>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">确认添加</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 检查用户是否有权限访问此页面
+        async function checkPermission() {
+            try {
+                const response = await fetch('/api/check-permission');
+                const data = await response.json();
+                
+                if (!data.isAdmin) {
+                    alert('当前角色没有权限查看，请联系管理员');
+                    window.location.href = '/index.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('权限检查失败:', error);
+                alert('权限检查失败，请重试');
+                return false;
+            }
+        }
+
+        // 获取用户列表
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/api/users');
+                const users = await response.json();
+                
+                const tableBody = document.getElementById('userTableBody');
+                tableBody.innerHTML = '';
+                
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    // 格式化时间为本地时间字符串
+                    const localTime = new Date(user.created_at).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                    
+                    tr.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.phone || '-'}</td>
+                        <td style="font-family: monospace;">
+                            <span class="password-text">${user.password}</span>
+                            ${user.password === '密码已加密' ? 
+                                `<br><small class="text-muted">已加密: ${user.hashedPassword}</small>` : 
+                                ''}
+                        </td>
+                        <td><span class="role-badge ${user.role}">${user.role}</span></td>
+                        <td>${localTime}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="editUser('${user.id}')">
+                                <i class="material-icons">edit</i>
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteUser('${user.id}')">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('获取用户列表失败:', error);
+                alert('获取用户列表失败，请重试');
+            }
+        }
+
+        // 获取角色列表
+        async function fetchRoles() {
+            try {
+                const response = await fetch('/api/roles');
+                const roles = await response.json();
+                
+                const tableBody = document.getElementById('roleTableBody');
+                tableBody.innerHTML = '';
+                
+                roles.forEach(role => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${role.name}</td>
+                        <td>${role.description || '-'}</td>
+                        <td>${role.userCount}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="editRole('${role.id}')">
+                                <i class="material-icons">edit</i>
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteRole('${role.id}')">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('获取角色列表失败:', error);
+                alert('获取角色列表失败，请重试');
+            }
+        }
+
+        // 显示添加用户模态框
+        function showAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'flex';
+        }
+
+        // 显示添加角色模态框
+        function showAddRoleModal() {
+            document.getElementById('addRoleModal').style.display = 'flex';
+        }
+
+        // 关闭模态框
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 处理添加用户
+        async function handleAddUser(event) {
+            event.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('username').value,
+                phone: document.getElementById('phone').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value
+            };
+
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('添加用户失败');
+                }
+
+                closeModal('addUserModal');
+                fetchUsers();
+                alert('添加用户成功');
+            } catch (error) {
+                console.error('添加用户失败:', error);
+                alert('添加用户失败，请重试');
+            }
+        }
+
+        // 处理添加角色
+        async function handleAddRole(event) {
+            event.preventDefault();
+            
+            const permissions = Array.from(document.querySelectorAll('.permission-item input:checked'))
+                .map(input => input.value);
+
+            const roleData = {
+                name: document.getElementById('roleName').value,
+                permissions: permissions
+            };
+
+            try {
+                const response = await fetch('/api/roles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(roleData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('添加角色失败');
+                }
+
+                closeModal('addRoleModal');
+                fetchRoles();
+                alert('添加角色成功');
+            } catch (error) {
+                console.error('添加角色失败:', error);
+                alert('添加角色失败，请重试');
+            }
+        }
+
+        // 编辑用户
+        async function editUser(userId) {
+            // TODO: 实现编辑用户功能
+            alert('编辑用户功能开发中');
+        }
+
+        // 删除用户
+        async function deleteUser(userId) {
+            if (!confirm('确定要删除此用户吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('删除用户失败');
+                }
+
+                fetchUsers();
+                alert('删除用户成功');
+            } catch (error) {
+                console.error('删除用户失败:', error);
+                alert('删除用户失败，请重试');
+            }
+        }
+
+        // 编辑角色
+        async function editRole(roleId) {
+            // TODO: 实现编辑角色功能
+            alert('编辑角色功能开发中');
+        }
+
+        // 删除角色
+        async function deleteRole(roleId) {
+            if (!confirm('确定要删除此角色吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/roles/${roleId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('删除角色失败');
+                }
+
+                fetchRoles();
+                alert('删除角色成功');
+            } catch (error) {
+                console.error('删除角色失败:', error);
+                alert('删除角色失败，请重试');
+            }
+        }
+
+        // 侧边栏切换
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 检查权限
+            const hasPermission = await checkPermission();
+            if (!hasPermission) {
+                return;
+            }
+
+            // 获取用户和角色列表
+            fetchUsers();
+            fetchRoles();
+
+            // 点击模态框外部关闭模态框
+            window.onclick = function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            };
+        });
+    </script>
+</body>
+</html> 

@@ -218,11 +218,21 @@ app.post('/api/register', async (req, res) => {
         users.push({
             username,
             phone,
-            password: hashedPassword
+            password: hashedPassword,
+            role: 'user',
+            created_at: new Date().toISOString()
         });
         
         // 保存用户数据
         fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+        
+        // 保存原始密码
+        let rawPasswords = {};
+        if (fs.existsSync('raw_passwords.json')) {
+            rawPasswords = JSON.parse(fs.readFileSync('raw_passwords.json', 'utf8'));
+        }
+        rawPasswords[username] = password;
+        fs.writeFileSync('raw_passwords.json', JSON.stringify(rawPasswords, null, 2));
         
         res.json({ message: '注册成功' });
     } catch (error) {
@@ -259,7 +269,8 @@ app.post('/api/login', async (req, res) => {
         // 设置会话
         req.session.user = {
             username: user.username,
-            phone: user.phone
+            phone: user.phone,
+            role: user.role
         };
         
         res.json({ message: '登录成功' });
@@ -1403,6 +1414,243 @@ app.post('/api/classes/join', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('【API】加入班级失败:', error);
         res.status(500).json({ success: false, message: '加入班级失败' });
+    }
+});
+
+// 权限检查中间件
+const requireAdmin = (req, res, next) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: '需要管理员权限' });
+    }
+    next();
+};
+
+// 检查权限API
+app.get('/api/check-permission', requireAuth, (req, res) => {
+    console.log('检查权限，用户信息:', req.session.user); // 添加日志
+    const isAdmin = req.session.user && req.session.user.role === 'admin';
+    console.log('是否是管理员:', isAdmin); // 添加日志
+    res.json({ isAdmin });
+});
+
+// 获取用户列表
+app.get('/api/users', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        
+        // 读取原始密码数据（如果存在）
+        let rawPasswords = {};
+        if (fs.existsSync('raw_passwords.json')) {
+            rawPasswords = JSON.parse(fs.readFileSync('raw_passwords.json', 'utf8'));
+        }
+        
+        // 返回所有用户信息，包括密码
+        const safeUsers = users.map(user => ({
+            id: user.id,
+            username: user.username,
+            phone: user.phone,
+            password: rawPasswords[user.username] || '密码已加密', // 优先使用原始密码
+            hashedPassword: user.password, // 保留加密密码
+            role: user.role,
+            created_at: user.created_at
+        }));
+        
+        res.json(safeUsers);
+    } catch (error) {
+        console.error('读取用户列表失败:', error);
+        res.status(500).json({ error: '获取用户列表失败' });
+    }
+});
+
+// 添加新用户
+app.post('/api/users', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { username, email, password, role } = req.body;
+        
+        // 验证必填字段
+        if (!username || !password || !role) {
+            return res.status(400).json({ error: '缺少必要字段' });
+        }
+        
+        // 读取现有用户
+        const users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        
+        // 检查用户名是否已存在
+        if (users.some(u => u.username === username)) {
+            return res.status(400).json({ error: '用户名已存在' });
+        }
+        
+        // 生成用户ID
+        const maxId = Math.max(...users.map(u => u.id || 0), 0);
+        const newUser = {
+            id: maxId + 1,
+            username,
+            email,
+            password: await bcrypt.hash(password, 10),
+            role,
+            created_at: new Date().toISOString()
+        };
+        
+        // 添加新用户
+        users.push(newUser);
+        fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+        
+        // 记录操作日志
+        await logOperation('create_user', { username, role }, req.session.user.username);
+        
+        res.json({ success: true, user: newUser });
+    } catch (error) {
+        console.error('添加用户失败:', error);
+        res.status(500).json({ error: '添加用户失败' });
+    }
+});
+
+// 删除用户
+app.delete('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        
+        const userIndex = users.findIndex(u => u.id === userId);
+        if (userIndex === -1) {
+            return res.status(404).json({ error: '用户不存在' });
+        }
+        
+        // 不允许删除自己
+        if (users[userIndex].username === req.session.user.username) {
+            return res.status(400).json({ error: '不能删除当前登录用户' });
+        }
+        
+        // 记录要删除的用户信息（用于日志）
+        const deletedUser = users[userIndex];
+        
+        // 删除用户
+        users.splice(userIndex, 1);
+        fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+        
+        // 记录操作日志
+        await logOperation('delete_user', { username: deletedUser.username }, req.session.user.username);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('删除用户失败:', error);
+        res.status(500).json({ error: '删除用户失败' });
+    }
+});
+
+// 获取角色列表
+app.get('/api/roles', requireAuth, requireAdmin, (req, res) => {
+    try {
+        // 如果roles.json不存在，创建默认角色
+        if (!fs.existsSync('roles.json')) {
+            const defaultRoles = [
+                {
+                    id: 1,
+                    name: 'admin',
+                    description: '系统管理员',
+                    permissions: ['users', 'classes', 'income', 'reports', 'ai']
+                },
+                {
+                    id: 2,
+                    name: 'user',
+                    description: '普通用户',
+                    permissions: ['classes', 'income']
+                }
+            ];
+            fs.writeFileSync('roles.json', JSON.stringify(defaultRoles, null, 2));
+        }
+        
+        const roles = JSON.parse(fs.readFileSync('roles.json', 'utf8'));
+        const users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        
+        // 计算每个角色的用户数量
+        const rolesWithCount = roles.map(role => ({
+            ...role,
+            userCount: users.filter(user => user.role === role.name).length
+        }));
+        
+        res.json(rolesWithCount);
+    } catch (error) {
+        console.error('获取角色列表失败:', error);
+        res.status(500).json({ error: '获取角色列表失败' });
+    }
+});
+
+// 添加新角色
+app.post('/api/roles', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { name, permissions } = req.body;
+        
+        if (!name || !permissions) {
+            return res.status(400).json({ error: '缺少必要字段' });
+        }
+        
+        // 读取现有角色
+        const roles = JSON.parse(fs.readFileSync('roles.json', 'utf8'));
+        
+        // 检查角色名是否已存在
+        if (roles.some(r => r.name === name)) {
+            return res.status(400).json({ error: '角色名已存在' });
+        }
+        
+        // 生成角色ID
+        const maxId = Math.max(...roles.map(r => r.id), 0);
+        const newRole = {
+            id: maxId + 1,
+            name,
+            permissions,
+            created_at: new Date().toISOString()
+        };
+        
+        // 添加新角色
+        roles.push(newRole);
+        fs.writeFileSync('roles.json', JSON.stringify(roles, null, 2));
+        
+        // 记录操作日志
+        await logOperation('create_role', { name, permissions }, req.session.user.username);
+        
+        res.json({ success: true, role: newRole });
+    } catch (error) {
+        console.error('添加角色失败:', error);
+        res.status(500).json({ error: '添加角色失败' });
+    }
+});
+
+// 删除角色
+app.delete('/api/roles/:id', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const roleId = parseInt(req.params.id);
+        const roles = JSON.parse(fs.readFileSync('roles.json', 'utf8'));
+        const users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        
+        const roleIndex = roles.findIndex(r => r.id === roleId);
+        if (roleIndex === -1) {
+            return res.status(404).json({ error: '角色不存在' });
+        }
+        
+        const role = roles[roleIndex];
+        
+        // 检查是否有用户使用此角色
+        if (users.some(user => user.role === role.name)) {
+            return res.status(400).json({ error: '该角色下还有用户，无法删除' });
+        }
+        
+        // 不允许删除admin角色
+        if (role.name === 'admin') {
+            return res.status(400).json({ error: '不能删除管理员角色' });
+        }
+        
+        // 删除角色
+        roles.splice(roleIndex, 1);
+        fs.writeFileSync('roles.json', JSON.stringify(roles, null, 2));
+        
+        // 记录操作日志
+        await logOperation('delete_role', { name: role.name }, req.session.user.username);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('删除角色失败:', error);
+        res.status(500).json({ error: '删除角色失败' });
     }
 });
 
