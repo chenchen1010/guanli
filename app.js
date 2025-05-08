@@ -1054,65 +1054,27 @@ app.get('/api/bd', requireAuth, (req, res) => {
 // AI结算分析接口
 app.post('/api/analyze-income', requireAuth, async (req, res) => {
     try {
-        // 从请求中获取收益数据
-        const { incomeData, filters } = req.body;
+        // 从请求中获取收益数据和提示词模板
+        const { incomeData, filters, promptTemplate } = req.body;
         
         console.log('收到AI分析请求，请求数据大小:', JSON.stringify(req.body).length);
         
         if (!incomeData) {
             return res.status(400).json({ error: '收益数据不能为空' });
         }
-        
-        // 准备提交给AI模型的提示词
 
-        const prompt = `
-        我是一位财务分析师，需要你帮我分析以下飞书夜校的收益数据，并给出建议：
+        if (!promptTemplate) {
+            return res.status(400).json({ error: '提示词模板不能为空' });
+        }
         
-        详细数据:
-        ${JSON.stringify(incomeData.details ? incomeData.details.slice(0, 10) : [], null, 2)}
-        ${incomeData.details && incomeData.details.length > 10 ? `...以及其他 ${incomeData.details.length - 10} 条数据` : ''}
-        
-        ${filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : '无筛选条件'}
-        
-        注意：
-        忽略订单状态为"已退款"和"意向中"的学员。
-        一个单位可以即是机构，又是渠道。
-        渠道为招生端，收取了学员学费为实收金额，招生收益是招生端的实际收益。
-        实收金额减去招生收益是机构收益，是机构交付服务的收益。
-        渠道费实际是给洽谈课程方的，正数是应付给新青年的费用，负数是新青年付给机构的洽谈费，这个和机构收益（交付的收益）是两个端口，应该分开统计。
-
-        请提供以下分析:
-        1. 计算机构收益，应转给不同机构的金额，附录不同机构涉及的报名学员详情；先分析完一个机构，再分析下一个机构。
-        2. 计算渠道费，只涉及新青年和机构之间的资金流转，正数是机构应付给新青年的费用，负数是新青年付给机构的费用；附录不同机构涉及的报名学员详情；先分析完一个机构，再分析下一个机构。
-        3. 新青年的收益，分为三部分，一部分是招生收益，渠道为"新青年"或"-"，没有这两种渠道，就为0。一部分是渠道费，就是涉及学员渠道费的加和。一部分是机构为"麦兜自营"的课程的机构收益，最后进行汇总。
-        
-        机构收益示例：
-        - 机构：新趣
-        - 机构收益计算：
-        - 实收金额总和：对于状态不为"已退款"和"意向中"的学员，实收金额分别为600（学员2）、600（学员4）、600（学员5）、600（学员7）、600（学员8）、500（学员9），总和为 \(600\times5 + 500=3500\)。
-        - 招生收益总和：每个学员招生收益都是240，共6个学员（学员2、4、5、7、8、9），总和为 \(240\times6 = 1440\)。
-        机构收益 = 实收金额总和 - 招生收益总和 = \(3500 - 1440=2060\)。
-        - 涉及报名学员详情：
-        - 学员2：微信名2，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额600，招生收益240。
-        - 学员4：微信名4，课程名滑板 - 多区域可选，渠道 - ，状态已开班，金额600，招生收益240。
-        - 学员5：微信名5，课程名滑板 - 多区域可选，渠道 - ，状态已支付，金额600，招生收益240。
-        - 学员7：微信名7，课程名滑板 - 多区域可选，渠道 - ，状态已支付，金额600，招生收益240。
-        - 学员8：微信名8，课程名滑板 - 多区域可选，渠道 - ，状态已支付，金额600，招生收益240。
-        - 学员9：微信名9，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额500，招生收益240。
-        
-        渠道费示例：
-        - 渠道"本地宝"：
-        - 学员2：渠道成本36
-        - 学员3：渠道成本36
-        - 学员6：渠道成本36
-        - 学员9：渠道成本36
-        渠道"本地宝"总金额 = 36×4 = 144
-        - 涉及报名学员详情：
-        - 学员2：微信名2，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额600，招生收益240。
-        - 学员3：微信名3，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额600，招生收益240。
-        - 学员6：微信名6，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额600，招生收益240。
-        - 学员9：微信名9，课程名滑板 - 多区域可选，渠道本地宝，状态已支付，金额500，招生收益240。
-        `;
+        // 使用前端传来的提示词模板
+        const prompt = promptTemplate
+            .replace('${JSON.stringify(incomeData.details ? incomeData.details.slice(0, 10) : [], null, 2)}', 
+                    JSON.stringify(incomeData.details ? incomeData.details.slice(0, 10) : [], null, 2))
+            .replace('${incomeData.details && incomeData.details.length > 10 ? `...以及其他 ${incomeData.details.length - 10} 条数据` : \'\'}',
+                    incomeData.details && incomeData.details.length > 10 ? `...以及其他 ${incomeData.details.length - 10} 条数据` : '')
+            .replace('${filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : \'无筛选条件\'}',
+                    filters ? `应用的筛选条件: ${JSON.stringify(filters, null, 2)}` : '无筛选条件');
 
         console.log('AI分析请求提示词:', prompt);
         

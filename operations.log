@@ -94,5 +94,35 @@
     "username": "admin",
     "operation": "收益AI分析",
     "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
+  },
+  {
+    "timestamp": "2025/5/8 11:51:15",
+    "username": "admin",
+    "operation": "收益AI分析",
+    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
+  },
+  {
+    "timestamp": "2025/5/8 12:00:56",
+    "username": "admin",
+    "operation": "收益AI分析",
+    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
+  },
+  {
+    "timestamp": "2025/5/8 12:13:38",
+    "username": "admin",
+    "operation": "收益AI分析",
+    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
+  },
+  {
+    "timestamp": "2025/5/8 12:14:52",
+    "username": "admin",
+    "operation": "收益AI分析",
+    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
+  },
+  {
+    "timestamp": "2025/5/8 12:15:32",
+    "username": "admin",
+    "operation": "收益AI分析",
+    "details": "用户admin使用AI分析了收益数据，筛选条件: {\"status\":\"\",\"course\":\"\",\"startDate\":\"\",\"endDate\":\"\"}"
   }
 ]
