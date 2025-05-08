@@ -618,6 +618,30 @@
             margin-top: 20px;
             height: 400px;
         }
+
+        /* 添加排序图标样式 */
+        .sortable {
+            cursor: pointer;
+            position: relative;
+            padding-right: 20px !important;
+        }
+
+        .sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 5px;
+            color: #999;
+        }
+
+        .sortable.asc::after {
+            content: '↑';
+            color: #4CAF50;
+        }
+
+        .sortable.desc::after {
+            content: '↓';
+            color: #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -757,13 +781,16 @@
                 <table class="income-table">
                     <thead>
                         <tr>
-                            <th style="width: 40px;" data-col="checkbox"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"><div class="resizer"></div></th>
+                            <th style="width: 40px;" data-col="checkbox">
+                                <input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)">
+                                <div class="resizer"></div>
+                            </th>
                             <th style="width: 80px;" data-col="wechatName">微信名<div class="resizer"></div></th>
                             <th style="width: 180px;" data-col="courseName">报名课程<div class="resizer"></div></th>
                             <th style="width: 100px;" data-col="channel">渠道<div class="resizer"></div></th>
                             <th style="width: 120px;" data-col="status">订单状态<div class="resizer"></div></th>
                             <th style="width: 120px;" data-col="preferredTime">意向上课时间<div class="resizer"></div></th>
-                            <th style="width: 100px;" data-col="addedDate">报名日期<div class="resizer"></div></th>
+                            <th style="width: 100px;" data-col="addedDate" class="sortable desc">报名日期<div class="resizer"></div></th>
                             <th style="width: 100px;" data-col="refundDate">退款日期<div class="resizer"></div></th>
                             <th style="width: 100px;" data-col="classStartDate">开班日期<div class="resizer"></div></th>
                             <th style="width: 120px;" data-col="className">所属班级<div class="resizer"></div></th>
@@ -1086,6 +1113,13 @@
                     });
                 }
 
+                // 按添加时间倒序排序
+                filteredStudents.sort((a, b) => {
+                    const dateA = a.addedAt ? new Date(a.addedAt) : new Date(0);
+                    const dateB = b.addedAt ? new Date(b.addedAt) : new Date(0);
+                    return dateB - dateA;  // 降序排列，最新的在前面
+                });
+
                 // 处理图表数据
                 const chartData = [];
                 filteredStudents.forEach(student => {
@@ -1369,6 +1403,32 @@
 
             // 添加筛选按钮事件监听
             document.getElementById('applyFilter').addEventListener('click', renderIncomeData);
+
+            // 初始化排序功能
+            initSortableColumns();
+
+            // 添加报名日期列的点击事件
+            const addedDateHeader = document.querySelector('th[data-col="addedDate"]');
+            let isAscending = false;  // 默认降序
+
+            if (addedDateHeader) {
+                addedDateHeader.style.cursor = 'pointer';
+                addedDateHeader.addEventListener('click', function() {
+                    isAscending = !isAscending;  // 切换排序方向
+                    
+                    // 对表格数据重新排序
+                    const rows = Array.from(document.getElementById('incomeTableBody').getElementsByTagName('tr'));
+                    rows.sort((rowA, rowB) => {
+                        const dateA = new Date(rowA.cells[6].textContent);  // 第7列是报名日期
+                        const dateB = new Date(rowB.cells[6].textContent);
+                        return isAscending ? dateA - dateB : dateB - dateA;
+                    });
+
+                    // 重新插入排序后的行
+                    const tbody = document.getElementById('incomeTableBody');
+                    rows.forEach(row => tbody.appendChild(row));
+                });
+            }
         });
         
         // AI分析功能
@@ -2071,6 +2131,40 @@
                 console.error('处理和绘制图表失败:', error);
                 showErrorMessage(`图表处理失败: ${error.message}`);
             }
+        }
+
+        // 添加排序相关变量
+        let currentSortColumn = 'addedDate';
+        let currentSortDirection = 'desc';
+
+        // 添加排序功能
+        function initSortableColumns() {
+            const headers = document.querySelectorAll('.income-table th.sortable');
+            headers.forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.getAttribute('data-col');
+                    
+                    // 如果点击的是当前排序列，切换排序方向
+                    if (column === currentSortColumn) {
+                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        // 如果点击的是新列，设置为降序
+                        currentSortColumn = column;
+                        currentSortDirection = 'desc';
+                    }
+                    
+                    // 更新排序图标
+                    headers.forEach(h => {
+                        h.classList.remove('asc', 'desc');
+                        if (h.getAttribute('data-col') === currentSortColumn) {
+                            h.classList.add(currentSortDirection);
+                        }
+                    });
+                    
+                    // 重新渲染数据
+                    renderIncomeData();
+                });
+            });
         }
     </script>
 </body>
