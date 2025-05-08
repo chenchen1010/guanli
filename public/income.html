@@ -694,6 +694,9 @@
                 </div>
             </div>
 
+            <!-- 图表容器 -->
+            <div class="chart-container" id="incomeChart"></div>
+
             <!-- 过滤器 -->
             <div class="filters">
                 <div class="filter-item">
@@ -751,39 +754,35 @@
 
             <!-- 表格容器 -->
             <div class="table-container">
-            <!-- 收益明细表格 -->
-            <table class="income-table">
-                <thead>
-                    <tr>
-                        <th style="width: 40px;" data-col="checkbox"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"><div class="resizer"></div></th>
-                        <th style="width: 80px;" data-col="wechatName">微信名<div class="resizer"></div></th>
-                        <th style="width: 180px;" data-col="courseName">报名课程<div class="resizer"></div></th>
-                        <th style="width: 100px;" data-col="channel">渠道<div class="resizer"></div></th>
-                        <th style="width: 120px;" data-col="status">订单状态<div class="resizer"></div></th>
-                        <th style="width: 120px;" data-col="preferredTime">意向上课时间<div class="resizer"></div></th>
-                        <th style="width: 100px;" data-col="addedDate">报名日期<div class="resizer"></div></th>
-                        <th style="width: 100px;" data-col="refundDate">退款日期<div class="resizer"></div></th>
-                        <th style="width: 100px;" data-col="classStartDate">开班日期<div class="resizer"></div></th>
-                        <th style="width: 120px;" data-col="className">所属班级<div class="resizer"></div></th>
-                        <th style="width: 100px;" data-col="remarks">备注<div class="resizer"></div></th>
-                        <th style="width: 120px;" data-col="institution">机构<div class="resizer"></div></th>
-                        <th style="width: 80px;" data-col="amount">实收金额<div class="resizer"></div></th>
-                        <th style="width: 80px;" data-col="recruitmentIncome">招生收益<div class="resizer"></div></th>
-                        <th style="width: 80px;" data-col="channelCost">渠道费<div class="resizer"></div></th>
-                        <th style="width: 80px;" data-col="newYouthIncome">新青年收益<div class="resizer"></div></th>
-                    </tr>
-                </thead>
-                <tbody id="incomeTableBody">
-                    <!-- 数据将通过JavaScript动态填充 -->
-                </tbody>
-            </table>
+                <table class="income-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;" data-col="checkbox"><input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)"><div class="resizer"></div></th>
+                            <th style="width: 80px;" data-col="wechatName">微信名<div class="resizer"></div></th>
+                            <th style="width: 180px;" data-col="courseName">报名课程<div class="resizer"></div></th>
+                            <th style="width: 100px;" data-col="channel">渠道<div class="resizer"></div></th>
+                            <th style="width: 120px;" data-col="status">订单状态<div class="resizer"></div></th>
+                            <th style="width: 120px;" data-col="preferredTime">意向上课时间<div class="resizer"></div></th>
+                            <th style="width: 100px;" data-col="addedDate">报名日期<div class="resizer"></div></th>
+                            <th style="width: 100px;" data-col="refundDate">退款日期<div class="resizer"></div></th>
+                            <th style="width: 100px;" data-col="classStartDate">开班日期<div class="resizer"></div></th>
+                            <th style="width: 120px;" data-col="className">所属班级<div class="resizer"></div></th>
+                            <th style="width: 100px;" data-col="remarks">备注<div class="resizer"></div></th>
+                            <th style="width: 120px;" data-col="institution">机构<div class="resizer"></div></th>
+                            <th style="width: 80px;" data-col="amount">实收金额<div class="resizer"></div></th>
+                            <th style="width: 80px;" data-col="recruitmentIncome">招生收益<div class="resizer"></div></th>
+                            <th style="width: 80px;" data-col="channelCost">渠道费<div class="resizer"></div></th>
+                            <th style="width: 80px;" data-col="newYouthIncome">新青年收益<div class="resizer"></div></th>
+                        </tr>
+                    </thead>
+                    <tbody id="incomeTableBody">
+                        <!-- 数据将通过JavaScript动态填充 -->
+                    </tbody>
+                </table>
             </div>
-            
-            <!-- 在AI分析结果区域前添加图表容器 -->
-            <div class="chart-container" id="incomeChart"></div>
-            
+
             <!-- AI分析结果区域 -->
-            <div id="aiAnalysisSection" style="display: none; margin-top: 30px; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+            <div id="aiAnalysisSection" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 style="margin: 0; font-size: 20px; font-weight: 500;">AI智能分析结果</h2>
                     <button id="closeAnalysisBtn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">×</button>
