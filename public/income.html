@@ -1091,10 +1091,18 @@
                 const chartData = [];
                 filteredStudents.forEach(student => {
                     if (student.addedAt) {
+                        // 打印每个学员的渠道信息，用于调试
+                        console.log('学员渠道信息:', {
+                            name: student.wechatName,
+                            channel: student.channel,
+                            date: student.addedAt
+                        });
+                        
                         chartData.push({
                             date: student.addedAt,
                             channelFee: student.channelCost || 0,
-                            netIncome: student.newYouthIncome || 0
+                            netIncome: student.newYouthIncome || 0,
+                            channel: student.channel || ''  // 确保channel字段存在
                         });
                     }
                 });
@@ -1911,11 +1919,27 @@
                     if (!dailyData[date]) {
                         dailyData[date] = {
                             channelFee: 0,
-                            netIncome: 0
+                            netIncome: 0,
+                            newYouthCount: 0,
+                            otherChannelCount: 0
                         };
                     }
                     dailyData[date].channelFee += parseFloat(item.channelFee || 0);
                     dailyData[date].netIncome += parseFloat(item.netIncome || 0);
+                    
+                    // 打印渠道判断信息
+                    console.log('渠道判断:', {
+                        date: date,
+                        channel: item.channel,
+                        isNewYouth: item.channel === '新青年'
+                    });
+                    
+                    // 统计不同渠道的学员数量
+                    if (item.channel && item.channel.trim() === '新青年') {
+                        dailyData[date].newYouthCount++;
+                    } else {
+                        dailyData[date].otherChannelCount++;
+                    }
                 });
 
                 // 过滤5月8日之后的数据
@@ -1924,10 +1948,13 @@
                     .filter(date => date >= targetDate)
                     .sort();
                 
+                // 打印最终统计结果
+                console.log('每日统计结果:', dailyData);
+                
                 const channelFees = dates.map(date => dailyData[date].channelFee.toFixed(2));
                 const netIncomes = dates.map(date => dailyData[date].netIncome.toFixed(2));
-
-                console.log('处理后的数据:', { dates, channelFees, netIncomes });
+                const newYouthCounts = dates.map(date => dailyData[date].newYouthCount);
+                const otherChannelCounts = dates.map(date => dailyData[date].otherChannelCount);
 
                 // 初始化或更新图表
                 if (!myChart) {
@@ -1943,7 +1970,7 @@
                 // 图表配置
                 const option = {
                     title: {
-                        text: '每日渠道费和净收益趋势',
+                        text: '每日收益与渠道分布趋势',
                         left: 'center',
                         top: '20px'
                     },
@@ -1952,13 +1979,17 @@
                         formatter: function(params) {
                             let result = params[0].axisValue + '<br/>';
                             params.forEach(param => {
-                                result += param.seriesName + ': ¥' + param.value + '<br/>';
+                                if (param.seriesName.includes('人数')) {
+                                    result += param.seriesName + ': ' + param.value + ' 人<br/>';
+                                } else {
+                                    result += param.seriesName + ': ¥' + param.value + '<br/>';
+                                }
                             });
                             return result;
                         }
                     },
                     legend: {
-                        data: ['渠道费', '净收益'],
+                        data: ['渠道费', '净收益', '新青年渠道人数', '其他渠道人数'],
                         bottom: '10px'
                     },
                     grid: {
@@ -1976,12 +2007,22 @@
                             interval: 0
                         }
                     },
-                    yAxis: {
-                        type: 'value',
-                        axisLabel: {
-                            formatter: '¥{value}'
+                    yAxis: [
+                        {
+                            type: 'value',
+                            name: '金额',
+                            axisLabel: {
+                                formatter: '¥{value}'
+                            }
+                        },
+                        {
+                            type: 'value',
+                            name: '人数',
+                            splitLine: {
+                                show: false
+                            }
                         }
-                    },
+                    ],
                     series: [
                         {
                             name: '渠道费',
@@ -2000,6 +2041,26 @@
                                 color: '#4CAF50'
                             },
                             smooth: true
+                        },
+                        {
+                            name: '新青年渠道人数',
+                            type: 'bar',
+                            yAxisIndex: 1,
+                            data: newYouthCounts,
+                            itemStyle: {
+                                color: '#1976D2'
+                            },
+                            barGap: '30%'
+                        },
+                        {
+                            name: '其他渠道人数',
+                            type: 'bar',
+                            yAxisIndex: 1,
+                            data: otherChannelCounts,
+                            itemStyle: {
+                                color: '#FFA726'
+                            },
+                            barGap: '30%'
                         }
                     ]
                 };
